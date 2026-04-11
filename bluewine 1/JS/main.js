@@ -20,6 +20,7 @@ function toggleNav() {
 document.querySelectorAll('.nav-links a').forEach(a => {
   a.addEventListener('click', () => {
     document.getElementById('navLinks').classList.remove('open');
+    document.body.classList.remove('menu-open');
   });
 });
 
