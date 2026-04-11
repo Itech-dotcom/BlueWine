@@ -1069,3 +1069,9 @@ footer {
   /* FOOTER */
   .footer-bottom { flex-direction: column; text-align: center; }
 }
+
+body.menu-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}

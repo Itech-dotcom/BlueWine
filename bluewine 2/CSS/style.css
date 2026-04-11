@@ -1184,3 +1184,9 @@ footer {
   .modal-box { padding: 1.8rem 1.2rem; }
   .footer-bottom { flex-direction: column; text-align: center; }
 }
+
+body.menu-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}

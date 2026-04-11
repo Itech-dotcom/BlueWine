@@ -11,7 +11,9 @@ window.addEventListener('scroll', () => {
 
 // ── Menú móvil: abrir / cerrar
 function toggleNav() {
-  document.getElementById('navLinks').classList.toggle('open');
+  const navLinks = document.getElementById('navLinks');
+  navLinks.classList.toggle('open');
+  document.body.classList.toggle('menu-open');
 }
 
 // Cerrar menú al hacer clic en un enlace
