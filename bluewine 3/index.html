@@ -1,0 +1,722 @@
+<!--Programador: Isaac Fernández | Prototipo 3 -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MultiEspacio Blue Wine — Quillón, Ñuble</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Tenor+Sans&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="CSS/style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav id="navbar">
+    <a href="#hero" class="nav-logo">
+      <img src="Imagenes/Logo.png" alt="Blue Wine Multiespacio" class="nav-logo-img" />
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#eventos">Eventos</a></li>
+      <li><a href="#delivery">Delivery</a></li>
+      <li><a href="#pub">Pub & Restó</a></li>
+      <li><a href="#galeria">Galería</a></li>
+      <li><a href="#reservas">Reservas</a></li>
+      <li><a href="#eventos-privados">Eventos Privados</a></li>
+    </ul>
+    <a href="#reservas" class="nav-cta">Reservar</a>
+    <div class="nav-burger" id="burger" onclick="toggleNav()">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════
+       HERO — EVENTO DESTACADO
+  ════════════════════════════════ -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-content">
+      <span class="hero-eyebrow">Próximo Evento · 28 de Marzo 2026</span>
+      <div class="hero-tag-evento">Música en Vivo</div>
+      <h1 class="hero-title">Noche de Jazz<em>en Terraza</em></h1>
+      <p class="hero-desc">Una velada íntima con músicos locales, vinos de la casa y la brisa del Cerro Negro de fondo. Una noche que no querrás perderte.</p>
+      <div class="hero-divider"></div>
+      <div class="hero-bottom">
+        <div class="hero-precio">
+          <span class="hero-precio-label">Entrada desde</span>
+          <span class="hero-precio-num">$8.000</span>
+        </div>
+        <button class="btn-entrada" onclick="abrirModal('Noche de Jazz en Terraza', 8000)">
+          <span class="btn-entrada-dot"></span>
+          Obtén tu entrada aquí
+        </button>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="hero-scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════
+       EVENTOS PRÓXIMOS
+  ════════════════════════════════ -->
+  <section id="eventos">
+    <div class="container">
+      <div class="eventos-header reveal">
+        <div>
+          <p class="section-label">Agenda Blue Wine</p>
+          <h2 class="section-title">Más <em>Eventos</em></h2>
+        </div>
+      </div>
+      <div class="eventos-grid">
+
+        <div class="evento-card reveal">
+          <div class="evento-date-badge">
+            <div class="evento-date">05</div>
+            <div class="evento-month">Abr</div>
+          </div>
+          <div class="evento-info">
+            <div class="evento-tag">Gastronomía</div>
+            <div class="evento-title">Noche de Asado & Vino</div>
+            <div class="evento-desc">Cortes seleccionados a la parrilla, maridados con vinos del sur de Chile.</div>
+            <div class="evento-footer">
+              <div class="evento-precio">$12.000 <span>/ persona</span></div>
+              <button class="btn-comprar" onclick="abrirModal('Noche de Asado & Vino', 12000)">Comprar Entrada →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="evento-card reveal" style="transition-delay:0.15s">
+          <div class="evento-date-badge">
+            <div class="evento-date">19</div>
+            <div class="evento-month">Abr</div>
+          </div>
+          <div class="evento-info">
+            <div class="evento-tag">Fiesta</div>
+            <div class="evento-title">Tarde de Cumbia & Coctelería</div>
+            <div class="evento-desc">Ritmos latinoamericanos, cócteles de autor y buena compañía.</div>
+            <div class="evento-footer">
+              <div class="evento-precio">$6.000 <span>/ persona</span></div>
+              <button class="btn-comprar" onclick="abrirModal('Tarde de Cumbia & Coctelería', 6000)">Comprar Entrada →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="evento-card reveal" style="transition-delay:0.3s">
+          <div class="evento-date-badge">
+            <div class="evento-date">10</div>
+            <div class="evento-month">May</div>
+          </div>
+          <div class="evento-info">
+            <div class="evento-tag">Música en Vivo</div>
+            <div class="evento-title">Rock en Vivo — Bandas Locales</div>
+            <div class="evento-desc">Las mejores bandas de la región de Ñuble en una noche épica.</div>
+            <div class="evento-footer">
+              <div class="evento-precio">$5.000 <span>/ persona</span></div>
+              <button class="btn-comprar" onclick="abrirModal('Rock en Vivo — Bandas Locales', 5000)">Comprar Entrada →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL ENTRADAS -->
+  <div id="modal-entradas" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+      <p class="section-label">Compra de Entradas</p>
+      <h3 class="modal-titulo" id="modal-evento-nombre"></h3>
+      <div class="modal-divider"></div>
+      <div class="modal-cantidad-wrap">
+        <label>Cantidad de entradas</label>
+        <div class="cantidad-control">
+          <button onclick="cambiarCantidad(-1)">−</button>
+          <span id="modal-cantidad">1</span>
+          <button onclick="cambiarCantidad(1)">+</button>
+        </div>
+      </div>
+      <div class="modal-total-wrap">
+        <span>Total</span>
+        <span class="modal-total" id="modal-total">$8.000</span>
+      </div>
+      <p class="modal-nota">Serás redirigido a Flow.cl para completar el pago de forma segura. Recibirás tu ticket con código QR por email.</p>
+      <button class="btn-pagar" onclick="irAPago()">Pagar con Flow →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       DELIVERY — CATEGORÍAS
+  ════════════════════════════════ -->
+  <section id="delivery">
+    <div class="container">
+      <div class="reveal" style="text-align:center; max-width:600px; margin:0 auto 3.5rem;">
+        <p class="section-label">A domicilio</p>
+        <h2 class="section-title">¿Buscas algo para <em>comer y compartir?</em></h2>
+        <p class="section-subtitle">Selecciona lo que se te antoja y te mostramos todo lo disponible.</p>
+      </div>
+
+      <!-- CATEGORÍAS -->
+      <div class="delivery-categorias reveal">
+        <button class="categoria-btn active" onclick="seleccionarCategoria('pizzas', this)">
+          <span class="categoria-icon">🍕</span>
+          <span class="categoria-nombre">Pizzas</span>
+        </button>
+        <button class="categoria-btn" onclick="seleccionarCategoria('sushi', this)">
+          <span class="categoria-icon">🍣</span>
+          <span class="categoria-nombre">Sushi</span>
+        </button>
+        <button class="categoria-btn" onclick="seleccionarCategoria('pastas', this)">
+          <span class="categoria-icon">🍝</span>
+          <span class="categoria-nombre">Pastas</span>
+        </button>
+        <button class="categoria-btn" onclick="seleccionarCategoria('parrilla', this)">
+          <span class="categoria-icon">🥩</span>
+          <span class="categoria-nombre">Parrilla</span>
+        </button>
+        <button class="categoria-btn" onclick="seleccionarCategoria('combos', this)">
+          <span class="categoria-icon">🎁</span>
+          <span class="categoria-nombre">Combos</span>
+        </button>
+      </div>
+
+      <!-- PLATOS POR CATEGORÍA -->
+      <div class="delivery-platos">
+
+        <!-- PIZZAS -->
+        <div class="platos-grid active" id="cat-pizzas">
+          <div class="plato-card">
+            <div class="plato-img">🍕</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Pizza Quattro Stagioni</div>
+              <div class="plato-desc">Jamón, champiñones, alcachofas y aceitunas.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$9.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir una Pizza Quattro Stagioni" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🍕</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Pizza Pepperoni</div>
+              <div class="plato-desc">Pepperoni italiano, mozzarella y salsa de tomate artesanal.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$9.500</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir una Pizza Pepperoni" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🍕</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Pizza Jamón & Queso</div>
+              <div class="plato-desc">Jamón cocido, queso gouda y mozzarella fundida.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$8.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir una Pizza Jamón y Queso" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🍕</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Pizza Carnívora</div>
+              <div class="plato-desc">Carne molida, chorizo, tocino ahumado y cebolla caramelizada.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$11.500</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir una Pizza Carnívora" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUSHI -->
+        <div class="platos-grid" id="cat-sushi">
+          <div class="plato-card">
+            <div class="plato-img">🍣</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Roll Blue Wine (12 pzs)</div>
+              <div class="plato-desc">Camarón tempura, palta, queso crema y salsa de la casa.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$8.500</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Roll Blue Wine" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🍣</div>
+            <div class="plato-info">
+              <div class="plato-nombre">California Roll (8 pzs)</div>
+              <div class="plato-desc">Cangrejo, palta y pepino. Clásico y delicioso.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$6.500</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir California Roll" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🍣</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Combo Sushi 24 pzs</div>
+              <div class="plato-desc">California, Spicy Tuna, Tempura y Philadelphia.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$15.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Combo Sushi 24 pzs" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🍣</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Sashimi Premium</div>
+              <div class="plato-desc">Cortes finos de salmón y atún fresco con jengibre y wasabi.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$12.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Sashimi Premium" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PASTAS -->
+        <div class="platos-grid" id="cat-pastas">
+          <div class="plato-card">
+            <div class="plato-img">🍝</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Fettuccine Alfredo</div>
+              <div class="plato-desc">Crema, parmesano y mantequilla. Clásico italiano.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$8.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir Fettuccine Alfredo" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🍝</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Pasta Bolognesa</div>
+              <div class="plato-desc">Carne molida, tomate natural y hierbas italianas.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$9.500</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir Pasta Bolognesa" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🍝</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Pasta al Pesto</div>
+              <div class="plato-desc">Albahaca fresca, piñones, ajo y aceite de oliva.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$8.500</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir Pasta al Pesto" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PARRILLA -->
+        <div class="platos-grid" id="cat-parrilla">
+          <div class="plato-card">
+            <div class="plato-img">🥩</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Asado de Tira</div>
+              <div class="plato-desc">Corte clásico a la brasa con chimichurri de la casa.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$12.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir Asado de Tira" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🥩</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Entraña a la Parrilla</div>
+              <div class="plato-desc">Corte premium jugoso con papas y ensalada.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$14.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir Entraña a la Parrilla" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🥩</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Choripán Blue Wine</div>
+              <div class="plato-desc">Chorizo artesanal, pan amasado y pebre fresco.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$4.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir Choripán Blue Wine" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMBOS -->
+        <div class="platos-grid" id="cat-combos">
+          <div class="plato-card">
+            <div class="plato-img">🎁</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Combo Familiar</div>
+              <div class="plato-desc">2 pizzas familiares a elección + 1 bebida 1.5L.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$19.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Combo Familiar" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🎁</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Combo Pareja</div>
+              <div class="plato-desc">1 pizza mediana + 24 pzs sushi + 2 bebidas.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$22.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Combo Pareja" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+          <div class="plato-card">
+            <div class="plato-img">🎁</div>
+            <div class="plato-info">
+              <div class="plato-nombre">Combo Grupo (4 personas)</div>
+              <div class="plato-desc">Asado de tira + 2 pizzas + 4 bebidas a elección.</div>
+              <div class="plato-footer">
+                <span class="plato-precio">$39.900</span>
+                <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Combo Grupo" target="_blank" class="btn-pedir">Pedir →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="delivery-cta reveal">
+        <p>¿No encuentras lo que buscas? Escríbenos directamente</p>
+        <a href="https://wa.me/56900000000?text=Hola! Quiero hacer un pedido" target="_blank" class="btn-primary">Pedir por WhatsApp 💬</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════
+       PUB & RESTOBAR
+  ════════════════════════════════ -->
+  <section id="pub">
+    <div class="container">
+      <div class="nosotros-grid">
+        <div class="reveal-left">
+          <div class="nosotros-img-wrap">
+            <div class="nosotros-img-placeholder">
+              <div class="img-icon">🍷</div>
+              <span>Foto del Lugar</span>
+            </div>
+            <div class="nosotros-img-tag">"Un rincón para el alma"</div>
+          </div>
+        </div>
+        <div class="nosotros-text reveal-right">
+          <p class="section-label">Pub · Restaurant · Discoteca</p>
+          <h2 class="section-title">Un multiespacio nacido del <em>sur</em></h2>
+          <p>En el corazón de Quillón, a orillas del camino al Cerro Negro, nació Blue Wine: un espacio donde el entorno natural del Ñuble se fusiona con una propuesta gastronómica auténtica.</p>
+          <p>Somos <strong>pub, restaurant, discoteca y delivery</strong>. Amplia infraestructura con estacionamiento para tu comodidad.</p>
+          <div class="pub-servicios">
+            <div class="pub-servicio">
+              <div class="pub-icon">🍺</div>
+              <div>
+                <div class="pub-nombre">Pub & Bar</div>
+                <div class="pub-desc">Cócteles de autor, vinos y cervezas artesanales</div>
+              </div>
+            </div>
+            <div class="pub-servicio">
+              <div class="pub-icon">🍖</div>
+              <div>
+                <div class="pub-nombre">Restaurant</div>
+                <div class="pub-desc">Cocina de autor con parrilla y raíces sureñas</div>
+              </div>
+            </div>
+            <div class="pub-servicio">
+              <div class="pub-icon">🎵</div>
+              <div>
+                <div class="pub-nombre">Discoteca</div>
+                <div class="pub-desc">Música en vivo y DJ los fines de semana</div>
+              </div>
+            </div>
+            <div class="pub-servicio">
+              <div class="pub-icon">🚗</div>
+              <div>
+                <div class="pub-nombre">Estacionamiento</div>
+                <div class="pub-desc">Amplio estacionamiento para todos nuestros clientes</div>
+              </div>
+            </div>
+          </div>
+          <div class="nosotros-stats">
+            <div><div class="stat-num">18K</div><div class="stat-label">Seguidores IG</div></div>
+            <div><div class="stat-num">4</div><div class="stat-label">Servicios</div></div>
+            <div><div class="stat-num">∞</div><div class="stat-label">Experiencias</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════
+       GALERÍA
+  ════════════════════════════════ -->
+  <section id="galeria">
+    <div class="container">
+      <div class="galeria-header reveal">
+        <p class="section-label">Imágenes</p>
+        <h2 class="section-title">Galería <em>Blue Wine</em></h2>
+      </div>
+    </div>
+    <div class="galeria-grid">
+      <div class="galeria-item"><div class="galeria-icon">🍷</div><span>Terraza Principal</span></div>
+      <div class="galeria-item"><div class="galeria-icon">🌙</div><span>Noche en Blue Wine</span></div>
+      <div class="galeria-item"><div class="galeria-icon">🍖</div><span>Nuestra Cocina</span></div>
+      <div class="galeria-item"><div class="galeria-icon">🎵</div><span>Eventos en Vivo</span></div>
+      <div class="galeria-item"><div class="galeria-icon">🌿</div><span>Salón de Eventos</span></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════
+       RESERVAS
+  ════════════════════════════════ -->
+  <section id="reservas">
+    <div class="container">
+      <div class="contacto-grid">
+        <div class="reveal-left">
+          <p class="section-label">Contáctanos</p>
+          <h2 class="section-title">Haz tu <em>Reserva</em></h2>
+          <p style="color:var(--text-muted); margin-bottom:2rem;">¿Quieres reservar una mesa o tienes alguna consulta? Te respondemos a la brevedad.</p>
+          <div class="info-item">
+            <div class="info-icon">📍</div>
+            <div>
+              <div class="info-label">Dirección</div>
+              <div class="info-value">Camino Cerro Negro Km 3.5, Quillón, Ñuble</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">✉️</div>
+            <div>
+              <div class="info-label">Email</div>
+              <div class="info-value">Bluewinequillon@gmail.com</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">📸</div>
+            <div>
+              <div class="info-label">Instagram</div>
+              <div class="info-value">@bluewine.quillon</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">🕐</div>
+            <div>
+              <div class="info-label">Horario</div>
+              <div class="info-value">Jue–Dom · 13:00 – 23:00 hrs</div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal-right">
+          <div class="contact-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" placeholder="Tu nombre" />
+              </div>
+              <div class="form-group">
+                <label>Teléfono / WhatsApp</label>
+                <input type="tel" placeholder="+56 9 xxxx xxxx" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" placeholder="tu@correo.cl" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tipo de reserva</label>
+                <select>
+                  <option value="">Selecciona...</option>
+                  <option>Mesa en Terraza</option>
+                  <option>Mesa en Salón</option>
+                  <option>Noche en Discoteca</option>
+                  <option>Consulta General</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Fecha deseada</label>
+                <input type="date" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Número de personas</label>
+              <input type="number" min="1" placeholder="Ej: 4" />
+            </div>
+            <div class="form-group">
+              <label>Mensaje</label>
+              <textarea placeholder="Cuéntanos más sobre tu visita..."></textarea>
+            </div>
+            <button class="btn-submit">Enviar Solicitud →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════
+       EVENTOS PRIVADOS
+  ════════════════════════════════ -->
+  <section id="eventos-privados">
+    <div class="container">
+      <div class="reveal" style="text-align:center; max-width:620px; margin:0 auto 3.5rem;">
+        <p class="section-label">Para tu celebración</p>
+        <h2 class="section-title">¿Buscas realizar un <em>evento privado?</em></h2>
+        <p class="section-subtitle">Selecciona el tipo de evento y te contamos cómo lo hacemos realidad.</p>
+      </div>
+
+      <!-- OPCIONES -->
+      <div class="privados-opciones reveal">
+        <button class="privado-btn active" onclick="seleccionarEvento('cumple', this)">🎂 Cumpleaños</button>
+        <button class="privado-btn" onclick="seleccionarEvento('matrimonio', this)">💍 Matrimonios</button>
+        <button class="privado-btn" onclick="seleccionarEvento('corporativo', this)">🏢 Corporativo</button>
+        <button class="privado-btn" onclick="seleccionarEvento('graduacion', this)">🎓 Graduaciones</button>
+      </div>
+
+      <!-- DETALLE DEL EVENTO -->
+      <div class="privado-detalle">
+
+        <div class="privado-panel active" id="ev-cumple">
+          <div class="privado-panel-icon">🎂</div>
+          <div class="privado-panel-content">
+            <h3>Cumpleaños</h3>
+            <p>Celebra tu día especial en un ambiente único. En Blue Wine nos encargamos de que cada detalle sea perfecto para que solo tengas que disfrutar.</p>
+            <ul class="privado-incluye">
+              <li>✓ Decoración personalizada a tu gusto</li>
+              <li>✓ Menú especial diseñado para el evento</li>
+              <li>✓ Música y DJ disponible</li>
+              <li>✓ Capacidad hasta 150 personas</li>
+              <li>✓ Amplio estacionamiento</li>
+            </ul>
+            <a href="#reservas" class="btn-primary">Solicitar Cotización →</a>
+          </div>
+        </div>
+
+        <div class="privado-panel" id="ev-matrimonio">
+          <div class="privado-panel-icon">💍</div>
+          <div class="privado-panel-content">
+            <h3>Matrimonios & Compromisos</h3>
+            <p>Un ambiente elegante y romántico para el día más especial de tu vida. Coordinamos cada detalle contigo para que sea exactamente como lo soñaste.</p>
+            <ul class="privado-incluye">
+              <li>✓ Ambientación romántica y elegante</li>
+              <li>✓ Menú de matrimonio personalizado</li>
+              <li>✓ Coordinación completa del evento</li>
+              <li>✓ Música en vivo o DJ</li>
+              <li>✓ Servicio de fotografía disponible</li>
+            </ul>
+            <a href="#reservas" class="btn-primary">Solicitar Cotización →</a>
+          </div>
+        </div>
+
+        <div class="privado-panel" id="ev-corporativo">
+          <div class="privado-panel-icon">🏢</div>
+          <div class="privado-panel-content">
+            <h3>Eventos Corporativos</h3>
+            <p>Reuniones, lanzamientos de productos, cenas de empresa o team buildings. Contamos con el espacio y los recursos para que tu evento sea un éxito.</p>
+            <ul class="privado-incluye">
+              <li>✓ Salón equipado con proyector y audio</li>
+              <li>✓ Catering y coffee break disponible</li>
+              <li>✓ WiFi y equipamiento técnico</li>
+              <li>✓ Estacionamiento amplio para invitados</li>
+              <li>✓ Coordinación logística completa</li>
+            </ul>
+            <a href="#reservas" class="btn-primary">Solicitar Cotización →</a>
+          </div>
+        </div>
+
+        <div class="privado-panel" id="ev-graduacion">
+          <div class="privado-panel-icon">🎓</div>
+          <div class="privado-panel-content">
+            <h3>Titulaciones & Graduaciones</h3>
+            <p>Festeja tu logro académico en un entorno inigualable. Tenemos paquetes especiales para grupos de egresados con todo lo necesario para una celebración memorable.</p>
+            <ul class="privado-incluye">
+              <li>✓ Paquetes especiales para grupos</li>
+              <li>✓ Menú a elección del grupo</li>
+              <li>✓ Música y ambiente festivo</li>
+              <li>✓ Descuentos por reserva anticipada</li>
+              <li>✓ Opciones de decoración temática</li>
+            </ul>
+            <a href="#reservas" class="btn-primary">Solicitar Cotización →</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MAPA -->
+  <div id="mapa">
+    <div class="mapa-placeholder">
+      <div class="mapa-pin">📍</div>
+      <div class="mapa-text">Camino Cerro Negro Km 3.5 · Quillón, Ñuble</div>
+      <div class="mapa-sub">-36.7757, -72.4824</div>
+      <a href="https://maps.app.goo.gl/RPH12uzGPDRrYxdr7" target="_blank">Ver en Google Maps →</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="Imagenes/logo.png" alt="Blue Wine" class="footer-logo-img" />
+          <p>Un multiespacio en Quillón para vivir el sur de Chile. Pub, restaurant, discoteca y delivery en un ambiente único.</p>
+          <div class="footer-socials">
+            <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="social-btn">📸</a>
+            <a href="https://wa.me/56900000000" target="_blank" class="social-btn">💬</a>
+            <a href="mailto:Bluewinequillon@gmail.com" class="social-btn">✉️</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Navegación</h4>
+          <ul>
+            <li><a href="#eventos">Eventos</a></li>
+            <li><a href="#delivery">Delivery</a></li>
+            <li><a href="#pub">Pub & Restó</a></li>
+            <li><a href="#galeria">Galería</a></li>
+            <li><a href="#reservas">Reservas</a></li>
+            <li><a href="#eventos-privados">Eventos Privados</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contacto</h4>
+          <ul>
+            <li><a href="#">Camino Cerro Negro Km 3.5</a></li>
+            <li><a href="#">Quillón, Región de Ñuble</a></li>
+            <li><a href="mailto:Bluewinequillon@gmail.com">Bluewinequillon@gmail.com</a></li>
+            <li><a href="#">Jue – Dom: 13:00 – 23:00</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Blue Wine Quillón. Todos los derechos reservados.</span>
+        <span>Quillón, Región de Ñuble, Chile 🇨🇱</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- BOTONES FLOTANTES -->
+  <div class="float-btns">
+    <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="float-btn float-ig">📸</a>
+    <a href="https://wa.me/56900000000" target="_blank" class="float-btn float-wa">💬</a>
+  </div>
+
+  <script src="JS/main.js"></script>
+</body>
+</html>
