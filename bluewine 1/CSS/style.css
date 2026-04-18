@@ -1139,8 +1139,8 @@ footer {
   nav { padding: 1.2rem 1.5rem; }
   .nav-links, .nav-cta { display: none; }
   .nav-burger { display: flex; }
-  .nav-logo-img { height: 60px; }
-  .nav-logo-text { font-size: 1.1rem; }
+  .nav-logo-img { height: 38px; }
+  .nav-logo-text { font-size: 1.3rem; }
   .nav-links.open {
     display: flex; flex-direction: column;
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -1152,9 +1152,9 @@ footer {
   .nav-logo-img { height: 36px; }
 
   /* HERO responsive fix */
-  #hero { padding-bottom: 0; justify-content: center; }
-  .hero-content { padding-bottom: 2rem; }
-  .hero-evento-destacado { position: relative; }
+  #hero { padding-bottom: 0; justify-content: flex-start; padding-top: 7rem; gap: 1rem; }
+  .hero-content { padding-bottom: 0; }
+  .hero-evento-destacado { position: relative; margin-top: auto; }
   .hero-evento-inner { flex-direction: column; }
   .hero-evento-sep { width: 100%; height: 1px; }
   .hero-evento-left,
