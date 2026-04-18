@@ -68,7 +68,7 @@ nav.scrolled {
   gap: 0.8rem;
 }
 .nav-logo-img {
-  height: 52px;
+  height: 58px;
   width: auto;
   object-fit: contain;
   transition: opacity 0.3s;
