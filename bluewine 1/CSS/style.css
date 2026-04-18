@@ -68,7 +68,7 @@ nav.scrolled {
   gap: 0.8rem;
 }
 .nav-logo-img {
-  height: 58px;
+  height: 62px;
   width: auto;
   object-fit: contain;
   transition: opacity 0.3s;
@@ -126,7 +126,8 @@ nav.scrolled {
   text-align: center;
   position: relative;
   overflow: hidden;
-  padding: 6rem 2rem 140px;
+  padding: 6rem 2rem 0;
+  gap: 3rem;
 }
 .hero-bg {
   position: absolute; inset: 0;
@@ -242,10 +243,11 @@ nav.scrolled {
 
 /* HERO EVENTO DESTACADO */
 .hero-evento-destacado {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
+  position: relative;
+  width: 100%;
   z-index: 2;
   padding: 0 2rem;
+  margin-top: auto;
   opacity: 0;
   animation: fadeUp 0.9s 1.2s forwards;
 }
