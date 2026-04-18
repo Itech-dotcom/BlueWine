@@ -1139,7 +1139,7 @@ footer {
   nav { padding: 1.2rem 1.5rem; }
   .nav-links, .nav-cta { display: none; }
   .nav-burger { display: flex; }
-  .nav-logo-img { height: 30px; }
+  .nav-logo-img { height: 60px; }
   .nav-logo-text { font-size: 1.1rem; }
   .nav-links.open {
     display: flex; flex-direction: column;
