@@ -65,20 +65,20 @@ nav.scrolled {
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.8rem;
 }
 .nav-logo-img {
-  height: 38px;
+  height: 52px;
   width: auto;
   object-fit: contain;
   transition: opacity 0.3s;
-  filter: brightness(1);
 }
 .nav-logo-text {
   font-family: 'Playfair Display', serif;
-  font-size: 1.4rem;
-  letter-spacing: 0.06em;
+  font-size: 1.8rem;
+  letter-spacing: 0.04em;
   color: var(--gold-light);
+  line-height: 1;
 }
 .nav-logo-text em {
   font-style: italic;
@@ -126,7 +126,7 @@ nav.scrolled {
   text-align: center;
   position: relative;
   overflow: hidden;
-  padding: 6rem 2rem 0;
+  padding: 6rem 2rem 140px;
 }
 .hero-bg {
   position: absolute; inset: 0;
