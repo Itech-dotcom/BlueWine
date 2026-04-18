@@ -65,15 +65,27 @@ nav.scrolled {
   text-decoration: none;
   display: flex;
   align-items: center;
+  gap: 0.7rem;
 }
 .nav-logo-img {
-  height: 44px;
+  height: 38px;
   width: auto;
   object-fit: contain;
   transition: opacity 0.3s;
+  filter: brightness(1);
 }
-.nav-logo-img:hover { opacity: 0.8; }
-.nav-logo span { color: var(--blue-bright); }
+.nav-logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.06em;
+  color: var(--gold-light);
+}
+.nav-logo-text em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+.nav-logo:hover .nav-logo-img { opacity: 0.8; }
+.nav-logo:hover .nav-logo-text { color: var(--gold); }
 .nav-links { display: flex; gap: 2.2rem; list-style: none; }
 .nav-links a {
   font-family: 'Jost', sans-serif;
@@ -154,7 +166,8 @@ nav.scrolled {
   color: #fff;
   letter-spacing: -0.02em;
   opacity: 0;
-  animation: fadeUp 0.9s 0.4s forwards;
+  animation: fadeUp 0.9s 0.2s forwards;
+  margin-top: -1rem;
 }
 .hero-title em {
   font-style: italic;
@@ -1124,6 +1137,8 @@ footer {
   nav { padding: 1.2rem 1.5rem; }
   .nav-links, .nav-cta { display: none; }
   .nav-burger { display: flex; }
+  .nav-logo-img { height: 30px; }
+  .nav-logo-text { font-size: 1.1rem; }
   .nav-links.open {
     display: flex; flex-direction: column;
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
