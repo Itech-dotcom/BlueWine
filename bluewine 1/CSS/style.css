@@ -1044,8 +1044,8 @@ footer {
 
   /* HERO responsive fix */
   #hero { justify-content: space-between; padding: 0 1.2rem; }
-  .hero-content { padding-top: 8rem; padding-bottom: 1rem; }
-  .hero-evento-destacado { padding: 0 0 4rem 0; }
+  .hero-content { padding-top: 12rem; padding-bottom: 1rem; }
+  .hero-evento-destacado { padding: 0 0 6rem 0; }
   .hero-evento-inner { flex-direction: column; }
   .hero-evento-sep { width: 100%; height: 1px; }
   .hero-evento-left,
