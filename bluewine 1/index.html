@@ -33,6 +33,14 @@
       <li><a href="#reservas">Reservas</a></li>
       <li><a href="#eventos-privados">Eventos Privados</a></li>
     </ul>
+    <div class="nav-carritos">
+      <button class="nav-carrito-btn" onclick="abrirCarritoEntradas()" title="Carrito Entradas">
+        🎟️ <span class="badge-carrito" id="badge-carrito-entradas" style="display:none">0</span>
+      </button>
+      <button class="nav-carrito-btn" onclick="abrirCarritoComida()" title="Carrito Comida">
+        🛒 <span class="badge-carrito" id="badge-carrito-comida" style="display:none">0</span>
+      </button>
+    </div>
     <a href="#reservas" class="nav-cta">Reservar</a>
     <div class="nav-burger" id="burger" onclick="toggleNav()">
       <span></span><span></span><span></span>
@@ -70,97 +78,139 @@
   </section>
 
   <!-- ═══════════════════════════════════════
-       SECCIÓN 1: EVENTOS CON VENTA DE ENTRADAS
+       SECCIÓN 1: EVENTOS SLIDER VIERNES / SÁBADO
   ════════════════════════════════════════ -->
   <section id="eventos">
     <div class="container">
-      <div class="eventos-header">
+      <div class="eventos-header reveal">
         <div>
-          <p class="section-label">Próximos eventos</p>
+          <p class="section-label">Cada semana</p>
           <h2 class="section-title">Agenda <em>Blue Wine</em></h2>
         </div>
+        <div class="slider-dots">
+          <span class="slider-dot active" onclick="irASlide(0)"></span>
+          <span class="slider-dot" onclick="irASlide(1)"></span>
+        </div>
       </div>
-      <div class="eventos-grid">
 
-        <div class="evento-card reveal">
-          <div class="evento-date-badge">
-            <div class="evento-date">28</div>
-            <div class="evento-month">Mar</div>
-          </div>
-          <div class="evento-info">
-            <div class="evento-tag">Música en Vivo</div>
-            <div class="evento-title">Noche de Jazz en Terraza</div>
-            <div class="evento-desc">Una velada íntima con músicos locales, vinos de la casa y la brisa del Cerro Negro de fondo.</div>
-            <div class="evento-footer">
-              <div class="evento-precio">$8.000 <span>/ persona</span></div>
-              <button class="btn-comprar" onclick="abrirModal('Noche de Jazz en Terraza', 8000)">
-                Comprar Entrada →
-              </button>
+      <div class="eventos-slider-wrap">
+        <div class="eventos-slider" id="eventosSlider">
+
+          <!-- VIERNES -->
+          <div class="evento-slide">
+            <div class="evento-slide-inner">
+              <div class="evento-slide-dia">
+                <span class="evento-slide-label">Cada</span>
+                <span class="evento-slide-nombre-dia">Viernes</span>
+              </div>
+              <div class="evento-slide-content">
+                <div class="evento-tag">Noche de Viernes</div>
+                <div class="evento-title">Viernes en Blue Wine</div>
+                <div class="evento-desc">Música, tragos y buena vibra todos los viernes. El inicio del fin de semana perfecto en Quillón.</div>
+                <div class="evento-footer">
+                  <div class="evento-precio">$5.000 <span>/ entrada general</span></div>
+                  <button class="btn-comprar" onclick="abrirModalGeneral('Viernes Blue Wine', 5000)">Comprar Entrada →</button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="evento-card reveal" style="transition-delay: 0.15s">
-          <div class="evento-date-badge">
-            <div class="evento-date">05</div>
-            <div class="evento-month">Abr</div>
-          </div>
-          <div class="evento-info">
-            <div class="evento-tag">Gastronomía</div>
-            <div class="evento-title">Noche de Asado & Vino</div>
-            <div class="evento-desc">Cortes seleccionados a la parrilla, maridados con vinos del sur de Chile. Reserva con anticipación.</div>
-            <div class="evento-footer">
-              <div class="evento-precio">$12.000 <span>/ persona</span></div>
-              <button class="btn-comprar" onclick="abrirModal('Noche de Asado & Vino', 12000)">
-                Comprar Entrada →
-              </button>
+          <!-- SÁBADO -->
+          <div class="evento-slide">
+            <div class="evento-slide-inner">
+              <div class="evento-slide-dia sabado">
+                <span class="evento-slide-label">Cada</span>
+                <span class="evento-slide-nombre-dia">Sábado</span>
+              </div>
+              <div class="evento-slide-content">
+                <div class="evento-tag">Noche de Sábado</div>
+                <div class="evento-title">Sábados en Blue Wine</div>
+                <div class="evento-desc">La noche más esperada de la semana. DJ en vivo, coctelería premium y el mejor ambiente de la región.</div>
+                <div class="evento-footer">
+                  <div class="evento-precio">$7.000 <span>/ entrada general</span></div>
+                  <button class="btn-comprar" onclick="abrirModalGeneral('Sábado Blue Wine', 7000)">Comprar Entrada →</button>
+                </div>
+              </div>
             </div>
           </div>
+
         </div>
 
-        <div class="evento-card reveal" style="transition-delay: 0.3s">
-          <div class="evento-date-badge">
-            <div class="evento-date">19</div>
-            <div class="evento-month">Abr</div>
-          </div>
-          <div class="evento-info">
-            <div class="evento-tag">Fiesta</div>
-            <div class="evento-title">Tarde de Cumbia & Coctelería</div>
-            <div class="evento-desc">Ritmos latinoamericanos, cócteles de autor y buena compañía. ¡El plan perfecto para el fin de semana!</div>
-            <div class="evento-footer">
-              <div class="evento-precio">$6.000 <span>/ persona</span></div>
-              <button class="btn-comprar" onclick="abrirModal('Tarde de Cumbia & Coctelería', 6000)">
-                Comprar Entrada →
-              </button>
-            </div>
-          </div>
-        </div>
-
+        <button class="slider-arrow slider-prev" onclick="moverSlider(-1)">‹</button>
+        <button class="slider-arrow slider-next" onclick="moverSlider(1)">›</button>
       </div>
     </div>
   </section>
 
-  <!-- MODAL COMPRA DE ENTRADAS -->
-  <div id="modal-entradas" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+  <!-- MODAL EVENTO PRINCIPAL — TIPOS DE ENTRADA (generado dinámicamente) -->
+  <div id="modal-principal" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+    <div class="modal-box modal-box-principal">
+      <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
+      <p class="section-label">Tobal MJ · Sábado 16 de Mayo</p>
+      <h3 class="modal-titulo">Selecciona tu entrada y agrégala al carrito</h3>
+      <div class="modal-divider"></div>
+      <div id="modal-tipos-container"></div>
+      <p class="modal-nota" style="margin-top:1rem;">Selecciona el tipo de entrada para agregarlo al carrito. Puedes agregar varios tipos antes de pagar.</p>
+      <button class="btn-outline" style="width:100%;margin-top:0.8rem;justify-content:center;" onclick="cerrarTodosModales();abrirCarritoEntradas()">Ver carrito de entradas 🎟️</button>
+    </div>
+  </div>
+
+  <!-- MODAL EVENTOS GENERALES (viernes/sábado) -->
+  <div id="modal-general" class="modal-overlay" onclick="cerrarModalOverlay(event)" data-precio="0" data-nombre="" data-cantidad="1">
     <div class="modal-box">
-      <button class="modal-close" onclick="cerrarModal()">✕</button>
-      <p class="section-label">Compra de Entradas</p>
-      <h3 class="modal-titulo" id="modal-evento-nombre"></h3>
+      <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
+      <p class="section-label">Entrada General</p>
+      <h3 class="modal-titulo" id="modal-general-nombre"></h3>
       <div class="modal-divider"></div>
       <div class="modal-cantidad-wrap">
         <label>Cantidad de entradas</label>
         <div class="cantidad-control">
-          <button onclick="cambiarCantidad(-1)">−</button>
-          <span id="modal-cantidad">1</span>
-          <button onclick="cambiarCantidad(1)">+</button>
+          <button onclick="cambiarCantidadGeneral(-1)">−</button>
+          <span id="modal-general-cantidad">1</span>
+          <button onclick="cambiarCantidadGeneral(1)">+</button>
         </div>
       </div>
       <div class="modal-total-wrap">
-        <span>Total</span>
-        <span class="modal-total" id="modal-total">$8.000</span>
+        <span id="modal-general-precio"></span>
+        <span class="modal-total" id="modal-general-total"></span>
       </div>
-      <p class="modal-nota">Serás redirigido a Flow.cl para completar el pago de forma segura. Recibirás tu ticket con código QR por email.</p>
-      <button class="btn-pagar" onclick="irAPago()">Pagar con Flow →</button>
+      <p class="modal-nota">Se agregará al carrito de entradas para proceder al pago con Flow.</p>
+      <button class="btn-pagar" onclick="agregarGeneralAlCarrito()">Agregar al carrito →</button>
+    </div>
+  </div>
+
+  <!-- CARRITO ENTRADAS -->
+  <div id="carrito-entradas" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+    <div class="modal-box modal-box-carrito">
+      <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
+      <p class="section-label">Carrito</p>
+      <h3 class="modal-titulo">🎟️ Tus Entradas</h3>
+      <div class="modal-divider"></div>
+      <div id="carrito-entradas-lista"></div>
+      <div class="carrito-total-wrap">
+        <span>Total</span>
+        <span class="modal-total" id="carrito-entradas-total">$0</span>
+      </div>
+      <p class="modal-nota">Al continuar serás redirigido a Flow.cl para completar el pago. Recibirás tu ticket con QR por email.</p>
+      <button class="btn-pagar" onclick="procederPagoEntradas()">Pagar con Flow →</button>
+      <button class="btn-outline" style="width:100%;margin-top:0.8rem;justify-content:center;" onclick="cerrarTodosModales();abrirModal()">← Agregar más entradas</button>
+    </div>
+  </div>
+
+  <!-- CARRITO COMIDA -->
+  <div id="carrito-comida" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+    <div class="modal-box modal-box-carrito">
+      <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
+      <p class="section-label">Carrito</p>
+      <h3 class="modal-titulo">🛒 Tu Pedido</h3>
+      <div class="modal-divider"></div>
+      <div id="carrito-comida-lista"></div>
+      <div class="carrito-total-wrap">
+        <span>Total</span>
+        <span class="modal-total" id="carrito-comida-total">$0</span>
+      </div>
+      <p class="modal-nota">Al confirmar te redirigiremos a WhatsApp con tu pedido listo para enviar.</p>
+      <button class="btn-pagar" onclick="procederPedidoComida()">Confirmar por WhatsApp 💬</button>
     </div>
   </div>
 
@@ -176,15 +226,14 @@
       </div>
 
       <div class="delivery-tabs reveal">
-        <button class="delivery-tab active" onclick="filtrarMenu('todos')">Todo</button>
-        <button class="delivery-tab" onclick="filtrarMenu('pizza')">🍕 Pizzas</button>
+        <button class="delivery-tab active" onclick="filtrarMenu('pizza')">🍕 Pizzas</button>
         <button class="delivery-tab" onclick="filtrarMenu('sushi')">🍣 Sushi</button>
-        <button class="delivery-tab" onclick="filtrarMenu('promo')">🔥 Promociones</button>
+        <button class="delivery-tab" onclick="filtrarMenu('sandwich')">🥪 Sandwich</button>
       </div>
 
       <div class="delivery-grid">
 
-        <div class="menu-card reveal" data-categoria="pizza promo">
+        <div class="menu-card reveal" data-categoria="pizza">
           <div class="menu-card-img">🍕</div>
           <div class="menu-card-body">
             <div class="menu-badge promo">🔥 Promo</div>
@@ -192,7 +241,7 @@
             <div class="menu-desc">Jamón, champiñones, alcachofas y aceitunas. Masa artesanal horneada en piedra.</div>
             <div class="menu-footer">
               <div class="menu-precio">$9.900</div>
-              <a href="https://wa.me/56900000000?text=Hola! Quiero pedir una Pizza Quattro Stagioni" target="_blank" class="btn-pedir">Pedir →</a>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Pizza Quattro Stagioni', 9900)">+ Agregar</button>
             </div>
           </div>
         </div>
@@ -204,12 +253,12 @@
             <div class="menu-desc">Carne molida, chorizo, tocino ahumado, cebolla caramelizada y queso mozzarella.</div>
             <div class="menu-footer">
               <div class="menu-precio">$11.500</div>
-              <a href="https://wa.me/56900000000?text=Hola! Quiero pedir una Pizza Carnívora" target="_blank" class="btn-pedir">Pedir →</a>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Pizza Carnívora', 11500)">+ Agregar</button>
             </div>
           </div>
         </div>
 
-        <div class="menu-card reveal" style="transition-delay:0.2s" data-categoria="sushi promo">
+        <div class="menu-card reveal" style="transition-delay:0.2s" data-categoria="sushi">
           <div class="menu-card-img">🍣</div>
           <div class="menu-card-body">
             <div class="menu-badge promo">🔥 Promo</div>
@@ -229,12 +278,12 @@
             <div class="menu-desc">Selección de rolls variados: California, Spicy Tuna, Tempura y Philadelphia.</div>
             <div class="menu-footer">
               <div class="menu-precio">$15.900</div>
-              <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Combo Sushi 24 pzs" target="_blank" class="btn-pedir">Pedir →</a>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Combo Sushi 24 pzs', 15900)">+ Agregar</button>
             </div>
           </div>
         </div>
 
-        <div class="menu-card reveal" style="transition-delay:0.4s" data-categoria="pizza promo">
+        <div class="menu-card reveal" style="transition-delay:0.4s" data-categoria="pizza">
           <div class="menu-card-img">🍕</div>
           <div class="menu-card-body">
             <div class="menu-badge promo">🔥 Promo</div>
@@ -242,7 +291,7 @@
             <div class="menu-desc">2 pizzas familiares a elección + 1 bebida 1.5L. La opción perfecta para compartir.</div>
             <div class="menu-footer">
               <div class="menu-precio">$19.900</div>
-              <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Combo Familiar" target="_blank" class="btn-pedir">Pedir →</a>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Combo Familiar', 19900)">+ Agregar</button>
             </div>
           </div>
         </div>
@@ -254,7 +303,43 @@
             <div class="menu-desc">Cortes finos de salmón y atún fresco, acompañados de jengibre encurtido y wasabi.</div>
             <div class="menu-footer">
               <div class="menu-precio">$12.900</div>
-              <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Sashimi Premium" target="_blank" class="btn-pedir">Pedir →</a>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sashimi Premium', 12900)">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card reveal" style="transition-delay:0.1s" data-categoria="sandwich">
+          <div class="menu-card-img">🥪</div>
+          <div class="menu-card-body">
+            <div class="menu-nombre">Sandwich Lomito</div>
+            <div class="menu-desc">Lomito jugoso, palta, tomate, mayonesa y chucrut en pan amasado artesanal.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$5.900</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sandwich Lomito', 5900)">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card reveal" style="transition-delay:0.2s" data-categoria="sandwich">
+          <div class="menu-card-img">🥪</div>
+          <div class="menu-card-body">
+            <div class="menu-nombre">Sandwich Mechada</div>
+            <div class="menu-desc">Carne mechada desmenuzada, tomate, palta y alioli de la casa.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$5.500</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sandwich Mechada', 5500)">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card reveal" style="transition-delay:0.3s" data-categoria="sandwich">
+          <div class="menu-card-img">🥪</div>
+          <div class="menu-card-body">
+            <div class="menu-nombre">Sandwich Pollo Crocante</div>
+            <div class="menu-desc">Pechuga apanada, lechuga, tomate y salsa de mostaza-miel casera.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$5.900</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sandwich Pollo Crocante', 5900)">+ Agregar</button>
             </div>
           </div>
         </div>
@@ -568,6 +653,9 @@
     <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="float-btn float-ig" title="Instagram">📸</a>
     <a href="https://wa.me/56900000000" target="_blank" class="float-btn float-wa" title="WhatsApp">💬</a>
   </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
 
   <script src="JS/main.js"></script>
 </body>
