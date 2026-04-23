@@ -321,7 +321,7 @@ function procederPagoEntradas() {
     };
   });
 
-  fetch('bluewine-production.up.railway.app', {
+  fetch('https://bluewine-production.up.railway.app/crear-pago', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ items })
