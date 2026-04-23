@@ -309,9 +309,32 @@ function eliminarDeCarritoE(id) {
 
 function procederPagoEntradas() {
   if (carritoEntradas.length === 0) { mostrarToast('⚠️ Agrega entradas al carrito primero', true); return; }
-  const total = carritoEntradas.reduce((s, i) => s + i.precio * i.cantidad, 0);
-  const resumen = carritoEntradas.map(i => `${i.cantidad}x ${i.nombre}`).join(', ');
-  alert(`Redirigiendo a Flow.cl\n\n${resumen}\n\nTotal: ${formatPrecio(total)}\n\n(Integración con Flow.cl pendiente)`);
+
+  mostrarToast('⏳ Procesando pago...');
+
+  const items = carritoEntradas.map(i => {
+    const d = calcularDesglose(i.precio, i.cantidad);
+    return {
+      nombre: i.nombre,
+      cantidad: i.cantidad,
+      precioFinal: d.totalUnit
+    };
+  });
+
+  fetch('http://127.0.0.1:5000/crear-pago', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.sandbox_init_point) {
+      window.location.href = data.sandbox_init_point;
+    } else {
+      mostrarToast('⚠️ Error al procesar el pago', true);
+    }
+  })
+  .catch(() => mostrarToast('⚠️ Error de conexión con el servidor', true));
 }
 
 // ══════════════════════════════════════════════════════
