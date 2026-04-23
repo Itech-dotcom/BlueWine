@@ -1,0 +1,6 @@
+flask
+flask-cors
+mercadopago
+requests
+python-dotenv
+gunicorn
