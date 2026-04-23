@@ -21,6 +21,28 @@ const ENTRADAS = {
 };
 
 // ══════════════════════════════════════════════════════
+// CONFIGURACIÓN IVA Y COMISIÓN — EDITAR AQUÍ SI CAMBIA
+// ══════════════════════════════════════════════════════
+const IVA = 0.19;          // 19%
+const COMISION_MP = 0.0399; // 3.99% MercadoPago
+
+function calcularDesglose(precioNeto, cantidad) {
+  const subtotal   = precioNeto * cantidad;
+  const ivaUnit    = Math.round(precioNeto * IVA);
+  const comUnit    = Math.round(precioNeto * COMISION_MP);
+  const totalUnit  = precioNeto + ivaUnit + comUnit;
+  return {
+    subtotal,
+    ivaTotal:   ivaUnit * cantidad,
+    comTotal:   comUnit * cantidad,
+    totalFinal: totalUnit * cantidad,
+    ivaUnit,
+    comUnit,
+    totalUnit,
+  };
+}
+
+// ══════════════════════════════════════════════════════
 // CARRITOS
 // ══════════════════════════════════════════════════════
 let carritoEntradas = []; // { id, nombre, precio, cantidad }
@@ -234,24 +256,34 @@ function renderizarCarritoEntradas() {
     return;
   }
 
-  lista.innerHTML = carritoEntradas.map(item => `
+  lista.innerHTML = carritoEntradas.map(item => {
+    const d = calcularDesglose(item.precio, item.cantidad);
+    return `
     <div class="carrito-item">
       <div class="carrito-item-info">
         <div class="carrito-item-nombre">${item.nombre}</div>
-        <div class="carrito-item-precio">${formatPrecio(item.precio)} c/u</div>
+        <div class="carrito-item-precio">${formatPrecio(item.precio)} neto c/u</div>
       </div>
       <div class="carrito-item-controls">
         <button onclick="cambiarCantCarritoE('${item.id}', -1)">−</button>
         <span>${item.cantidad}</span>
         <button onclick="cambiarCantCarritoE('${item.id}', 1)">+</button>
       </div>
-      <div class="carrito-item-subtotal">${formatPrecio(item.precio * item.cantidad)}</div>
       <button class="carrito-item-remove" onclick="eliminarDeCarritoE('${item.id}')">✕</button>
     </div>
-  `).join('');
+    <div class="carrito-item-desglose">
+      <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
+      <div class="desglose-row"><span>IVA (19%)</span><span>${formatPrecio(d.ivaTotal)}</span></div>
+      <div class="desglose-row"><span>Comisión servicio (3.99%)</span><span>${formatPrecio(d.comTotal)}</span></div>
+      <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
+    </div>
+  `}).join('');
 
-  const totalVal = carritoEntradas.reduce((s, i) => s + i.precio * i.cantidad, 0);
-  total.textContent = formatPrecio(totalVal);
+  const totalFinal = carritoEntradas.reduce((s, i) => {
+    const d = calcularDesglose(i.precio, i.cantidad);
+    return s + d.totalFinal;
+  }, 0);
+  total.textContent = formatPrecio(totalFinal);
 }
 
 function cambiarCantCarritoE(id, delta) {
@@ -310,24 +342,34 @@ function renderizarCarritoComida() {
     return;
   }
 
-  lista.innerHTML = carritoComida.map(item => `
+  lista.innerHTML = carritoComida.map(item => {
+    const d = calcularDesglose(item.precio, item.cantidad);
+    return `
     <div class="carrito-item">
       <div class="carrito-item-info">
         <div class="carrito-item-nombre">${item.nombre}</div>
-        <div class="carrito-item-precio">${formatPrecio(item.precio)} c/u</div>
+        <div class="carrito-item-precio">${formatPrecio(item.precio)} neto c/u</div>
       </div>
       <div class="carrito-item-controls">
         <button onclick="cambiarCantCarritoC('${item.nombre}', -1)">−</button>
         <span>${item.cantidad}</span>
         <button onclick="cambiarCantCarritoC('${item.nombre}', 1)">+</button>
       </div>
-      <div class="carrito-item-subtotal">${formatPrecio(item.precio * item.cantidad)}</div>
       <button class="carrito-item-remove" onclick="eliminarDeCarritoC('${item.nombre}')">✕</button>
     </div>
-  `).join('');
+    <div class="carrito-item-desglose">
+      <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
+      <div class="desglose-row"><span>IVA (19%) × ${item.cantidad}</span><span>${formatPrecio(d.ivaTotal)}</span></div>
+      <div class="desglose-row"><span>Comisión MP (3.99%) × ${item.cantidad}</span><span>${formatPrecio(d.comTotal)}</span></div>
+      <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
+    </div>
+  `}).join('');
 
-  const totalVal = carritoComida.reduce((s, i) => s + i.precio * i.cantidad, 0);
-  total.textContent = formatPrecio(totalVal);
+  const totalFinal = carritoComida.reduce((s, i) => {
+    const d = calcularDesglose(i.precio, i.cantidad);
+    return s + d.totalFinal;
+  }, 0);
+  total.textContent = formatPrecio(totalFinal);
 }
 
 function cambiarCantCarritoC(nombre, delta) {
@@ -346,9 +388,11 @@ function eliminarDeCarritoC(nombre) {
 
 function procederPedidoComida() {
   if (carritoComida.length === 0) { mostrarToast('⚠️ Agrega productos al carrito primero', true); return; }
-  const resumen = carritoComida.map(i => `${i.cantidad}x ${i.nombre}`).join(', ');
-  const total = carritoComida.reduce((s, i) => s + i.precio * i.cantidad, 0);
-  const msg = encodeURIComponent(`Hola! Quiero hacer el siguiente pedido:\n${carritoComida.map(i => `• ${i.cantidad}x ${i.nombre} - ${formatPrecio(i.precio * i.cantidad)}`).join('\n')}\n\nTOTAL: ${formatPrecio(total)}`);
+  const totalFinal = carritoComida.reduce((s, i) => s + calcularDesglose(i.precio, i.cantidad).totalFinal, 0);
+  const msg = encodeURIComponent(`Hola! Quiero hacer el siguiente pedido:\n${carritoComida.map(i => {
+    const d = calcularDesglose(i.precio, i.cantidad);
+    return `• ${i.cantidad}x ${i.nombre} - ${formatPrecio(d.totalFinal)} (IVA y comisión incluidos)`;
+  }).join('\n')}\n\nTOTAL A PAGAR: ${formatPrecio(totalFinal)}`);
   window.open(`https://wa.me/56987584731?text=${msg}`, '_blank');
 }
 

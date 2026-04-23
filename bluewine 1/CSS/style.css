@@ -1507,3 +1507,33 @@ footer {
   .nav-carritos { gap: 0.3rem; }
   .nav-carrito-btn { width: 36px; height: 36px; font-size: 1rem; }
 }
+/* ══════════════════════════════════════
+   DESGLOSE IVA + COMISIÓN EN CARRITO
+══════════════════════════════════════ */
+.carrito-item-desglose {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--glass-border);
+  border-top: none;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.8rem;
+}
+.desglose-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0.2rem 0;
+}
+.desglose-row span:last-child {
+  color: var(--text-main);
+}
+.desglose-total {
+  border-top: 1px solid var(--glass-border);
+  margin-top: 0.3rem;
+  padding-top: 0.4rem;
+  font-size: 0.82rem;
+}
+.desglose-total span {
+  color: var(--gold-light) !important;
+  font-family: 'Playfair Display', serif;
+}
