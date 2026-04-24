@@ -114,7 +114,7 @@ function renderizarTiposEntrada() {
   const grupos = {
     '🎟️ General': ['preventa1', 'preventa2', 'soloMujeres'],
     '🥂 Mesa VIP': ['mesaVip'],
-    '⭐ VIP':      ['preventaVip', 'vip', 'prevDiamond', 'puertaDiamond'],
+    '⭐ VIP':      ['preventaVip', 'vip', 'prevDiamond', 'puertaDiamond', 'prueba'],
   };
 
   const container = document.getElementById('modal-tipos-container');
