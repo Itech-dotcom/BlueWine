@@ -540,9 +540,34 @@ function mostrarToast(msg, esError = false) {
 }
 
 // ══════════════════════════════════════════════════════
+// PAGO EXITOSO — Detectar redirección de MercadoPago
+// ══════════════════════════════════════════════════════
+function cerrarModalExitoso() {
+  document.getElementById('modal-pago-exitoso').classList.remove('active');
+  document.body.style.overflow = '';
+  // Limpiar el parámetro de la URL sin recargar
+  const url = new URL(window.location.href);
+  url.searchParams.delete('pago');
+  window.history.replaceState({}, '', url);
+}
+
+// ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+  // Detectar redirección de MercadoPago
+  const urlParams = new URLSearchParams(window.location.search);
+  const estadoPago = urlParams.get('pago');
+  if (estadoPago === 'exitoso') {
+    setTimeout(() => {
+      document.getElementById('modal-pago-exitoso').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }, 600);
+  } else if (estadoPago === 'fallido') {
+    setTimeout(() => mostrarToast('⚠️ El pago no se completó. Puedes intentarlo nuevamente.', true), 600);
+  } else if (estadoPago === 'pendiente') {
+    setTimeout(() => mostrarToast('⏳ Tu pago está pendiente de confirmación.'), 600);
+  }
   // Mostrar pizzas por defecto
   document.querySelectorAll('.menu-card').forEach(card => {
     if (!card.dataset.categoria.includes('pizza')) card.classList.add('hidden');
