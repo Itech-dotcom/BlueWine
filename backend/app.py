@@ -204,7 +204,10 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
     resend.api_key = os.getenv("RESEND_API_KEY")
     copia_bw       = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
 
-    # Convertir QR a base64 para adjuntarlo
+    # ── FIX: QR como adjunto con CID en lugar de base64 inline ──
+    # Los clientes de correo (Gmail, Outlook) bloquean imágenes base64
+    # en el src del <img>. La solución estándar es enviar el QR como
+    # adjunto con un content_id y referenciarlo con cid: en el HTML.
     qr_b64 = base64.b64encode(qr_img).decode("utf-8")
 
     html_body = f"""
@@ -221,7 +224,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
       </div>
       <div style="text-align:center;margin:24px 0;">
-        <img src="data:image/png;base64,{qr_b64}" alt="QR Ticket" style="width:200px;height:200px;border:4px solid #c9a84c;border-radius:8px;" />
+        <img src="cid:qr-ticket" alt="QR Ticket" style="width:200px;height:200px;border:4px solid #c9a84c;border-radius:8px;" />
       </div>
       <p style="color:#7a7060;font-size:12px;text-align:center;">Entrada personal e intransferible. Debes presentar tu cédula de identidad al ingresar.</p>
       <hr style="border:none;border-top:1px solid #2a2820;margin:20px 0;" />
@@ -235,6 +238,13 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
         "bcc": [copia_bw],
         "subject": f"🎟️ Tu entrada para {evento} — Blue Wine",
         "html": html_body,
+        "attachments": [
+            {
+                "content": qr_b64,
+                "filename": "ticket-qr.png",
+                "content_id": "qr-ticket",  # ← coincide con cid:qr-ticket en el HTML
+            }
+        ],
     }
 
     response = resend.Emails.send(params)
