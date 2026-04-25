@@ -242,7 +242,9 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
     img_mime.add_header("Content-Disposition", "inline", filename="ticket_qr.png")
     msg.attach(img_mime)
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.ehlo()
+        server.starttls()
         server.login(smtp_user, smtp_pass)
         server.send_message(msg)
 
