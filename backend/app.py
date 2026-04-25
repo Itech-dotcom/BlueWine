@@ -10,10 +10,8 @@ import uuid
 import datetime
 import qrcode
 import io
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
+import resend
+import base64
 from dotenv import load_dotenv
 import gspread
 from google.oauth2.service_account import Credentials
@@ -203,9 +201,11 @@ def _generar_qr(contenido):
 
 
 def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
-    smtp_user = os.getenv("SMTP_USER")   # bluewine.contacto@gmail.com
-    smtp_pass = os.getenv("SMTP_PASS")   # contraseña de aplicación Gmail
-    copia_bw  = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
+    resend.api_key = os.getenv("RESEND_API_KEY")
+    copia_bw       = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
+
+    # Convertir QR a base64 para adjuntarlo
+    qr_b64 = base64.b64encode(qr_img).decode("utf-8")
 
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
@@ -221,7 +221,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
       </div>
       <div style="text-align:center;margin:24px 0;">
-        <img src="cid:qrcode" alt="QR Ticket" style="width:200px;height:200px;border:4px solid #c9a84c;border-radius:8px;" />
+        <img src="data:image/png;base64,{qr_b64}" alt="QR Ticket" style="width:200px;height:200px;border:4px solid #c9a84c;border-radius:8px;" />
       </div>
       <p style="color:#7a7060;font-size:12px;text-align:center;">Entrada personal e intransferible. Debes presentar tu cédula de identidad al ingresar.</p>
       <hr style="border:none;border-top:1px solid #2a2820;margin:20px 0;" />
@@ -229,26 +229,16 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
     </div>
     """
 
-    msg            = MIMEMultipart("related")
-    msg["Subject"] = f"🎟️ Tu entrada para {evento} — Blue Wine"
-    msg["From"]    = smtp_user
-    msg["To"]      = destinatario
-    msg["Bcc"]     = copia_bw
+    params = {
+        "from": "Blue Wine <tickets@bluewine.cl>",
+        "to": [destinatario],
+        "bcc": [copia_bw],
+        "subject": f"🎟️ Tu entrada para {evento} — Blue Wine",
+        "html": html_body,
+    }
 
-    msg.attach(MIMEText(html_body, "html"))
-
-    img_mime = MIMEImage(qr_img, _subtype="png")
-    img_mime.add_header("Content-ID", "<qrcode>")
-    img_mime.add_header("Content-Disposition", "inline", filename="ticket_qr.png")
-    msg.attach(img_mime)
-
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.ehlo()
-        server.starttls()
-        server.login(smtp_user, smtp_pass)
-        server.send_message(msg)
-
-    print(f"Email enviado a {destinatario} (copia a {copia_bw})")
+    response = resend.Emails.send(params)
+    print(f"Email enviado a {destinatario} via Resend — ID: {response['id']}")
 
 
 # ══════════════════════════════════════════════════════
