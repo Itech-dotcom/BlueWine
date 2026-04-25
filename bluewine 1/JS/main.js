@@ -322,20 +322,20 @@ function procederPagoEntradas() {
     };
   });
 
-  fetch('https://bluewine-production.up.railway.app/crear-pago', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.sandbox_init_point) {
-      window.location.href = data.sandbox_init_point;
-    } else {
-      mostrarToast('⚠️ Error al procesar el pago', true);
-    }
-  })
-  .catch(() => mostrarToast('⚠️ Error de conexión con el servidor', true));
+    fetch('https://bluewine-production.up.railway.app/crear-pago', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        mostrarToast('⚠️ Error al procesar el pago', true);
+      }
+    })
+    .catch(() => mostrarToast('⚠️ Error de conexión con el servidor', true));
 }
 
 // ══════════════════════════════════════════════════════
