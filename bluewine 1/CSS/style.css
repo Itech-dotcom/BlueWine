@@ -1537,3 +1537,135 @@ footer {
   color: var(--gold-light) !important;
   font-family: 'Playfair Display', serif;
 }
+/* ══════════════════════════════════════════
+   CHECKOUT FORM
+══════════════════════════════════════════ */
+.modal-box-checkout {
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.checkout-form { display: flex; flex-direction: column; gap: 0; }
+
+.checkout-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.checkout-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.checkout-form-group label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.campo-req { color: var(--gold); }
+
+.checkout-form-group input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 0.65rem 0.9rem;
+  color: var(--text-main);
+  font-family: 'Jost', sans-serif;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.checkout-form-group input:focus {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.04);
+}
+
+.checkout-form-group input.input-error {
+  border-color: #e05252;
+}
+
+.checkout-tc-wrap {
+  margin: 0.4rem 0 0.2rem;
+}
+
+.checkout-tc-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.checkout-tc-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  accent-color: var(--gold);
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.link-tc {
+  background: none;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: 'Jost', sans-serif;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.checkout-error {
+  background: rgba(224,82,82,0.12);
+  border: 1px solid rgba(224,82,82,0.4);
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  color: #e88;
+  font-size: 0.83rem;
+  margin-top: 0.4rem;
+}
+
+/* ══════════════════════════════════════════
+   MODAL TÉRMINOS Y CONDICIONES
+══════════════════════════════════════════ */
+.modal-box-terminos {
+  max-width: 520px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.terminos-contenido {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.terminos-contenido h4 {
+  color: var(--gold-light);
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  margin: 1.1rem 0 0.3rem;
+}
+
+.terminos-contenido h4:first-child { margin-top: 0; }
+
+.terminos-contenido p { margin: 0 0 0.4rem; }
+
+/* Responsive checkout form */
+@media (max-width: 480px) {
+  .checkout-form-row { grid-template-columns: 1fr; }
+  .modal-box-checkout { padding: 1.5rem 1rem; }
+}

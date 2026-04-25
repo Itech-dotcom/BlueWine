@@ -308,8 +308,89 @@ function eliminarDeCarritoE(id) {
   renderizarCarritoEntradas();
 }
 
-function procederPagoEntradas() {
+// ══════════════════════════════════════════════════════
+// CHECKOUT FORM — DATOS DEL COMPRADOR
+// ══════════════════════════════════════════════════════
+
+function abrirCheckoutForm() {
   if (carritoEntradas.length === 0) { mostrarToast('⚠️ Agrega entradas al carrito primero', true); return; }
+  cerrarTodosModales();
+  document.getElementById('modal-checkout').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('checkout-error').style.display = 'none';
+}
+
+function abrirTerminos() {
+  document.getElementById('modal-terminos').classList.add('active');
+}
+
+function aceptarTerminosYVolver() {
+  document.getElementById('co-tc').checked = true;
+  document.getElementById('modal-terminos').classList.remove('active');
+}
+
+function formatearRUT(valor) {
+  // Limpia y formatea RUT chileno mientras el usuario escribe
+  let v = valor.replace(/[^0-9kK]/g, '').toUpperCase();
+  if (v.length < 2) return v;
+  const dv = v.slice(-1);
+  let cuerpo = v.slice(0, -1);
+  cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return cuerpo + '-' + dv;
+}
+
+function validarRUT(rut) {
+  const cleanRut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+  if (cleanRut.length < 2) return false;
+  const dv = cleanRut.slice(-1);
+  const cuerpo = cleanRut.slice(0, -1);
+  let suma = 0, multiplo = 2;
+  for (let i = cuerpo.length - 1; i >= 0; i--) {
+    suma += parseInt(cuerpo[i]) * multiplo;
+    multiplo = multiplo === 7 ? 2 : multiplo + 1;
+  }
+  const dvEsperado = 11 - (suma % 11);
+  const dvReal = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : String(dvEsperado);
+  return dv === dvReal;
+}
+
+function procederPagoEntradas() {
+  // Si estamos en el carrito, abrir el form primero
+  const modalCheckout = document.getElementById('modal-checkout');
+  const modalCarrito = document.getElementById('carrito-entradas');
+
+  // Si el formulario no está activo, ir a él
+  if (!modalCheckout.classList.contains('active')) {
+    abrirCheckoutForm();
+    return;
+  }
+
+  // Validar campos
+  const nombre   = document.getElementById('co-nombre').value.trim();
+  const apellido = document.getElementById('co-apellido').value.trim();
+  const rut      = document.getElementById('co-rut').value.trim();
+  const email    = document.getElementById('co-email').value.trim();
+  const telefono = document.getElementById('co-telefono').value.trim();
+  const tc       = document.getElementById('co-tc').checked;
+
+  const errorEl = document.getElementById('checkout-error');
+  const campos  = ['co-nombre','co-apellido','co-rut','co-email','co-telefono'];
+  campos.forEach(id => document.getElementById(id).classList.remove('input-error'));
+  errorEl.style.display = 'none';
+
+  // Validaciones
+  if (!nombre) { marcarError('co-nombre', '⚠️ Ingresa tu nombre.', errorEl); return; }
+  if (!apellido) { marcarError('co-apellido', '⚠️ Ingresa tu apellido.', errorEl); return; }
+  if (!rut) { marcarError('co-rut', '⚠️ Ingresa tu RUT.', errorEl); return; }
+  if (!validarRUT(rut)) { marcarError('co-rut', '⚠️ El RUT ingresado no es válido. Verifica el dígito verificador.', errorEl); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { marcarError('co-email', '⚠️ Ingresa un correo electrónico válido.', errorEl); return; }
+  if (!telefono) { marcarError('co-telefono', '⚠️ Ingresa tu número de teléfono.', errorEl); return; }
+
+  if (!tc) {
+    errorEl.textContent = '📋 Debes leer y aceptar los Términos y Condiciones antes de continuar.';
+    errorEl.style.display = 'block';
+    return;
+  }
 
   mostrarToast('⏳ Procesando pago...');
 
@@ -322,20 +403,33 @@ function procederPagoEntradas() {
     };
   });
 
-    fetch('https://bluewine-production.up.railway.app/crear-pago', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.init_point) {
-        window.location.href = data.init_point;
-      } else {
-        mostrarToast('⚠️ Error al procesar el pago', true);
-      }
-    })
-    .catch(() => mostrarToast('⚠️ Error de conexión con el servidor', true));
+  const comprador = { nombre, apellido, rut, email, telefono };
+
+  fetch('https://bluewine-production.up.railway.app/crear-pago', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items, comprador })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.init_point) {
+      window.location.href = data.init_point;
+    } else {
+      errorEl.textContent = '⚠️ Error al procesar el pago. Intenta nuevamente.';
+      errorEl.style.display = 'block';
+    }
+  })
+  .catch(() => {
+    errorEl.textContent = '⚠️ Error de conexión con el servidor. Intenta nuevamente.';
+    errorEl.style.display = 'block';
+  });
+}
+
+function marcarError(campoId, mensaje, errorEl) {
+  document.getElementById(campoId).classList.add('input-error');
+  document.getElementById(campoId).focus();
+  errorEl.textContent = mensaje;
+  errorEl.style.display = 'block';
 }
 
 // ══════════════════════════════════════════════════════
@@ -453,6 +547,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.menu-card').forEach(card => {
     if (!card.dataset.categoria.includes('pizza')) card.classList.add('hidden');
   });
+
+  // Formateo automático RUT
+  const rutInput = document.getElementById('co-rut');
+  if (rutInput) {
+    rutInput.addEventListener('input', function() {
+      const cursorPos = this.selectionStart;
+      const valorAntes = this.value;
+      this.value = formatearRUT(this.value);
+      // Mantener cursor aproximadamente en su posición
+      const diff = this.value.length - valorAntes.length;
+      this.setSelectionRange(cursorPos + diff, cursorPos + diff);
+    });
+  }
 
   // Swipe slider
   let tx = 0;

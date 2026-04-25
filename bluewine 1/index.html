@@ -191,9 +191,84 @@
         <span>Total</span>
         <span class="modal-total" id="carrito-entradas-total">$0</span>
       </div>
-      <p class="modal-nota">Al continuar serás redirigido a Mercado Pago para completar el pago. Recibirás tu ticket con QR por email.</p>
-      <button class="btn-pagar" onclick="procederPagoEntradas()">Pagar con Mercado Pago →</button>
+      <p class="modal-nota" style="margin-bottom:1.2rem;">Al continuar recibirás tu ticket con código QR por email.</p>
+      <button class="btn-pagar" onclick="abrirCheckoutForm()">Continuar con la compra →</button>
       <button class="btn-outline" style="width:100%;margin-top:0.8rem;justify-content:center;" onclick="cerrarTodosModales();abrirModal()">← Agregar más entradas</button>
+    </div>
+  </div>
+
+  <!-- MODAL FORMULARIO CHECKOUT -->
+  <div id="modal-checkout" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+    <div class="modal-box modal-box-checkout">
+      <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
+      <p class="section-label">Paso 2 de 2</p>
+      <h3 class="modal-titulo">Datos del comprador</h3>
+      <div class="modal-divider"></div>
+      <p class="modal-nota" style="margin-bottom:1.4rem;">Tus datos son necesarios para emitir el ticket y enviarlo a tu correo.</p>
+
+      <div class="checkout-form">
+        <div class="checkout-form-row">
+          <div class="checkout-form-group">
+            <label for="co-nombre">Nombre <span class="campo-req">*</span></label>
+            <input type="text" id="co-nombre" placeholder="Ej: Juan" autocomplete="given-name" />
+          </div>
+          <div class="checkout-form-group">
+            <label for="co-apellido">Apellido <span class="campo-req">*</span></label>
+            <input type="text" id="co-apellido" placeholder="Ej: Pérez" autocomplete="family-name" />
+          </div>
+        </div>
+        <div class="checkout-form-group">
+          <label for="co-rut">RUT <span class="campo-req">*</span></label>
+          <input type="text" id="co-rut" placeholder="Ej: 12.345.678-9" maxlength="12" autocomplete="off" />
+        </div>
+        <div class="checkout-form-group">
+          <label for="co-email">Correo electrónico <span class="campo-req">*</span></label>
+          <input type="email" id="co-email" placeholder="tu@correo.cl" autocomplete="email" />
+        </div>
+        <div class="checkout-form-group">
+          <label for="co-telefono">Teléfono / WhatsApp <span class="campo-req">*</span></label>
+          <input type="tel" id="co-telefono" placeholder="+56 9 xxxx xxxx" autocomplete="tel" />
+        </div>
+
+        <div class="checkout-tc-wrap">
+          <label class="checkout-tc-label" for="co-tc">
+            <input type="checkbox" id="co-tc" />
+            <span>He leído y acepto los <button type="button" class="link-tc" onclick="abrirTerminos()">Términos y Condiciones</button></span>
+          </label>
+        </div>
+
+        <div id="checkout-error" class="checkout-error" style="display:none;"></div>
+
+        <button class="btn-pagar" style="margin-top:1.2rem;" onclick="procederPagoEntradas()">Pagar con Mercado Pago →</button>
+        <button class="btn-outline" style="width:100%;margin-top:0.8rem;justify-content:center;" onclick="cerrarTodosModales();abrirCarritoEntradas()">← Volver al carrito</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TÉRMINOS Y CONDICIONES -->
+  <div id="modal-terminos" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+    <div class="modal-box modal-box-terminos">
+      <button class="modal-close" onclick="document.getElementById('modal-terminos').classList.remove('active')">✕</button>
+      <p class="section-label">Blue Wine</p>
+      <h3 class="modal-titulo">Términos y Condiciones</h3>
+      <div class="modal-divider"></div>
+      <div class="terminos-contenido">
+        <h4>1. Entradas y tickets</h4>
+        <p>Las entradas adquiridas son personales e intransferibles. El ticket QR generado es único y válido para un solo ingreso al evento indicado.</p>
+        <h4>2. Política de no devoluciones</h4>
+        <p>Una vez completado el pago, no se realizan devoluciones ni cambios de entradas, salvo en caso de cancelación del evento por parte de Blue Wine.</p>
+        <h4>3. Acceso al recinto</h4>
+        <p>Para ingresar al evento deberá presentar su ticket QR (digital o impreso) junto a su cédula de identidad. Blue Wine se reserva el derecho de admisión.</p>
+        <h4>4. Edad mínima</h4>
+        <p>El ingreso a eventos nocturnos está permitido solo para mayores de 18 años. Se exigirá identificación oficial al momento del ingreso.</p>
+        <h4>5. Responsabilidad</h4>
+        <p>Blue Wine no se hace responsable por pérdidas, robos o accidentes ocurridos dentro del recinto. El asistente acepta estas condiciones al ingresar.</p>
+        <h4>6. Datos personales</h4>
+        <p>Los datos ingresados serán utilizados únicamente para la emisión y envío del ticket, y no serán compartidos con terceros.</p>
+        <h4>7. Contacto</h4>
+        <p>Consultas: <strong>bluewine.contacto@gmail.com</strong> · Instagram: <strong>@bluewine.quillon</strong></p>
+      </div>
+      <button class="btn-pagar" style="margin-top:1.2rem;" onclick="aceptarTerminosYVolver()">Acepto los términos ✓</button>
     </div>
   </div>
 
