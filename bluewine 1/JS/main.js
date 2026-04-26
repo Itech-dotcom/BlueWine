@@ -22,6 +22,36 @@ const ENTRADAS = {
 };
 
 // ══════════════════════════════════════════════════════
+// CONFIGURACIÓN EVENTOS RECURRENTES — EDITAR AQUÍ
+// esGratis: true  → muestra badge "Entrada liberada hasta las hh:mm"
+// horaCorte: hora límite de entrada liberada (solo se muestra si esGratis: true)
+// ══════════════════════════════════════════════════════
+const CONFIG_VIERNES = {
+  esGratis:  false,       // ← cambiar a true para mostrar entrada liberada
+  horaCorte: '23:00',     // ← hora límite entrada liberada
+};
+
+const CONFIG_SABADO = {
+  esGratis:  false,       // ← cambiar a true para mostrar entrada liberada
+  horaCorte: '23:00',     // ← hora límite entrada liberada
+};
+
+// ══════════════════════════════════════════════════════
+// CONFIGURACIÓN ANUNCIO EMERGENTE — EDITAR AQUÍ
+// activo: true → muestra el popup al cargar la página
+// esGratis: true → muestra "Entrada Liberada" en el popup
+// Usa el evento principal (hero) como referencia por defecto
+// ══════════════════════════════════════════════════════
+const CONFIG_ANUNCIO = {
+  activo:   true,                           // ← false para desactivar el popup
+  titulo:   'Tobal MJ — Stage Principal',   // ← nombre del evento
+  fecha:    'Sábado 16 de Mayo',            // ← fecha visible
+  desc:     'Una noche que no querrás perderte. Entradas limitadas.',
+  esGratis: false,                          // ← true si es entrada liberada
+  precio:   null,                           // ← ej: 8000 si quieres mostrar precio (null = no mostrar)
+};
+
+// ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN — EDITAR AQUÍ SI CAMBIA
 // ══════════════════════════════════════════════════════
 const IVA = 0.19;          // 19%
@@ -189,6 +219,52 @@ function agregarGeneralAlCarrito() {
   agregarItemCarritoEntradas({ id: 'general_' + Date.now(), nombre, precio, cantidad });
   cerrarTodosModales();
   mostrarToast('✓ Agregado al carrito de entradas');
+}
+
+// ══════════════════════════════════════════════════════
+// BADGE ENTRADA LIBERADA — sección eventos
+// ══════════════════════════════════════════════════════
+function renderBadgesGratis() {
+  const badgeV = document.getElementById('badge-gratis-viernes');
+  const badgeS = document.getElementById('badge-gratis-sabado');
+  if (badgeV) badgeV.style.display = CONFIG_VIERNES.esGratis ? 'block' : 'none';
+  if (badgeS) badgeS.style.display = CONFIG_SABADO.esGratis  ? 'block' : 'none';
+  if (badgeV) badgeV.textContent = `🎉 Entrada liberada hasta las ${CONFIG_VIERNES.horaCorte}`;
+  if (badgeS) badgeS.textContent = `🎉 Entrada liberada hasta las ${CONFIG_SABADO.horaCorte}`;
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL ANUNCIO EMERGENTE
+// ══════════════════════════════════════════════════════
+function cerrarModalAnuncio() {
+  document.getElementById('modal-anuncio').classList.remove('active');
+  document.body.style.overflow = '';
+  sessionStorage.setItem('anuncio_visto', '1');
+}
+
+function mostrarAnuncioEvento() {
+  if (!CONFIG_ANUNCIO.activo) return;
+  if (sessionStorage.getItem('anuncio_visto')) return;
+
+  document.getElementById('anuncio-titulo').textContent = CONFIG_ANUNCIO.titulo;
+  document.getElementById('anuncio-fecha').textContent  = CONFIG_ANUNCIO.fecha;
+  document.getElementById('anuncio-desc').textContent   = CONFIG_ANUNCIO.desc;
+
+  const precioEl = document.getElementById('anuncio-precio');
+  if (CONFIG_ANUNCIO.esGratis) {
+    precioEl.textContent = '🎉 Entrada Liberada';
+    precioEl.style.color = '#4caf50';
+  } else if (CONFIG_ANUNCIO.precio) {
+    precioEl.textContent = 'Desde ' + formatPrecio(CONFIG_ANUNCIO.precio);
+    precioEl.style.color = '#c9a84c';
+  } else {
+    precioEl.textContent = '';
+  }
+
+  setTimeout(() => {
+    document.getElementById('modal-anuncio').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }, 1500);
 }
 
 function cerrarTodosModales() {
@@ -598,4 +674,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   actualizarBadgeCarrito();
+  renderBadgesGratis();
+  mostrarAnuncioEvento();
 });

@@ -16,6 +16,19 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="CSS/style.css" />
+  <style>
+    .evento-badge-gratis {
+      display: inline-block;
+      background: #0d2b0d;
+      color: #4caf50;
+      border: 1px solid #4caf50;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+  </style>
 </head>
 <body>
 
@@ -109,6 +122,7 @@
                 <div class="evento-desc">Música, tragos y buena vibra todos los viernes. El inicio del fin de semana perfecto en Quillón.</div>
                 <div class="evento-footer">
                   <div class="evento-precio">$5.000 <span>/ entrada general</span></div>
+                  <div id="badge-gratis-viernes" class="evento-badge-gratis" style="display:none;"></div>
                   <button class="btn-comprar" onclick="abrirModalGeneral('Viernes Blue Wine', 5000)">Comprar Entrada →</button>
                 </div>
               </div>
@@ -128,6 +142,7 @@
                 <div class="evento-desc">La noche más esperada de la semana. DJ en vivo, coctelería premium y el mejor ambiente de la región.</div>
                 <div class="evento-footer">
                   <div class="evento-precio">$7.000 <span>/ entrada general</span></div>
+                  <div id="badge-gratis-sabado" class="evento-badge-gratis" style="display:none;"></div>
                   <button class="btn-comprar" onclick="abrirModalGeneral('Sábado Blue Wine', 7000)">Comprar Entrada →</button>
                 </div>
               </div>
@@ -269,6 +284,24 @@
         <p>Consultas: <strong>bluewine.contacto@gmail.com</strong> · Instagram: <strong>@bluewine.quillon</strong></p>
       </div>
       <button class="btn-pagar" style="margin-top:1.2rem;" onclick="aceptarTerminosYVolver()">Acepto los términos ✓</button>
+    </div>
+  </div>
+
+  <!-- MODAL ANUNCIO EMERGENTE -->
+  <div id="modal-anuncio" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+    <div class="modal-box" style="text-align:center;max-width:460px;">
+      <button class="modal-close" onclick="cerrarModalAnuncio()">✕</button>
+      <p class="section-label">Próximo Evento</p>
+      <h3 class="modal-titulo" id="anuncio-titulo"></h3>
+      <div class="modal-divider"></div>
+      <div style="margin:1rem 0;">
+        <div style="font-size:2.5rem;">🎵</div>
+        <p id="anuncio-fecha" style="color:var(--gold);font-size:1.1rem;margin:0.5rem 0;font-weight:600;"></p>
+        <p id="anuncio-precio" style="font-size:1rem;margin:0.3rem 0;font-weight:600;"></p>
+        <p id="anuncio-desc" style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;"></p>
+      </div>
+      <button class="btn-pagar" onclick="cerrarModalAnuncio();abrirModal()">🎟️ Obtener entradas</button>
+      <button class="btn-outline" style="width:100%;margin-top:0.7rem;justify-content:center;font-size:0.85rem;" onclick="cerrarModalAnuncio()">Cerrar</button>
     </div>
   </div>
 
