@@ -53,10 +53,19 @@ def get_sheet():
         return ws
 
 
-# ══════════════════════════════════════════════════════
-# ALMACENAMIENTO TEMPORAL comprador pendiente de pago
-# ══════════════════════════════════════════════════════
-compradores_pendientes = {}
+def get_sheet_pendientes():
+    """Retorna la hoja 'pendientes' — almacena compradores antes de que se apruebe el pago."""
+    creds_json = os.getenv("GOOGLE_CREDENTIALS")
+    creds_dict = json.loads(creds_json)
+    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+    client = gspread.authorize(creds)
+    sheet = client.open_by_key(SPREADSHEET_ID)
+    try:
+        return sheet.worksheet("pendientes")
+    except gspread.WorksheetNotFound:
+        ws = sheet.add_worksheet(title="pendientes", rows=500, cols=5)
+        ws.append_row(["compra_id", "comprador_json", "items_json", "preference_id", "fecha"])
+        return ws
 
 
 # ══════════════════════════════════════════════════════
@@ -97,11 +106,19 @@ def crear_pago():
 
     preference = preference_response["response"]
 
-    compradores_pendientes[compra_id] = {
-        "comprador": comprador,
-        "items": items,
-        "preference_id": preference["id"]
-    }
+    # ── Guardar en Sheets en vez de en memoria ──
+    try:
+        ws = get_sheet_pendientes()
+        ws.append_row([
+            compra_id,
+            json.dumps(comprador),
+            json.dumps(items),
+            preference["id"],
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ])
+        print(f"Compra {compra_id} guardada en pendientes")
+    except Exception as e:
+        print(f"Error guardando pendiente en Sheets: {e}")
 
     return jsonify({
         "id": preference["id"],
@@ -128,21 +145,40 @@ def webhook_mp():
 
             print(f"Pago {payment_id} — estado: {status} — compra_id: {compra_id}")
 
-            if status == "approved" and compra_id and compra_id in compradores_pendientes:
-                pendiente = compradores_pendientes.pop(compra_id)
-                comprador = pendiente["comprador"]
-                items     = pendiente["items"]
+            if status == "approved" and compra_id:
+                # Buscar en Sheets pendientes
+                ws_p    = get_sheet_pendientes()
+                rows_p  = ws_p.get_all_records()
+                fila_p  = None
+                pendiente = None
 
-                for item in items:
-                    for _ in range(item["cantidad"]):
-                        _emitir_ticket(
-                            comprador   = comprador,
-                            evento      = item["nombre"],
-                            cantidad    = 1,
-                            precio_unit = item["precioFinal"],
-                            total       = item["precioFinal"],
-                            id_pago     = str(payment_id)
-                        )
+                for i, row in enumerate(rows_p, start=2):
+                    if str(row.get("compra_id", "")) == compra_id:
+                        fila_p    = i
+                        pendiente = row
+                        break
+
+                if not pendiente:
+                    print(f"compra_id {compra_id} no encontrado en pendientes")
+                else:
+                    comprador = json.loads(pendiente["comprador_json"])
+                    items     = json.loads(pendiente["items_json"])
+
+                    for item in items:
+                        for _ in range(item["cantidad"]):
+                            _emitir_ticket(
+                                comprador   = comprador,
+                                evento      = item["nombre"],
+                                cantidad    = 1,
+                                precio_unit = item["precioFinal"],
+                                total       = item["precioFinal"],
+                                id_pago     = str(payment_id)
+                            )
+
+                    # Eliminar de pendientes
+                    ws_p.delete_rows(fila_p)
+                    print(f"Compra {compra_id} procesada y eliminada de pendientes")
+
         except Exception as e:
             print("Error procesando webhook:", e)
 
