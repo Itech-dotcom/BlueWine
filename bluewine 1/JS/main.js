@@ -52,6 +52,11 @@ const CONFIG_ANUNCIO = {
   imagen:   'Imagenes/evento-principal.jpg', // ← ruta de la imagen (null = sin imagen)
 };
 
+// ── Nombre del evento principal — se antepone al tipo de entrada en el ticket
+// Ej: "Tobal MJ — Preventa 1"
+// ← EDITAR AQUÍ cuando cambie el evento
+const NOMBRE_EVENTO_PRINCIPAL = 'Tobal MJ';
+
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN — EDITAR AQUÍ SI CAMBIA
 // ══════════════════════════════════════════════════════
@@ -555,7 +560,7 @@ function procederPagoEntradas() {
 
   const items = carritoEntradas.map(i => {
     const d = calcularDesglose(i.precio, i.cantidad);
-    return { nombre: i.nombre, cantidad: i.cantidad, precioFinal: d.totalUnit };
+    return { nombre: `${NOMBRE_EVENTO_PRINCIPAL} — ${i.nombre}`, cantidad: i.cantidad, precioFinal: d.totalUnit };
   });
 
   fetch('https://bluewine-production.up.railway.app/crear-pago', {
