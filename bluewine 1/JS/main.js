@@ -49,6 +49,7 @@ const CONFIG_ANUNCIO = {
   desc:     'Una noche que no querrás perderte. Entradas limitadas.',
   esGratis: false,                          // ← true si es entrada liberada
   precio:   null,                           // ← ej: 8000 si quieres mostrar precio (null = no mostrar)
+  imagen:   'Imagenes/evento-principal.jpg', // ← ruta de la imagen (null = sin imagen)
 };
 
 // ══════════════════════════════════════════════════════
@@ -249,6 +250,14 @@ function mostrarAnuncioEvento() {
   document.getElementById('anuncio-titulo').textContent = CONFIG_ANUNCIO.titulo;
   document.getElementById('anuncio-fecha').textContent  = CONFIG_ANUNCIO.fecha;
   document.getElementById('anuncio-desc').textContent   = CONFIG_ANUNCIO.desc;
+
+  const imgEl = document.getElementById('anuncio-imagen');
+  if (CONFIG_ANUNCIO.imagen) {
+    imgEl.src          = CONFIG_ANUNCIO.imagen;
+    imgEl.style.display = 'block';
+  } else {
+    imgEl.style.display = 'none';
+  }
 
   const precioEl = document.getElementById('anuncio-precio');
   if (CONFIG_ANUNCIO.esGratis) {
