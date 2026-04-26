@@ -27,7 +27,7 @@ const ENTRADAS = {
 // horaCorte: hora límite de entrada liberada (solo se muestra si esGratis: true)
 // ══════════════════════════════════════════════════════
 const CONFIG_VIERNES = {
-  esGratis:  true,       // ← cambiar a true para mostrar entrada liberada
+  esGratis:  false,       // ← cambiar a true para mostrar entrada liberada
   horaCorte: '23:00',     // ← hora límite entrada liberada
 };
 
@@ -191,36 +191,77 @@ function renderizarTiposEntrada() {
 
 // ── Modal viernes/sábado (entrada general)
 function abrirModalGeneral(nombre, precio) {
+  const configKey  = nombre.toLowerCase().includes('viernes') ? 'viernes' : 'sabado';
+  const config     = configKey === 'viernes' ? CONFIG_VIERNES : CONFIG_SABADO;
+  const esGratis   = config.esGratis;
+
+  const modal = document.getElementById('modal-general');
   document.getElementById('modal-general-nombre').textContent = nombre;
-  document.getElementById('modal-general-precio').textContent = formatPrecio(precio);
+  modal.dataset.precio    = precio;
+  modal.dataset.nombre    = nombre;
+  modal.dataset.cantidad  = 1;
+  modal.dataset.esGratis  = esGratis ? 'true' : 'false';
+
+  const precioEl = document.getElementById('modal-general-precio');
+  const totalEl  = document.getElementById('modal-general-total');
+  const notaEl   = document.getElementById('modal-general-nota');
+  const btnEl    = document.getElementById('modal-general-btn');
+
+  if (esGratis) {
+    precioEl.textContent = '🎉 Entrada Liberada';
+    totalEl.textContent  = 'GRATIS';
+    notaEl.textContent   = 'Completa tus datos y recibirás tu entrada con código QR por email.';
+    btnEl.textContent    = 'Obtener entrada gratis →';
+  } else {
+    precioEl.textContent = formatPrecio(precio);
+    totalEl.textContent  = formatPrecio(precio);
+    notaEl.textContent   = 'Se agregará al carrito de entradas para proceder al pago con Mercado Pago.';
+    btnEl.textContent    = 'Agregar al carrito →';
+  }
+
   document.getElementById('modal-general-cantidad').textContent = 1;
-  document.getElementById('modal-general-total').textContent = formatPrecio(precio);
-  document.getElementById('modal-general').dataset.precio = precio;
-  document.getElementById('modal-general').dataset.nombre = nombre;
-  document.getElementById('modal-general').dataset.cantidad = 1;
-  document.getElementById('modal-general').classList.add('active');
+  modal.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 
 function cambiarCantidadGeneral(delta) {
-  const modal = document.getElementById('modal-general');
-  const precio = parseInt(modal.dataset.precio);
+  const modal    = document.getElementById('modal-general');
+  const precio   = parseInt(modal.dataset.precio);
+  const esGratis = modal.dataset.esGratis === 'true';
   let cant = parseInt(modal.dataset.cantidad) + delta;
   cant = Math.max(1, Math.min(20, cant));
   modal.dataset.cantidad = cant;
   document.getElementById('modal-general-cantidad').textContent = cant;
-  document.getElementById('modal-general-total').textContent = formatPrecio(precio * cant);
+  document.getElementById('modal-general-total').textContent = esGratis
+    ? 'GRATIS'
+    : formatPrecio(precio * cant);
 }
 
 function agregarGeneralAlCarrito() {
-  const modal = document.getElementById('modal-general');
-  const nombre = modal.dataset.nombre;
-  const precio = parseInt(modal.dataset.precio);
+  const modal    = document.getElementById('modal-general');
+  const nombre   = modal.dataset.nombre;
+  const precio   = parseInt(modal.dataset.precio);
   const cantidad = parseInt(modal.dataset.cantidad);
-  agregarItemCarritoEntradas({ id: 'general_' + Date.now(), nombre, precio, cantidad });
-  cerrarTodosModales();
-  mostrarToast('✓ Agregado al carrito de entradas');
+  const esGratis = modal.dataset.esGratis === 'true';
+
+  if (esGratis) {
+    // Guardar contexto y abrir checkout sin carrito
+    _pendienteEntradaGratis = { nombre, cantidad };
+    cerrarTodosModales();
+    document.getElementById('checkout-btn-pagar').textContent  = 'Obtener entrada gratis →';
+    document.getElementById('checkout-btn-pagar').dataset.modo = 'gratis';
+    document.getElementById('modal-checkout').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('checkout-error').style.display = 'none';
+  } else {
+    agregarItemCarritoEntradas({ id: 'general_' + Date.now(), nombre, precio, cantidad });
+    cerrarTodosModales();
+    mostrarToast('✓ Agregado al carrito de entradas');
+  }
 }
+
+// Contexto temporal para entrada gratis
+let _pendienteEntradaGratis = null;
 
 // ══════════════════════════════════════════════════════
 // BADGE ENTRADA LIBERADA — sección eventos
@@ -440,11 +481,10 @@ function validarRUT(rut) {
 }
 
 function procederPagoEntradas() {
-  // Si estamos en el carrito, abrir el form primero
   const modalCheckout = document.getElementById('modal-checkout');
-  const modalCarrito = document.getElementById('carrito-entradas');
+  const btnPagar      = document.getElementById('checkout-btn-pagar');
+  const modoGratis    = btnPagar && btnPagar.dataset.modo === 'gratis';
 
-  // Si el formulario no está activo, ir a él
   if (!modalCheckout.classList.contains('active')) {
     abrirCheckoutForm();
     return;
@@ -463,32 +503,60 @@ function procederPagoEntradas() {
   campos.forEach(id => document.getElementById(id).classList.remove('input-error'));
   errorEl.style.display = 'none';
 
-  // Validaciones
-  if (!nombre) { marcarError('co-nombre', '⚠️ Ingresa tu nombre.', errorEl); return; }
-  if (!apellido) { marcarError('co-apellido', '⚠️ Ingresa tu apellido.', errorEl); return; }
-  if (!rut) { marcarError('co-rut', '⚠️ Ingresa tu RUT.', errorEl); return; }
+  if (!nombre)   { marcarError('co-nombre',   '⚠️ Ingresa tu nombre.',    errorEl); return; }
+  if (!apellido) { marcarError('co-apellido', '⚠️ Ingresa tu apellido.',  errorEl); return; }
+  if (!rut)      { marcarError('co-rut',      '⚠️ Ingresa tu RUT.',       errorEl); return; }
   if (!validarRUT(rut)) { marcarError('co-rut', '⚠️ El RUT ingresado no es válido. Verifica el dígito verificador.', errorEl); return; }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { marcarError('co-email', '⚠️ Ingresa un correo electrónico válido.', errorEl); return; }
   if (!telefono) { marcarError('co-telefono', '⚠️ Ingresa tu número de teléfono.', errorEl); return; }
-
   if (!tc) {
     errorEl.textContent = '📋 Debes leer y aceptar los Términos y Condiciones antes de continuar.';
     errorEl.style.display = 'block';
     return;
   }
 
+  const comprador = { nombre, apellido, rut, email, telefono };
+
+  // ── FLUJO GRATIS ──
+  if (modoGratis && _pendienteEntradaGratis) {
+    mostrarToast('⏳ Generando tu entrada...');
+    const { nombre: nombreEvento, cantidad } = _pendienteEntradaGratis;
+
+    fetch('https://bluewine-production.up.railway.app/obtener-entrada-gratis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comprador, nombreEvento, cantidad })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok) {
+        cerrarTodosModales();
+        _pendienteEntradaGratis = null;
+        btnPagar.textContent = 'Pagar con Mercado Pago →';
+        delete btnPagar.dataset.modo;
+        setTimeout(() => {
+          document.getElementById('modal-pago-exitoso').classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }, 300);
+      } else {
+        errorEl.textContent = '⚠️ Error al generar la entrada. Intenta nuevamente.';
+        errorEl.style.display = 'block';
+      }
+    })
+    .catch(() => {
+      errorEl.textContent = '⚠️ Error de conexión con el servidor. Intenta nuevamente.';
+      errorEl.style.display = 'block';
+    });
+    return;
+  }
+
+  // ── FLUJO PAGO NORMAL ──
   mostrarToast('⏳ Procesando pago...');
 
   const items = carritoEntradas.map(i => {
     const d = calcularDesglose(i.precio, i.cantidad);
-    return {
-      nombre: i.nombre,
-      cantidad: i.cantidad,
-      precioFinal: d.totalUnit
-    };
+    return { nombre: i.nombre, cantidad: i.cantidad, precioFinal: d.totalUnit };
   });
-
-  const comprador = { nombre, apellido, rut, email, telefono };
 
   fetch('https://bluewine-production.up.railway.app/crear-pago', {
     method: 'POST',

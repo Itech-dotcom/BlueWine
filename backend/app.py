@@ -252,6 +252,32 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
 
 
 # ══════════════════════════════════════════════════════
+# ENTRADA LIBERADA — sin pago, genera ticket directo
+# ══════════════════════════════════════════════════════
+@app.route("/obtener-entrada-gratis", methods=["POST"])
+def obtener_entrada_gratis():
+    data          = request.get_json()
+    comprador     = data.get("comprador", {})
+    nombre_evento = data.get("nombreEvento", "Evento Blue Wine")
+    cantidad      = int(data.get("cantidad", 1))
+
+    try:
+        for _ in range(cantidad):
+            _emitir_ticket(
+                comprador   = comprador,
+                evento      = nombre_evento,
+                cantidad    = 1,
+                precio_unit = 0,
+                total       = 0,
+                id_pago     = "ENTRADA_LIBERADA"
+            )
+        return jsonify({"ok": True})
+    except Exception as e:
+        print(f"Error generando entrada gratis: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════
 # VERIFICAR TICKET — Página que escanea el guardia
 # ══════════════════════════════════════════════════════
 @app.route("/verificar/<codigo>", methods=["GET"])
