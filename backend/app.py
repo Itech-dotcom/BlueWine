@@ -277,6 +277,91 @@ def obtener_entrada_gratis():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+
+# ══════════════════════════════════════════════════════
+# RECORDATORIOS — cron job diario desde cron-job.org
+# Envía email 1 día antes del evento a todos los tickets ACTIVOS
+# ══════════════════════════════════════════════════════
+@app.route("/enviar-recordatorios", methods=["POST"])
+def enviar_recordatorios():
+    token = request.headers.get("X-Cron-Token", "")
+    if token != os.getenv("CRON_TOKEN", ""):
+        return jsonify({"error": "No autorizado"}), 401
+
+    manana = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
+    try:
+        ws   = get_sheet()
+        rows = ws.get_all_records()
+
+        enviados = 0
+        for row in rows:
+            fecha_ev = str(row.get("fecha_evento", "")).strip()
+            estado   = str(row.get("estado", "")).upper()
+            email    = row.get("email", "")
+
+            if fecha_ev == manana and estado == "ACTIVO" and email:
+                try:
+                    _enviar_email_recordatorio(
+                        destinatario = email,
+                        nombre       = f"{row.get('nombre','')} {row.get('apellido','')}".strip(),
+                        evento       = row.get("evento", "Evento Blue Wine"),
+                        fecha_evento = fecha_ev,
+                        codigo       = row.get("codigo_ticket", "")
+                    )
+                    enviados += 1
+                except Exception as e:
+                    print(f"Error enviando recordatorio a {email}: {e}")
+
+        print(f"Recordatorios enviados: {enviados}")
+        return jsonify({"ok": True, "enviados": enviados})
+
+    except Exception as e:
+        print(f"Error en recordatorios: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+def _enviar_email_recordatorio(destinatario, nombre, evento, fecha_evento, codigo):
+    resend.api_key = os.getenv("RESEND_API_KEY")
+
+    try:
+        dt = datetime.datetime.strptime(fecha_evento, "%Y-%m-%d")
+        dias  = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo']
+        meses = ['enero','febrero','marzo','abril','mayo','junio',
+                 'julio','agosto','septiembre','octubre','noviembre','diciembre']
+        fecha_legible = f"{dias[dt.weekday()]} {dt.day} de {meses[dt.month-1]} de {dt.year}"
+    except Exception:
+        fecha_legible = fecha_evento
+
+    html_body = f"""
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <h1 style="color:#c9a84c;font-size:28px;margin:0;">Blue Wine</h1>
+        <p style="color:#7a7060;font-size:13px;margin:4px 0;">MultiEspacio · Quillón, Ñuble</p>
+      </div>
+      <h2 style="font-size:20px;margin-bottom:8px;">⏰ ¡Mañana es el evento!</h2>
+      <p>Hola <strong>{nombre}</strong>, te recordamos que mañana tienes una entrada para:</p>
+      <div style="background:#13131a;border:1px solid #c9a84c;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+        <p style="margin:0 0 8px;font-size:1.2rem;color:#c9a84c;font-weight:bold;">{evento}</p>
+        <p style="margin:0;color:#aaa;">📅 {fecha_legible}</p>
+        <p style="margin:8px 0 0;font-family:monospace;color:#c9a84c;font-size:15px;">{codigo}</p>
+      </div>
+      <p>Recuerda traer tu entrada QR (revisa el email anterior) y tu <strong>cédula de identidad</strong>.</p>
+      <p style="color:#7a7060;font-size:12px;">📍 Camino Cerro Negro Km 3.5, Quillón, Ñuble</p>
+      <hr style="border:none;border-top:1px solid #2a2820;margin:20px 0;" />
+      <p style="color:#7a7060;font-size:11px;text-align:center;">© 2026 Blue Wine · @bluewine.quillon</p>
+    </div>
+    """
+
+    resend.Emails.send({
+        "from":    "Blue Wine <tickets@bluewine.cl>",
+        "to":      [destinatario],
+        "subject": f"⏰ Recordatorio: {evento} es mañana — Blue Wine",
+        "html":    html_body,
+    })
+    print(f"Recordatorio enviado a {destinatario}")
+
+
 # ══════════════════════════════════════════════════════
 # VERIFICAR TICKET — Página que escanea el guardia
 # ══════════════════════════════════════════════════════
