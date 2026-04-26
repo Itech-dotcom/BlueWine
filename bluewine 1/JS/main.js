@@ -120,7 +120,65 @@ document.querySelectorAll('.espacio-card').forEach(card => {
 
 // ── Formulario reservas
 const btnSubmit = document.querySelector('.btn-submit');
-if (btnSubmit) btnSubmit.addEventListener('click', () => alert('¡Gracias! Tu solicitud fue enviada. Te contactaremos pronto. 🍷'));
+if (btnSubmit) btnSubmit.addEventListener('click', enviarReserva);
+
+function enviarReserva() {
+  const nombre   = document.getElementById('res-nombre').value.trim();
+  const telefono = document.getElementById('res-telefono').value.trim();
+  const email    = document.getElementById('res-email').value.trim();
+  const tipo     = document.getElementById('res-tipo').value.trim();
+  const fecha    = document.getElementById('res-fecha').value.trim();
+  const personas = document.getElementById('res-personas').value.trim();
+  const mensaje  = document.getElementById('res-mensaje').value.trim();
+  const errorEl  = document.getElementById('res-error');
+
+  errorEl.style.display = 'none';
+
+  if (!nombre)   { errorEl.textContent = '⚠️ Ingresa tu nombre.';         errorEl.style.display = 'block'; return; }
+  if (!telefono) { errorEl.textContent = '⚠️ Ingresa tu teléfono.';       errorEl.style.display = 'block'; return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errorEl.textContent = '⚠️ Ingresa un correo válido.';
+    errorEl.style.display = 'block'; return;
+  }
+  if (!tipo)     { errorEl.textContent = '⚠️ Selecciona el tipo de reserva.'; errorEl.style.display = 'block'; return; }
+
+  // Armar texto para WhatsApp
+  const fechaTexto = fecha ? fecha : 'No especificada';
+  const personasTexto = personas ? personas : 'No especificado';
+  const mensajeTexto = mensaje ? mensaje : '—';
+
+  const textoWA = encodeURIComponent(
+    `🍷 *Nueva Solicitud de Reserva — Blue Wine*\n\n` +
+    `👤 *Nombre:* ${nombre}\n` +
+    `📱 *Teléfono:* ${telefono}\n` +
+    `✉️ *Email:* ${email}\n` +
+    `📋 *Tipo:* ${tipo}\n` +
+    `📅 *Fecha:* ${fechaTexto}\n` +
+    `👥 *Personas:* ${personasTexto}\n` +
+    `💬 *Mensaje:* ${mensajeTexto}`
+  );
+
+  // Enviar email via backend
+  fetch('https://bluewine-production.up.railway.app/reserva', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre, telefono, email, tipo, fecha: fechaTexto, personas: personasTexto, mensaje: mensajeTexto })
+  }).catch(err => console.log('Error enviando email reserva:', err));
+
+  // Abrir WhatsApp
+  window.open(`https://wa.me/56977003199?text=${textoWA}`, '_blank');
+
+  // Limpiar formulario y mostrar toast
+  document.getElementById('res-nombre').value   = '';
+  document.getElementById('res-telefono').value = '';
+  document.getElementById('res-email').value    = '';
+  document.getElementById('res-tipo').value     = '';
+  document.getElementById('res-fecha').value    = '';
+  document.getElementById('res-personas').value = '';
+  document.getElementById('res-mensaje').value  = '';
+
+  mostrarToast('✓ Solicitud enviada. Te contactaremos pronto 🍷');
+}
 
 // ══════════════════════════════════════════════════════
 // SLIDER EVENTOS

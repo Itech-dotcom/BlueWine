@@ -362,6 +362,60 @@ def _enviar_email_recordatorio(destinatario, nombre, evento, fecha_evento, codig
     print(f"Recordatorio enviado a {destinatario}")
 
 
+
+# ══════════════════════════════════════════════════════
+# RESERVAS — recibe datos del formulario y envía email
+# ══════════════════════════════════════════════════════
+@app.route("/reserva", methods=["POST"])
+def reserva():
+    data     = request.get_json()
+    nombre   = data.get("nombre", "")
+    telefono = data.get("telefono", "")
+    email    = data.get("email", "")
+    tipo     = data.get("tipo", "")
+    fecha    = data.get("fecha", "")
+    personas = data.get("personas", "")
+    mensaje  = data.get("mensaje", "")
+
+    try:
+        resend.api_key = os.getenv("RESEND_API_KEY")
+        copia_bw       = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
+
+        html_body = f"""
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <h1 style="color:#c9a84c;font-size:28px;margin:0;">Blue Wine</h1>
+            <p style="color:#7a7060;font-size:13px;margin:4px 0;">MultiEspacio · Quillón, Ñuble</p>
+          </div>
+          <h2 style="font-size:18px;margin-bottom:16px;">📋 Nueva Solicitud de Reserva</h2>
+          <div style="background:#13131a;border:1px solid #2a2820;border-radius:8px;padding:20px;margin:16px 0;">
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Nombre:</strong> {nombre}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Teléfono:</strong> {telefono}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Email:</strong> {email}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Tipo:</strong> {tipo}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Fecha:</strong> {fecha}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Personas:</strong> {personas}</p>
+            <p style="margin:0;"><strong style="color:#c9a84c;">Mensaje:</strong> {mensaje}</p>
+          </div>
+          <hr style="border:none;border-top:1px solid #2a2820;margin:20px 0;" />
+          <p style="color:#7a7060;font-size:11px;text-align:center;">© 2026 Blue Wine · @bluewine.quillon</p>
+        </div>
+        """
+
+        resend.Emails.send({
+            "from":    "Blue Wine <tickets@bluewine.cl>",
+            "to":      [copia_bw],
+            "subject": f"📋 Nueva reserva de {nombre} — Blue Wine",
+            "html":    html_body,
+        })
+        print(f"Email reserva enviado — {nombre}")
+        return jsonify({"ok": True})
+
+    except Exception as e:
+        print(f"Error enviando email reserva: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # ══════════════════════════════════════════════════════
 # VERIFICAR TICKET — Página que escanea el guardia
 # ══════════════════════════════════════════════════════
