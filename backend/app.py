@@ -89,9 +89,9 @@ def crear_pago():
             for item in items
         ],
         "back_urls": {
-            "success": "https://itech-dotcom.github.io/BlueWine/bluewine%201/?pago=exitoso",
-            "failure": "https://itech-dotcom.github.io/BlueWine/bluewine%201/?pago=fallido",
-            "pending": "https://itech-dotcom.github.io/BlueWine/bluewine%201/?pago=pendiente"
+            "success": "https://bluewine.cl/?pago=exitoso",
+            "failure": "https://bluewine.cl/?pago=fallido",
+            "pending": "https://bluewine.cl/?pago=pendiente"
         },
         "auto_return": "approved",
         "notification_url": "https://bluewine-production.up.railway.app/webhook-mp",
