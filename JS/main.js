@@ -18,7 +18,6 @@ const ENTRADAS = {
   vip:         { nombre: 'VIP',                precio: 20000,  limite: 150, disponibles: 150, activa: true },
   prevDiamond: { nombre: 'Prev. Diamond',      precio: 20000,  limite: 100, disponibles: 100, activa: true },
   puertaDiamond:{ nombre: 'Puerta Diamond',    precio: 30000,  limite: 100, disponibles: 100, activa: true },
-  prueba: { nombre: 'Entrada prueba', precio: 10, limite: 1, disponibles: 1, activa: true },
 };
 
 // ══════════════════════════════════════════════════════
@@ -208,7 +207,7 @@ function renderizarTiposEntrada() {
   const grupos = {
     '🎟️ General': ['preventa1', 'preventa2', 'soloMujeres'],
     '🥂 Mesa VIP': ['mesaVip'],
-    '⭐ VIP':      ['preventaVip', 'vip', 'prevDiamond', 'puertaDiamond', 'prueba'],
+    '⭐ VIP':      ['preventaVip', 'vip', 'prevDiamond', 'puertaDiamond'],
   };
 
   const container = document.getElementById('modal-tipos-container');
