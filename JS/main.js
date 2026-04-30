@@ -91,14 +91,26 @@ window.addEventListener('scroll', () => {
 });
 
 // ── Menú móvil
+let scrollY = 0;
 function toggleNav() {
-  document.getElementById('navLinks').classList.toggle('open');
+  const navLinks = document.getElementById('navLinks');
+  const isOpen = navLinks.classList.contains('open');
+  if (!isOpen) {
+    scrollY = window.scrollY;
+    document.body.style.top = `-${scrollY}px`;
+  } else {
+    document.body.style.top = '';
+    window.scrollTo(0, scrollY);
+  }
+  navLinks.classList.toggle('open');
   document.body.classList.toggle('menu-open');
 }
 document.querySelectorAll('.nav-links a').forEach(a => {
   a.addEventListener('click', () => {
     document.getElementById('navLinks').classList.remove('open');
     document.body.classList.remove('menu-open');
+    document.body.style.top = '';
+    window.scrollTo(0, scrollY);
   });
 });
 
