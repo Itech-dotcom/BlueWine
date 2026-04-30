@@ -1072,9 +1072,14 @@ footer {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(10,22,40,0.98);
     align-items: center; justify-content: center;
-    gap: 2.5rem; z-index: 999;
+    gap: 2.5rem; z-index: 998;
   }
   .nav-links.open a { font-size: 1.2rem; }
+  /* Navbar siempre encima del menú abierto */
+  body.menu-open nav {
+    z-index: 999;
+    background: rgba(10,22,40,0.99);
+  }
   .nav-logo-img { height: 36px; }
 
   /* HERO responsive fix */

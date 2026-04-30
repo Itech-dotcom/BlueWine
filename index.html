@@ -113,17 +113,21 @@
           <div class="evento-slide">
             <div class="evento-slide-inner">
               <div class="evento-slide-dia">
-                <span class="evento-slide-label">Cada</span>
-                <span class="evento-slide-nombre-dia">Viernes</span>
+                <span class="evento-slide-label">Viernes</span>
+                <span class="evento-slide-nombre-dia">1 de Mayo</span>
               </div>
               <div class="evento-slide-content">
-                <div class="evento-tag">Noche de Viernes</div>
-                <div class="evento-title">Viernes en Blue Wine</div>
-                <div class="evento-desc">Música, tragos y buena vibra todos los viernes. El inicio del fin de semana perfecto en Quillón.</div>
-                <div class="evento-footer">
-                  <div class="evento-precio">$5.000 <span>/ entrada general</span></div>
-                  <div id="badge-gratis-viernes" class="evento-badge-gratis" style="display:none;"></div>
-                  <button class="btn-comprar" onclick="abrirModalGeneral('Viernes Blue Wine', 5000)">Comprar Entrada →</button>
+                <div class="evento-tag">Evento Especial</div>
+                <div class="evento-title">DJ Poroto</div>
+                <div class="evento-desc">Una noche con todo. DJ Poroto en vivo, el mejor ambiente y tragos de autor. ¡No te lo pierdas!</div>
+                <div id="badge-gratis-viernes" class="evento-badge-gratis" style="display:none;"></div>
+                <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
+                  <div style="display:flex; flex-direction:column; gap:0.3rem;">
+                    <div class="evento-precio" style="font-size:0.95rem;">👩 Mujeres: <span style="color:var(--gold-light);">2×$7.000</span> <span style="font-size:0.75rem; color:var(--text-muted);">toda la noche</span></div>
+                    <div class="evento-precio" style="font-size:0.95rem;">👨 Hombres: <span style="color:var(--gold-light);">2×$10.000</span> <span style="font-size:0.75rem; color:var(--text-muted);">hasta las 01:00 hrs</span></div>
+                    <div class="evento-precio" style="font-size:0.95rem;">🎟️ General: <span style="color:var(--gold-light);">$10.000</span> <span style="font-size:0.75rem; color:var(--text-muted);">c/cover</span></div>
+                  </div>
+                  <p style="font-size:0.72rem; color:var(--text-muted); letter-spacing:0.08em; margin-top:0.3rem;">⚠️ Entradas disponibles solo en puerta</p>
                 </div>
               </div>
             </div>
@@ -325,7 +329,32 @@
   <!-- ═══════════════════════════════════════
        SECCIÓN 2: DELIVERY
   ════════════════════════════════════════ -->
-  <section id="delivery">
+  <section id="delivery" style="position:relative;">
+  <!-- ▼ QUITAR ESTE DIV CUANDO LA CARTA ESTÉ LISTA ▼ -->
+  <div style="
+    position:absolute; inset:0; z-index:10;
+    background:rgba(10,22,40,0.92);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:1rem; text-align:center; padding:2rem;
+    backdrop-filter:blur(4px);
+  ">
+    <div style="font-size:2.5rem;">🍕</div>
+    <p style="font-family:'Jost',sans-serif; font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold);">Muy pronto</p>
+    <h2 style="font-family:'Playfair Display',serif; font-size:2rem; color:#fff;">Delivery <em style="color:var(--gold-light);">Blue Wine</em></h2>
+    <p style="color:var(--text-muted); font-size:0.95rem; max-width:420px; line-height:1.7;">Estamos preparando nuestra carta. Muy pronto podrás hacer tus pedidos directamente desde aquí.</p>
+    <a href="https://wa.me/56977003199?text=Hola! Quiero hacer un pedido" target="_blank" style="
+      margin-top:0.5rem;
+      border:1px solid var(--gold); color:var(--gold-light);
+      padding:0.7rem 1.8rem; font-family:'Jost',sans-serif;
+      font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase;
+      text-decoration:none; transition:all 0.3s;
+    " onmouseover="this.style.background='var(--gold)';this.style.color='var(--blue-deep)'"
+       onmouseout="this.style.background='transparent';this.style.color='var(--gold-light)'">
+      Pedir por WhatsApp 💬
+    </a>
+  </div>
+  <!-- ▲ FIN OVERLAY PRÓXIMAMENTE ▲ -->
     <div class="container">
       <div class="reveal">
         <p class="section-label">A domicilio</p>
@@ -533,6 +562,7 @@
   </section>
 
   <!-- GALERÍA -->
+  <!-- ▼ DESCOMENTAR GALERÍA CUANDO HAYA FOTOS ▼
   <section id="galeria">
     <div class="container">
       <div class="galeria-header reveal">
@@ -548,6 +578,7 @@
       <div class="galeria-item"><div class="galeria-icon">🌿</div><span>Salón de Eventos</span></div>
     </div>
   </section>
+  ▲ FIN GALERÍA — DESCOMENTAR CUANDO HAYA FOTOS ▲ -->
 
   <!-- ═══════════════════════════════════════
        SECCIÓN 4: RESERVAS

@@ -26,7 +26,7 @@ const ENTRADAS = {
 // horaCorte: hora límite de entrada liberada (solo se muestra si esGratis: true)
 // ══════════════════════════════════════════════════════
 const CONFIG_VIERNES = {
-  esGratis:  true,       // ← cambiar a true para mostrar entrada liberada
+  esGratis:  false,       // ← cambiar a true para mostrar entrada liberada
   horaCorte: '23:00',     // ← hora límite entrada liberada
 };
 
