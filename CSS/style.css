@@ -845,29 +845,25 @@ section { padding: 7rem 2rem; overflow-x: hidden; }
 .galeria-header { text-align: center; margin-bottom: 3.5rem; }
 .galeria-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   grid-template-rows: auto auto;
-  gap: 1.5px;
+  gap: 3px;
 }
 .galeria-item {
   background: var(--blue-mid);
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 0.5rem;
-  color: var(--text-muted); font-size: 0.75rem;
-  letter-spacing: 0.1em; text-transform: uppercase;
   overflow: hidden; position: relative;
-  transition: opacity 0.3s;
+  transition: transform 0.4s ease;
+  aspect-ratio: 16/10;
 }
-.galeria-item:hover { opacity: 0.85; }
-.galeria-item:nth-child(1) { grid-column: span 2; grid-row: span 2; aspect-ratio: 1/1; }
-.galeria-item:not(:nth-child(1)) { aspect-ratio: 1/1; }
+.galeria-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.galeria-item:hover img { transform: scale(1.05); }
+.galeria-item:nth-child(1) { grid-column: span 2; aspect-ratio: 16/7; }
 .galeria-icon { font-size: 2.5rem; opacity: 0.2; }
-
-.galeria-item:nth-child(1) { background: linear-gradient(135deg, #0d1e38, #1e3a5a); }
-.galeria-item:nth-child(2) { background: linear-gradient(135deg, #1a0a1e, #2e1540); }
-.galeria-item:nth-child(3) { background: linear-gradient(135deg, #0a1a0e, #1a3a22); }
-.galeria-item:nth-child(4) { background: linear-gradient(135deg, #1e0a0a, #3a1515); }
-.galeria-item:nth-child(5) { background: linear-gradient(135deg, #0a1628, #1e3050); }
 
 /* CONTACTO */
 #contacto {
@@ -1171,7 +1167,7 @@ footer {
 
   /* GALERÍA */
   .galeria-grid { grid-template-columns: 1fr; }
-  .galeria-item:nth-child(1) { grid-column: span 1; }
+  .galeria-item:nth-child(1) { grid-column: span 1; aspect-ratio: 16/10; }
 
   /* EVENTOS PRIVADOS */
   .privados-grid { grid-template-columns: 1fr; }
