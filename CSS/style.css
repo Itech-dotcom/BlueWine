@@ -175,6 +175,46 @@ nav.scrolled {
   display: block;
   object-fit: cover;
 }
+/* CARRUSEL HERO */
+.hero-carrusel {
+  position: relative;
+  width: 100%;
+  user-select: none;
+}
+.hero-carrusel-slide {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  opacity: 0;
+  position: absolute;
+  top: 0; left: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.hero-carrusel-slide.active {
+  opacity: 1;
+  position: relative;
+  pointer-events: auto;
+}
+.hero-carrusel-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+.hero-carrusel-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.hero-carrusel-dot.active {
+  background: var(--gold);
+}
 .hero-evento-overlay {
   position: absolute;
   bottom: 0; left: 0; right: 0;

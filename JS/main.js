@@ -627,6 +627,8 @@ function procederPagoEntradas() {
   // ── FLUJO PAGO NORMAL ──
   mostrarToast('⏳ Procesando pago...');
 
+  const ventana = window.open('', '_blank'); // Abrir antes del fetch para evitar bloqueo en Safari/iOS
+
   const items = carritoEntradas.map(i => {
     const d = calcularDesglose(i.precio, i.cantidad);
     return { nombre: `${NOMBRE_EVENTO_PRINCIPAL} — ${i.nombre}`, cantidad: i.cantidad, precioFinal: d.totalUnit };
@@ -640,13 +642,15 @@ function procederPagoEntradas() {
   .then(res => res.json())
   .then(data => {
     if (data.init_point) {
-      window.location.href = data.init_point;
+      ventana.location.href = data.init_point;
     } else {
+      ventana.close();
       errorEl.textContent = '⚠️ Error al procesar el pago. Intenta nuevamente.';
       errorEl.style.display = 'block';
     }
   })
   .catch(() => {
+    ventana.close();
     errorEl.textContent = '⚠️ Error de conexión con el servidor. Intenta nuevamente.';
     errorEl.style.display = 'block';
   });

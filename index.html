@@ -115,7 +115,14 @@
     <!-- EVENTO DESTACADO CON IMAGEN -->
     <div class="hero-evento-destacado">
       <div class="hero-evento-img-wrap">
-        <img src="Imagenes/evento-principal.jpg" alt="Tobal MJ - Sábado 16 de Mayo" class="hero-evento-img" />
+        <div class="hero-carrusel" id="heroCarrusel">
+          <img src="Imagenes/flyer_1.jpg" alt="Tobal MJ - Sábado 16 de Mayo" class="hero-carrusel-slide active" />
+          <img src="Imagenes/flyer_2.jpg" alt="Tobal MJ - Layout Stage" class="hero-carrusel-slide" />
+        </div>
+        <div class="hero-carrusel-dots">
+          <span class="hero-carrusel-dot active" onclick="irSlide(0)"></span>
+          <span class="hero-carrusel-dot" onclick="irSlide(1)"></span>
+        </div>
       </div>
       <div class="hero-evento-footer">
         <div class="hero-evento-fecha-txt">Sábado 16 de Mayo</div>
@@ -233,7 +240,7 @@
         <span id="modal-general-precio"></span>
         <span class="modal-total" id="modal-general-total"></span>
       </div>
-      <p class="modal-nota" id="modal-general-nota">Se agregará al carrito de entradas para proceder al pago con Mercado Pago.</p>
+      <p class="modal-nota" id="modal-general-nota">Se agregará al carrito de entradas para proceder al pago.</p>
       <button class="btn-pagar" id="modal-general-btn" onclick="agregarGeneralAlCarrito()">Agregar al carrito →</button>
     </div>
   </div>
@@ -298,7 +305,7 @@
 
         <div id="checkout-error" class="checkout-error" style="display:none;"></div>
 
-        <button class="btn-pagar" id="checkout-btn-pagar" style="margin-top:1.2rem;" onclick="procederPagoEntradas()">Pagar con Mercado Pago →</button>
+        <button class="btn-pagar" id="checkout-btn-pagar" style="margin-top:1.2rem;" onclick="procederPagoEntradas()">Continuar con el Pago →</button>
         <button class="btn-outline" style="width:100%;margin-top:0.8rem;justify-content:center;" onclick="cerrarTodosModales();abrirCarritoEntradas()">← Volver al carrito</button>
       </div>
     </div>
@@ -873,5 +880,41 @@
   <div id="toast" class="toast"></div>
 
   <script src="JS/main.js"></script>
+  <script>
+    // ── Carrusel Hero
+    let _carruselIdx = 0;
+    let _carruselTimer = null;
+    let _carruselPausado = false;
+
+    function irSlide(idx) {
+      const slides = document.querySelectorAll('.hero-carrusel-slide');
+      const dots   = document.querySelectorAll('.hero-carrusel-dot');
+      slides[_carruselIdx].classList.remove('active');
+      dots[_carruselIdx].classList.remove('active');
+      _carruselIdx = idx % slides.length;
+      slides[_carruselIdx].classList.add('active');
+      dots[_carruselIdx].classList.add('active');
+    }
+
+    function siguienteSlide() {
+      if (!_carruselPausado) {
+        const slides = document.querySelectorAll('.hero-carrusel-slide');
+        irSlide((_carruselIdx + 1) % slides.length);
+      }
+    }
+
+    function iniciarCarrusel() {
+      _carruselTimer = setInterval(siguienteSlide, 5000);
+      const carrusel = document.getElementById('heroCarrusel');
+      if (!carrusel) return;
+      // Pausa al mantener presionado
+      carrusel.addEventListener('mousedown',  () => { _carruselPausado = true; });
+      carrusel.addEventListener('touchstart', () => { _carruselPausado = true; }, { passive: true });
+      carrusel.addEventListener('mouseup',    () => { _carruselPausado = false; });
+      carrusel.addEventListener('touchend',   () => { _carruselPausado = false; });
+    }
+
+    document.addEventListener('DOMContentLoaded', iniciarCarrusel);
+  </script>
 </body>
 </html>
