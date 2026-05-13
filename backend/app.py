@@ -146,6 +146,14 @@ def webhook_mp():
             print(f"Pago {payment_id} — estado: {status} — compra_id: {compra_id}")
 
             if status == "approved" and compra_id:
+                # ── Verificar idempotencia: si el payment_id ya existe en Sheets, ignorar ──
+                ws_t = get_sheet()
+                tickets_existentes = ws_t.get_all_records()
+                for t in tickets_existentes:
+                    if str(t.get("id_pago", "")) == str(payment_id):
+                        print(f"Pago {payment_id} ya procesado anteriormente — ignorando webhook duplicado")
+                        return jsonify({"status": "ok"}), 200
+
                 # Buscar en Sheets pendientes
                 ws_p    = get_sheet_pendientes()
                 rows_p  = ws_p.get_all_records()
