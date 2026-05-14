@@ -15,7 +15,7 @@ const ENTRADAS = {
   soloMujeres:  { nombre: 'Solo Mujeres 2x',    precio: 12000,  limite: 700, disponibles: 0,   activa: true },
   preventa2x1:  { nombre: 'Preventa 2x1',       precio: 13000,  limite: 700, disponibles: 700, activa: true },
   mesaVip:      { nombre: 'Mesa VIP (4 pers.)', precio: 150000, limite: 10,  disponibles: 10,  activa: true },
-  preventaVip:  { nombre: 'Preventa VIP 2x1',  precio: 15000,  limite: 150, disponibles: 150, activa: true },
+  preventaVip:  { nombre: 'Preventa VIP',       precio: 20000,  limite: 150, disponibles: 150, activa: true, precioLabel: '2 × $20.000' },
   vip:          { nombre: 'VIP',                precio: 20000,  limite: 150, disponibles: 150, activa: true },
   prevDiamond:  { nombre: 'Preventa Diamond',   precio: 20000,  limite: 100, disponibles: 100, activa: true },
   puertaDiamond:{ nombre: 'Puerta Diamond',     precio: 30000,  limite: 100, disponibles: 100, activa: true },
@@ -252,7 +252,7 @@ function renderizarTiposEntrada() {
         ${!e.activa || e.disponibles === 0 ? '<div class="modal-tipo-badge agotado-badge">Agotado</div>' : ''}
         <div class="modal-tipo-nombre">${e.nombre}</div>
         ${id === 'mesaVip' ? '<div class="modal-tipo-sub">A un costado del escenario</div>' : ''}
-        <div class="modal-tipo-precio">${formatPrecio(e.precio)}</div>
+        <div class="modal-tipo-precio">${e.precioLabel || formatPrecio(e.precio)}</div>
         ${ultimasEntradas ? '<div class="modal-ultimas">⚡ Últimas entradas</div>' : ''}
       `;
 
