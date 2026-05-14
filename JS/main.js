@@ -60,7 +60,7 @@ const NOMBRE_EVENTO_PRINCIPAL = 'Tobal MJ';
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN — EDITAR AQUÍ SI CAMBIA
 // ══════════════════════════════════════════════════════
-const IVA = 0.19;          // 19%
+const IVA = 0;             // sin IVA
 const COMISION_MP = 0.0399; // 3.99% MercadoPago
 
 function calcularDesglose(precioNeto, cantidad) {
@@ -475,7 +475,6 @@ function renderizarCarritoEntradas() {
     </div>
     <div class="carrito-item-desglose">
       <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
-      <div class="desglose-row"><span>IVA (19%)</span><span>${formatPrecio(d.ivaTotal)}</span></div>
       <div class="desglose-row"><span>Comisión servicio (3.99%)</span><span>${formatPrecio(d.comTotal)}</span></div>
       <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
     </div>
@@ -709,7 +708,6 @@ function renderizarCarritoComida() {
     </div>
     <div class="carrito-item-desglose">
       <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
-      <div class="desglose-row"><span>IVA (19%) × ${item.cantidad}</span><span>${formatPrecio(d.ivaTotal)}</span></div>
       <div class="desglose-row"><span>Comisión MP (3.99%) × ${item.cantidad}</span><span>${formatPrecio(d.comTotal)}</span></div>
       <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
     </div>
@@ -741,7 +739,7 @@ function procederPedidoComida() {
   const totalFinal = carritoComida.reduce((s, i) => s + calcularDesglose(i.precio, i.cantidad).totalFinal, 0);
   const msg = encodeURIComponent(`Hola! Quiero hacer el siguiente pedido:\n${carritoComida.map(i => {
     const d = calcularDesglose(i.precio, i.cantidad);
-    return `• ${i.cantidad}x ${i.nombre} - ${formatPrecio(d.totalFinal)} (IVA y comisión incluidos)`;
+    return `• ${i.cantidad}x ${i.nombre} - ${formatPrecio(d.totalFinal)} (comisión incluida)`;
   }).join('\n')}\n\nTOTAL A PAGAR: ${formatPrecio(totalFinal)}`);
   window.open(`https://wa.me/56987584731?text=${msg}`, '_blank');
 }
