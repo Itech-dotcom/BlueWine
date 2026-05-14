@@ -10,14 +10,15 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  preventa1:   { nombre: 'Preventa 1',         precio: 8000,   limite: 700, disponibles: 0,   activa: true },
-  preventa2:   { nombre: 'Preventa 2',         precio: 13000,  limite: 700, disponibles: 700, activa: true },
-  soloMujeres: { nombre: 'Solo Mujeres 2x',    precio: 12000,  limite: 700, disponibles: 0,   activa: true },
-  mesaVip:     { nombre: 'Mesa VIP (4 pers.)', precio: 150000, limite: 10,  disponibles: 10,  activa: true },
-  preventaVip: { nombre: 'Preventa VIP',       precio: 15000,  limite: 150, disponibles: 150, activa: true },
-  vip:         { nombre: 'VIP',                precio: 20000,  limite: 150, disponibles: 150, activa: true },
-  prevDiamond: { nombre: 'Prev. Diamond',      precio: 20000,  limite: 100, disponibles: 100, activa: true },
-  puertaDiamond:{ nombre: 'Puerta Diamond',    precio: 30000,  limite: 100, disponibles: 100, activa: true },
+  preventa1:    { nombre: 'Preventa 1',         precio: 8000,   limite: 700, disponibles: 0,   activa: true },
+  preventa2:    { nombre: 'Preventa 2',         precio: 13000,  limite: 700, disponibles: 700, activa: true },
+  soloMujeres:  { nombre: 'Solo Mujeres 2x',    precio: 12000,  limite: 700, disponibles: 0,   activa: true },
+  preventa2x1:  { nombre: 'Preventa 2x1',       precio: 13000,  limite: 700, disponibles: 700, activa: true },
+  mesaVip:      { nombre: 'Mesa VIP (4 pers.)', precio: 150000, limite: 10,  disponibles: 10,  activa: true },
+  preventaVip:  { nombre: 'Preventa VIP 2x1',  precio: 15000,  limite: 150, disponibles: 150, activa: true },
+  vip:          { nombre: 'VIP',                precio: 20000,  limite: 150, disponibles: 150, activa: true },
+  prevDiamond:  { nombre: 'Preventa Diamond',   precio: 20000,  limite: 100, disponibles: 100, activa: true },
+  puertaDiamond:{ nombre: 'Puerta Diamond',     precio: 30000,  limite: 100, disponibles: 100, activa: true },
 };
 
 // ══════════════════════════════════════════════════════
@@ -217,9 +218,9 @@ function abrirModal() {
 
 function renderizarTiposEntrada() {
   const grupos = {
-    '🎟️ General': ['preventa1', 'preventa2', 'soloMujeres'],
+    '🎟️ General': ['preventa2x1'],
     '🥂 Mesa VIP': ['mesaVip'],
-    '⭐ VIP':      ['preventaVip', 'vip', 'prevDiamond', 'puertaDiamond'],
+    '⭐ VIP':      ['preventaVip', 'prevDiamond'],
   };
 
   const container = document.getElementById('modal-tipos-container');
