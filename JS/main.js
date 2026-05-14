@@ -13,9 +13,9 @@ const ENTRADAS = {
   preventa1:    { nombre: 'Preventa 1',         precio: 8000,   limite: 700, disponibles: 0,   activa: true },
   preventa2:    { nombre: 'Preventa 2',         precio: 13000,  limite: 700, disponibles: 700, activa: true },
   soloMujeres:  { nombre: 'Solo Mujeres 2x',    precio: 12000,  limite: 700, disponibles: 0,   activa: true },
-  preventa2x1:  { nombre: 'Preventa 2x1',       precio: 13000,  limite: 700, disponibles: 700, activa: true },
+  preventa2x1:  { nombre: 'Preventa 2x1',       precio: 13000,  limite: 700, disponibles: 700, activa: true, nombreMP: 'Preventa 2x1 2 × $13.000' },
   mesaVip:      { nombre: 'Mesa VIP (4 pers.)', precio: 150000, limite: 10,  disponibles: 10,  activa: true },
-  preventaVip:  { nombre: 'Preventa VIP',       precio: 20000,  limite: 150, disponibles: 150, activa: true, precioLabel: '2 × $20.000' },
+  preventaVip:  { nombre: 'Preventa VIP',       precio: 20000,  limite: 150, disponibles: 150, activa: true, precioLabel: '2 × $20.000', nombreMP: 'Preventa VIP 2 × $20.000' },
   vip:          { nombre: 'VIP',                precio: 20000,  limite: 150, disponibles: 150, activa: true },
   prevDiamond:  { nombre: 'Preventa Diamond',   precio: 20000,  limite: 100, disponibles: 100, activa: true },
   puertaDiamond:{ nombre: 'Puerta Diamond',     precio: 30000,  limite: 100, disponibles: 100, activa: true },
@@ -417,7 +417,7 @@ function agregarAlCarritoEntradas(id) {
   if (enCarrito) {
     enCarrito.cantidad++;
   } else {
-    carritoEntradas.push({ id, nombre: e.nombre, precio: e.precio, cantidad: 1 });
+    carritoEntradas.push({ id, nombre: e.nombre, nombreMP: e.nombreMP || e.nombre, precio: e.precio, cantidad: 1 });
   }
 
   actualizarBadgeCarrito();
@@ -631,7 +631,7 @@ function procederPagoEntradas() {
 
   const items = carritoEntradas.map(i => {
     const d = calcularDesglose(i.precio, i.cantidad);
-    return { nombre: `${NOMBRE_EVENTO_PRINCIPAL} — ${i.nombre}`, cantidad: i.cantidad, precioFinal: d.totalUnit };
+    return { nombre: `${NOMBRE_EVENTO_PRINCIPAL} — ${i.nombreMP}`, cantidad: i.cantidad, precioFinal: d.totalUnit };
   });
 
   fetch('https://bluewine-production.up.railway.app/crear-pago', {
