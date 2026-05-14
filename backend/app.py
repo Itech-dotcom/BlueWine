@@ -287,6 +287,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
                 "content": qr_b64,
                 "filename": "ticket-qr.png",
                 "content_id": "qr-ticket",  # ← coincide con cid:qr-ticket en el HTML
+                "content_type": "image/png",  # ← necesario para que Gmail/Outlook rendericen el QR inline
             }
         ],
     }
