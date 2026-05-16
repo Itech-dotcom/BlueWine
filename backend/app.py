@@ -297,6 +297,62 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
 
 
 # ══════════════════════════════════════════════════════
+# RECUPERAR PAGO PENDIENTE — emite ticket desde pendientes
+# Útil cuando el webhook falló pero el pago sí fue aprobado
+# ══════════════════════════════════════════════════════
+@app.route("/recuperar-pendiente", methods=["POST"])
+def recuperar_pendiente():
+    data       = request.get_json()
+    compra_id  = str(data.get("compra_id", "")).strip()
+    email_fix  = str(data.get("email", "")).strip()  # email corregido (opcional)
+
+    if not compra_id:
+        return jsonify({"ok": False, "error": "Falta compra_id"}), 400
+
+    try:
+        ws_p  = get_sheet_pendientes()
+        rows  = ws_p.get_all_records()
+
+        fila_p    = None
+        pendiente = None
+        for i, row in enumerate(rows, start=2):
+            if str(row.get("compra_id", "")) == compra_id:
+                fila_p    = i
+                pendiente = row
+                break
+
+        if not pendiente:
+            return jsonify({"ok": False, "error": "compra_id no encontrado en pendientes"}), 404
+
+        comprador = json.loads(pendiente["comprador_json"])
+        items     = json.loads(pendiente["items_json"])
+
+        if email_fix:
+            comprador["email"] = email_fix
+
+        emitidos = []
+        for item in items:
+            for _ in range(item["cantidad"]):
+                _emitir_ticket(
+                    comprador   = comprador,
+                    evento      = item["nombre"],
+                    cantidad    = 1,
+                    precio_unit = item["precioFinal"],
+                    total       = item["precioFinal"],
+                    id_pago     = "RECUPERADO_MANUAL"
+                )
+                emitidos.append(item["nombre"])
+
+        ws_p.delete_rows(fila_p)
+        print(f"Pendiente {compra_id} recuperado manualmente — tickets: {emitidos}")
+        return jsonify({"ok": True, "tickets_emitidos": emitidos, "email": comprador["email"]})
+
+    except Exception as e:
+        print(f"Error en recuperar-pendiente: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════
 # REENVIAR TICKET — busca en Sheets y reenvía el email
 # ══════════════════════════════════════════════════════
 @app.route("/reenviar-ticket", methods=["POST"])
