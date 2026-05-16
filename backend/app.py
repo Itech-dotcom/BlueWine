@@ -297,6 +297,54 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
 
 
 # ══════════════════════════════════════════════════════
+# REENVIAR TICKET — busca en Sheets y reenvía el email
+# ══════════════════════════════════════════════════════
+@app.route("/reenviar-ticket", methods=["POST"])
+def reenviar_ticket():
+    data       = request.get_json()
+    buscar_id  = str(data.get("codigo", "")).strip()
+    email_dest = str(data.get("email", "")).strip()
+
+    if not buscar_id or not email_dest:
+        return jsonify({"ok": False, "error": "Faltan campos codigo y email"}), 400
+
+    try:
+        ws   = get_sheet()
+        rows = ws.get_all_records()
+
+        ticket = None
+        for row in rows:
+            codigo  = str(row.get("codigo_ticket", "")).upper()
+            id_pago = str(row.get("id_pago_mp", ""))
+            if buscar_id.upper() in codigo or buscar_id in id_pago or codigo in buscar_id.upper():
+                ticket = row
+                break
+
+        if not ticket:
+            return jsonify({"ok": False, "error": "Ticket no encontrado"}), 404
+
+        codigo   = ticket["codigo_ticket"]
+        nombre   = f"{ticket.get('nombre','')} {ticket.get('apellido','')}".strip()
+        evento   = ticket.get("evento", "Blue Wine")
+        url_qr   = ticket.get("url_verificacion", f"https://bluewine-production.up.railway.app/verificar/{codigo}")
+
+        qr_img = _generar_qr(url_qr)
+        _enviar_email_ticket(
+            destinatario = email_dest,
+            nombre       = nombre,
+            evento       = evento,
+            codigo       = codigo,
+            qr_img       = qr_img
+        )
+        print(f"Ticket {codigo} reenviado a {email_dest}")
+        return jsonify({"ok": True, "codigo": codigo, "nombre": nombre, "evento": evento})
+
+    except Exception as e:
+        print(f"Error en reenviar-ticket: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════
 # ENTRADA LIBERADA — sin pago, genera ticket directo
 # ══════════════════════════════════════════════════════
 @app.route("/obtener-entrada-gratis", methods=["POST"])
