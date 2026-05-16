@@ -210,9 +210,13 @@
       <p class="section-label">Tobal MJ · Sábado 16 de Mayo</p>
       <h3 class="modal-titulo">Selecciona tu entrada y agrégala al carrito</h3>
       <div class="modal-divider"></div>
-      <div id="modal-tipos-container"></div>
-      <p class="modal-nota" style="margin-top:1rem;">Selecciona el tipo de entrada para agregarlo al carrito. Puedes agregar varios tipos antes de pagar.</p>
-      <button class="btn-outline" style="width:100%;margin-top:0.8rem;justify-content:center;" onclick="cerrarTodosModales();abrirCarritoEntradas()">Ver carrito de entradas 🎟️</button>
+      <div style="position:relative;">
+        <div id="modal-tipos-container" style="filter:blur(3px);pointer-events:none;user-select:none;opacity:0.4;"></div>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.5rem;background:rgba(10,10,15,0.7);border-radius:8px;">
+          <p style="font-size:1.25rem;font-weight:bold;color:#c9a84c;margin:0 0 0.5rem;">🚪 Entradas disponibles solo en puerta</p>
+          <p style="color:#e8e0d0;font-size:0.9rem;margin:0;">Las ventas online han cerrado.<br>Adquiere tu entrada directamente en el recinto.</p>
+        </div>
+      </div>
     </div>
   </div>
 
