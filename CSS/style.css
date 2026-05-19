@@ -1183,6 +1183,8 @@ footer {
 
   /* HERO */
   .hero-title { font-size: 3.2rem; }
+  #hero { justify-content: center; }
+  .hero-content { padding-top: 0; }
 
   /* EVENTOS — layout vertical en móvil muy pequeño */
   .evento-card { flex-direction: column; gap: 1rem; }
