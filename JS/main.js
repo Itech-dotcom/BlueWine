@@ -42,7 +42,7 @@ const CONFIG_SABADO = {
 // Usa el evento principal (hero) como referencia por defecto
 // ══════════════════════════════════════════════════════
 const CONFIG_ANUNCIO = {
-  activo:   true,                           // ← false para desactivar el popup
+  activo:   false,                          // ← false para desactivar el popup
   titulo:   'Tobal MJ — Stage Principal',   // ← nombre del evento
   fecha:    'Sábado 16 de Mayo',            // ← fecha visible
   desc:     'Una noche que no querrás perderte. Entradas limitadas.',
