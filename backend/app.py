@@ -324,6 +324,21 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
     print(f"Email enviado a {destinatario} via Resend — ID: {response['id']}")
 
 
+# ── TEMPORAL: eliminar después de prueba ──
+@app.route("/test-acompanantes", methods=["GET"])
+def test_acompanantes():
+    evento     = "Loyaltty — Diamond"
+    precio     = 20000
+    id_pago    = "TEST-" + str(uuid.uuid4())[:8].upper()
+    comprador  = {"nombre": "Isaac", "apellido": "Fernández", "rut": "11.111.111-1", "email": "isaacfernandezparedes@gmail.com", "telefono": "+56912345678"}
+    acomp1     = {"nombre": "Valentina", "apellido": "Rojas",     "rut": "22.222.222-2", "email": "ifernandez.tech@gmail.com",        "telefono": "+56912345678"}
+    acomp2     = {"nombre": "Matías",    "apellido": "González",  "rut": "33.333.333-3", "email": "isaacfp2003@gmail.com",             "telefono": "+56912345678"}
+    nombre_comprador = "Isaac Fernández"
+    _emitir_ticket(comprador, evento, 1, precio, precio, id_pago, acompanante_de="")
+    _emitir_ticket(acomp1,    evento, 1, precio, precio, id_pago, acompanante_de=nombre_comprador)
+    _emitir_ticket(acomp2,    evento, 1, precio, precio, id_pago, acompanante_de=nombre_comprador)
+    return jsonify({"ok": True, "mensaje": "3 tickets de prueba emitidos"})
+
 # ══════════════════════════════════════════════════════
 # STOCK DIAMOND — entradas vendidas para mostrar disponibles en tiempo real
 # ══════════════════════════════════════════════════════
