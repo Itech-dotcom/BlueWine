@@ -10,14 +10,14 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  preventa1:    { nombre: 'Preventa 1',         precio: 8000,   limite: 700, disponibles: 0,   activa: true },
+  preventa1:    { nombre: 'Preventa 1',         precio: 8000,   limite: 700, disponibles: 700, activa: true },
   preventa2:    { nombre: 'Preventa 2',         precio: 13000,  limite: 700, disponibles: 700, activa: true },
-  soloMujeres:  { nombre: 'Solo Mujeres 2x',    precio: 12000,  limite: 700, disponibles: 0,   activa: true },
-  mesaVip:      { nombre: 'Mesa VIP (4 pers.)', precio: 150000, limite: 10,  disponibles: 10,  activa: true },
+  soloMujeres:  { nombre: 'Solo Mujeres 2x',    precio: 12000,  limite: 700, disponibles: 700, activa: true },
+  mesaDiamond:  { nombre: 'Mesa Diamond (4 pers.)', precio: 150000, limite: 10,  disponibles: 10,  activa: true },
   preventaVip:  { nombre: 'Preventa VIP',       precio: 15000,  limite: 150, disponibles: 150, activa: true },
   vip:          { nombre: 'VIP',                precio: 20000,  limite: 150, disponibles: 150, activa: true },
-  prevDiamond:  { nombre: 'Preventa Diamond',   precio: 20000,  limite: 100, disponibles: 100, activa: true },
-  puertaDiamond:{ nombre: 'Puerta Diamond',     precio: 30000,  limite: 100, disponibles: 100, activa: true },
+  prevDiamond:  { nombre: 'Diamond',             precio: 20000,  limite: 50,  disponibles: 50,  activa: true },
+  puertaDiamond:{ nombre: 'Puerta Diamond',     precio: 30000,  limite: 50,  disponibles: 50,  activa: true },
 };
 
 // ══════════════════════════════════════════════════════
@@ -42,19 +42,19 @@ const CONFIG_SABADO = {
 // Usa el evento principal (hero) como referencia por defecto
 // ══════════════════════════════════════════════════════
 const CONFIG_ANUNCIO = {
-  activo:   false,                          // ← false para desactivar el popup
-  titulo:   'Tobal MJ — Stage Principal',   // ← nombre del evento
-  fecha:    'Sábado 16 de Mayo',            // ← fecha visible
+  activo:   true,                              // ← false para desactivar el popup
+  titulo:   'Loyaltty — Stage Principal',      // ← nombre del evento
+  fecha:    'Sábado 6 de Junio',               // ← fecha visible
   desc:     'Una noche que no querrás perderte. Entradas limitadas.',
-  esGratis: false,                          // ← true si es entrada liberada
-  precio:   null,                           // ← ej: 8000 si quieres mostrar precio (null = no mostrar)
-  imagen:   'Imagenes/evento-principal.jpg', // ← ruta de la imagen (null = sin imagen)
+  esGratis: false,                             // ← true si es entrada liberada
+  precio:   null,                              // ← ej: 8000 si quieres mostrar precio (null = no mostrar)
+  imagen:   'Imagenes/EventoLoyaltty.jpeg',    // ← ruta de la imagen (null = sin imagen)
 };
 
 // ── Nombre del evento principal — se antepone al tipo de entrada en el ticket
-// Ej: "Tobal MJ — Preventa 1"
+// Ej: "Loyaltty — Preventa 1"
 // ← EDITAR AQUÍ cuando cambie el evento
-const NOMBRE_EVENTO_PRINCIPAL = 'Tobal MJ';
+const NOMBRE_EVENTO_PRINCIPAL = 'Loyaltty';
 
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN — EDITAR AQUÍ SI CAMBIA
@@ -209,8 +209,28 @@ function actualizarSlider() {
 // ══════════════════════════════════════════════════════
 // MODAL EVENTO PRINCIPAL — renderizar con datos de ENTRADAS
 // ══════════════════════════════════════════════════════
+function colorCupos(disponibles, limite) {
+  const pct = disponibles / limite;
+  if (pct < 0.2)  return '#e53935'; // rojo  — menos del 20%
+  if (pct <= 0.5) return '#f9a825'; // amarillo — 20-50%
+  return '#43a047';                  // verde — más del 50%
+}
+
+function actualizarStockDiamond() {
+  fetch('https://bluewine-production.up.railway.app/stock')
+    .then(r => r.json())
+    .then(stock => {
+      if (typeof stock.prevDiamond   === 'number') ENTRADAS.prevDiamond.disponibles   = stock.prevDiamond;
+      if (typeof stock.puertaDiamond === 'number') ENTRADAS.puertaDiamond.disponibles = stock.puertaDiamond;
+      if (typeof stock.mesaDiamond    === 'number') ENTRADAS.mesaDiamond.disponibles    = stock.mesaDiamond;
+      renderizarTiposEntrada();
+    })
+    .catch(() => {});
+}
+
 function abrirModal() {
-  renderizarTiposEntrada();
+  try { renderizarTiposEntrada(); } catch(err) { console.error('renderizarTiposEntrada:', err); }
+  actualizarStockDiamond();
   document.getElementById('modal-principal').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -218,7 +238,7 @@ function abrirModal() {
 function renderizarTiposEntrada() {
   const grupos = {
     '🎟️ General': ['preventa1', 'preventa2', 'soloMujeres'],
-    '🥂 Mesa VIP': ['mesaVip'],
+    '💎 Mesa Diamond': ['mesaDiamond'],
     '⭐ VIP':      ['preventaVip', 'vip', 'prevDiamond', 'puertaDiamond'],
   };
 
@@ -235,7 +255,7 @@ function renderizarTiposEntrada() {
     ids.forEach(id => {
       const e = ENTRADAS[id];
       const card = document.createElement('div');
-      const esVip = ['mesaVip','preventaVip','vip','prevDiamond','puertaDiamond'].includes(id);
+      const esVip = ['mesaDiamond','preventaVip','vip','prevDiamond','puertaDiamond'].includes(id);
       const esDiamond = ['prevDiamond','puertaDiamond'].includes(id);
       const ultimasEntradas = e.activa && e.disponibles > 0 && e.disponibles <= 5;
 
@@ -250,8 +270,9 @@ function renderizarTiposEntrada() {
         ${id === 'soloMujeres' ? '<div class="modal-tipo-badge">Promo</div>' : ''}
         ${!e.activa || e.disponibles === 0 ? '<div class="modal-tipo-badge agotado-badge">Agotado</div>' : ''}
         <div class="modal-tipo-nombre">${e.nombre}</div>
-        ${id === 'mesaVip' ? '<div class="modal-tipo-sub">A un costado del escenario</div>' : ''}
+        ${id === 'mesaDiamond' ? '<div class="modal-tipo-sub">Frente al escenario</div>' : ''}
         <div class="modal-tipo-precio">${e.precioLabel || formatPrecio(e.precio)}</div>
+        ${(id === 'prevDiamond' || id === 'mesaDiamond') && e.activa && e.disponibles > 0 ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">Cupos limitados: ' + e.disponibles + '</span></div>' : ''}
         ${ultimasEntradas ? '<div class="modal-ultimas">⚡ Últimas entradas</div>' : ''}
       `;
 
@@ -360,7 +381,6 @@ function cerrarModalAnuncio() {
 
 function mostrarAnuncioEvento() {
   if (!CONFIG_ANUNCIO.activo) return;
-  if (sessionStorage.getItem('anuncio_visto')) return;
 
   document.getElementById('anuncio-titulo').textContent = CONFIG_ANUNCIO.titulo;
   document.getElementById('anuncio-fecha').textContent  = CONFIG_ANUNCIO.fecha;
@@ -514,9 +534,73 @@ function eliminarDeCarritoE(id) {
 function abrirCheckoutForm() {
   if (carritoEntradas.length === 0) { mostrarToast('⚠️ Agrega entradas al carrito primero', true); return; }
   cerrarTodosModales();
+  renderFormulariosAcompanantes();
   document.getElementById('modal-checkout').classList.add('active');
   document.body.style.overflow = 'hidden';
   document.getElementById('checkout-error').style.display = 'none';
+}
+
+function renderFormulariosAcompanantes() {
+  const total     = carritoEntradas.reduce((s, i) => s + i.cantidad, 0);
+  const container = document.getElementById('acompanantes-container');
+  const headerP   = document.getElementById('checkout-header-principal');
+  const titulo    = document.getElementById('checkout-titulo');
+  const nota      = document.getElementById('checkout-nota');
+  container.innerHTML = '';
+
+  if (total > 1) {
+    headerP.style.display = 'flex';
+    titulo.textContent    = 'Datos de los asistentes';
+    nota.textContent      = 'Cada persona recibirá su propio ticket QR en su correo.';
+
+    for (let i = 1; i < total; i++) {
+      const sec = document.createElement('div');
+      sec.className = 'acomp-seccion';
+      sec.innerHTML = `
+        <div class="acomp-header">
+          <span class="acomp-num">Acompañante ${i}</span>
+        </div>
+        <div class="checkout-form-row">
+          <div class="checkout-form-group">
+            <label>Nombre <span class="campo-req">*</span></label>
+            <input type="text" id="acomp-${i}-nombre" placeholder="Ej: María" autocomplete="off" />
+          </div>
+          <div class="checkout-form-group">
+            <label>Apellido <span class="campo-req">*</span></label>
+            <input type="text" id="acomp-${i}-apellido" placeholder="Ej: González" autocomplete="off" />
+          </div>
+        </div>
+        <div class="checkout-form-group">
+          <label>RUT <span class="campo-req">*</span></label>
+          <input type="text" id="acomp-${i}-rut" placeholder="Ej: 12.345.678-9" maxlength="12" autocomplete="off" />
+        </div>
+        <div class="checkout-form-group">
+          <label>Correo electrónico <span class="campo-req">*</span></label>
+          <input type="email" id="acomp-${i}-email" placeholder="su@correo.cl" autocomplete="off" />
+        </div>
+        <div class="checkout-form-group">
+          <label>Teléfono / WhatsApp <span class="campo-req">*</span></label>
+          <input type="tel" id="acomp-${i}-telefono" placeholder="+56 9 xxxx xxxx" autocomplete="off" />
+        </div>
+      `;
+      container.appendChild(sec);
+
+      const rutInput = document.getElementById(`acomp-${i}-rut`);
+      if (rutInput) {
+        rutInput.addEventListener('input', function() {
+          const cursorPos  = this.selectionStart;
+          const valorAntes = this.value;
+          this.value       = formatearRUT(this.value);
+          const diff       = this.value.length - valorAntes.length;
+          this.setSelectionRange(cursorPos + diff, cursorPos + diff);
+        });
+      }
+    }
+  } else {
+    headerP.style.display = 'none';
+    titulo.textContent    = 'Datos del comprador';
+    nota.textContent      = 'Tus datos son necesarios para emitir el ticket y enviarlo a tu correo.';
+  }
 }
 
 function abrirTerminos() {
@@ -590,6 +674,26 @@ function procederPagoEntradas() {
 
   const comprador = { nombre, apellido, rut, email, telefono };
 
+  // ── Recoger y validar acompañantes ──
+  const totalTickets = carritoEntradas.reduce((s, i) => s + i.cantidad, 0);
+  const acompanantes = [];
+  for (let i = 1; i < totalTickets; i++) {
+    const aNombre   = document.getElementById(`acomp-${i}-nombre`)?.value.trim();
+    const aApellido = document.getElementById(`acomp-${i}-apellido`)?.value.trim();
+    const aRut      = document.getElementById(`acomp-${i}-rut`)?.value.trim();
+    const aEmail    = document.getElementById(`acomp-${i}-email`)?.value.trim();
+    const aTelefono = document.getElementById(`acomp-${i}-telefono`)?.value.trim();
+
+    if (!aNombre)   { marcarError(`acomp-${i}-nombre`,   `⚠️ Ingresa el nombre del acompañante ${i}.`,   errorEl); return; }
+    if (!aApellido) { marcarError(`acomp-${i}-apellido`, `⚠️ Ingresa el apellido del acompañante ${i}.`, errorEl); return; }
+    if (!aRut)      { marcarError(`acomp-${i}-rut`,      `⚠️ Ingresa el RUT del acompañante ${i}.`,      errorEl); return; }
+    if (!validarRUT(aRut)) { marcarError(`acomp-${i}-rut`, `⚠️ El RUT del acompañante ${i} no es válido.`, errorEl); return; }
+    if (!aEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(aEmail)) { marcarError(`acomp-${i}-email`, `⚠️ Ingresa un correo válido para el acompañante ${i}.`, errorEl); return; }
+    if (!aTelefono) { marcarError(`acomp-${i}-telefono`, `⚠️ Ingresa el teléfono del acompañante ${i}.`, errorEl); return; }
+
+    acompanantes.push({ nombre: aNombre, apellido: aApellido, rut: aRut, email: aEmail, telefono: aTelefono });
+  }
+
   // ── FLUJO GRATIS ──
   if (modoGratis && _pendienteEntradaGratis) {
     mostrarToast('⏳ Generando tu entrada...');
@@ -636,7 +740,7 @@ function procederPagoEntradas() {
   fetch('https://bluewine-production.up.railway.app/crear-pago', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items, comprador })
+    body: JSON.stringify({ items, comprador, acompanantes })
   })
   .then(res => res.json())
   .then(data => {

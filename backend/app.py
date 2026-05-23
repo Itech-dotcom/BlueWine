@@ -44,10 +44,10 @@ def get_sheet():
     try:
         return sheet.worksheet("tickets")
     except gspread.WorksheetNotFound:
-        ws = sheet.add_worksheet(title="tickets", rows=1000, cols=15)
+        ws = sheet.add_worksheet(title="tickets", rows=1000, cols=16)
         ws.append_row([
-            "codigo_ticket", "nombre", "apellido", "rut", "email", "telefono",
-            "evento", "cantidad", "precio_unit", "total", "fecha_compra",
+            "codigo_ticket", "nombre", "apellido", "rut", "evento", "acompanante_de",
+            "email", "telefono", "cantidad", "precio_unit", "total", "fecha_compra",
             "id_pago_mp", "estado", "url_verificacion"
         ])
         return ws
@@ -63,8 +63,8 @@ def get_sheet_pendientes():
     try:
         return sheet.worksheet("pendientes")
     except gspread.WorksheetNotFound:
-        ws = sheet.add_worksheet(title="pendientes", rows=500, cols=5)
-        ws.append_row(["compra_id", "comprador_json", "items_json", "preference_id", "fecha"])
+        ws = sheet.add_worksheet(title="pendientes", rows=500, cols=6)
+        ws.append_row(["compra_id", "comprador_json", "items_json", "preference_id", "fecha", "acompanantes_json"])
         return ws
 
 
@@ -73,10 +73,11 @@ def get_sheet_pendientes():
 # ══════════════════════════════════════════════════════
 @app.route("/crear-pago", methods=["POST"])
 def crear_pago():
-    data      = request.get_json()
-    items     = data.get("items", [])
-    comprador = data.get("comprador", {})
-    compra_id = str(uuid.uuid4())
+    data         = request.get_json()
+    items        = data.get("items", [])
+    comprador    = data.get("comprador", {})
+    acompanantes = data.get("acompanantes", [])
+    compra_id    = str(uuid.uuid4())
 
     preference_data = {
         "items": [
@@ -114,7 +115,8 @@ def crear_pago():
             json.dumps(comprador),
             json.dumps(items),
             preference["id"],
-            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            json.dumps(acompanantes)
         ])
         print(f"Compra {compra_id} guardada en pendientes")
     except Exception as e:
@@ -169,19 +171,34 @@ def webhook_mp():
                 if not pendiente:
                     print(f"compra_id {compra_id} no encontrado en pendientes")
                 else:
-                    comprador = json.loads(pendiente["comprador_json"])
-                    items     = json.loads(pendiente["items_json"])
+                    comprador    = json.loads(pendiente["comprador_json"])
+                    items        = json.loads(pendiente["items_json"])
+                    acompanantes = json.loads(pendiente.get("acompanantes_json") or "[]")
 
+                    # Construir lista plana de tickets: tipo + precio por cada unidad
+                    tickets_lista = []
                     for item in items:
                         for _ in range(item["cantidad"]):
-                            _emitir_ticket(
-                                comprador   = comprador,
-                                evento      = item["nombre"],
-                                cantidad    = 1,
-                                precio_unit = item["precioFinal"],
-                                total       = item["precioFinal"],
-                                id_pago     = str(payment_id)
-                            )
+                            tickets_lista.append({
+                                "nombre": item["nombre"],
+                                "precio": item["precioFinal"]
+                            })
+
+                    # Lista completa de asistentes: comprador principal + acompañantes
+                    todos = [comprador] + acompanantes
+                    nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
+
+                    for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
+                        es_acomp = idx > 0
+                        _emitir_ticket(
+                            comprador      = asistente,
+                            evento         = ticket["nombre"],
+                            cantidad       = 1,
+                            precio_unit    = ticket["precio"],
+                            total          = ticket["precio"],
+                            id_pago        = str(payment_id),
+                            acompanante_de = nombre_comprador if es_acomp else ""
+                        )
 
                     # Eliminar de pendientes
                     ws_p.delete_rows(fila_p)
@@ -196,7 +213,7 @@ def webhook_mp():
 # ══════════════════════════════════════════════════════
 # EMITIR TICKET: Sheets + QR + Email
 # ══════════════════════════════════════════════════════
-def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago):
+def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, acompanante_de=""):
     codigo           = str(uuid.uuid4())[:12].upper()
     url_verificacion = f"https://bluewine-production.up.railway.app/verificar/{codigo}"
     fecha            = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -209,9 +226,11 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago):
             comprador.get("nombre", ""),
             comprador.get("apellido", ""),
             comprador.get("rut", ""),
+            evento,
+            acompanante_de,
             comprador.get("email", ""),
             comprador.get("telefono", ""),
-            evento, cantidad, precio_unit, total, fecha,
+            cantidad, precio_unit, total, fecha,
             id_pago, "ACTIVO", url_verificacion
         ])
         print(f"Ticket {codigo} guardado en Sheets")
@@ -224,11 +243,12 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago):
     # 3. Enviar email
     try:
         _enviar_email_ticket(
-            destinatario = comprador.get("email", ""),
-            nombre       = f"{comprador.get('nombre', '')} {comprador.get('apellido', '')}".strip(),
-            evento       = evento,
-            codigo       = codigo,
-            qr_img       = qr_img
+            destinatario   = comprador.get("email", ""),
+            nombre         = f"{comprador.get('nombre', '')} {comprador.get('apellido', '')}".strip(),
+            evento         = evento,
+            codigo         = codigo,
+            qr_img         = qr_img,
+            acompanante_de = acompanante_de
         )
     except Exception as e:
         print(f"Error enviando email: {e}")
@@ -244,15 +264,17 @@ def _generar_qr(contenido):
     return buf.getvalue()
 
 
-def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
+def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de=""):
     resend.api_key = os.getenv("RESEND_API_KEY")
     copia_bw       = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
 
-    # ── FIX: QR como adjunto con CID en lugar de base64 inline ──
-    # Los clientes de correo (Gmail, Outlook) bloquean imágenes base64
-    # en el src del <img>. La solución estándar es enviar el QR como
-    # adjunto con un content_id y referenciarlo con cid: en el HTML.
     qr_b64 = base64.b64encode(qr_img).decode("utf-8")
+
+    bloque_acompanante = f"""
+      <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:12px 16px;margin:0 0 16px;">
+        <p style="margin:0;font-size:0.9rem;color:#c9a84c;">👥 Acompañante de <strong>{acompanante_de}</strong></p>
+      </div>
+    """ if acompanante_de else ""
 
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
@@ -261,7 +283,8 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
         <p style="color:#7a7060;font-size:13px;margin:4px 0;">MultiEspacio · Quillón, Ñuble</p>
       </div>
       <h2 style="font-size:20px;margin-bottom:8px;">¡Tu entrada está confirmada! 🎉</h2>
-      <p>Hola <strong>{nombre}</strong>, tu compra fue procesada exitosamente.</p>
+      <p>Hola <strong>{nombre}</strong>, tu entrada fue procesada exitosamente.</p>
+      {bloque_acompanante}
       <div style="background:#13131a;border:1px solid #2a2820;border-radius:8px;padding:20px;margin:20px 0;">
         <p style="margin:0 0 8px;"><strong>Evento:</strong> {evento}</p>
         <p style="margin:0 0 8px;"><strong>Código:</strong> <span style="color:#c9a84c;font-family:monospace;font-size:16px;">{codigo}</span></p>
@@ -269,6 +292,11 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
       </div>
       <div style="text-align:center;margin:24px 0;">
         <img src="cid:qr-ticket" alt="QR Ticket" style="width:200px;height:200px;border:4px solid #c9a84c;border-radius:8px;" />
+      </div>
+      <div style="background:rgba(224,82,82,0.1);border:1px solid rgba(224,82,82,0.35);border-radius:8px;padding:14px 16px;margin-bottom:16px;">
+        <p style="margin:0;font-size:0.82rem;color:#e88;line-height:1.5;">
+          ⚠️ <strong>Uso único:</strong> Este código QR es de un solo uso y será escaneado únicamente en la puerta al momento de ingresar al evento. No lo compartas ni lo presentes antes de llegar al recinto.
+        </p>
       </div>
       <p style="color:#7a7060;font-size:12px;text-align:center;">Entrada personal e intransferible. Debes presentar tu cédula de identidad al ingresar.</p>
       <hr style="border:none;border-top:1px solid #2a2820;margin:20px 0;" />
@@ -294,6 +322,35 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img):
 
     response = resend.Emails.send(params)
     print(f"Email enviado a {destinatario} via Resend — ID: {response['id']}")
+
+
+# ══════════════════════════════════════════════════════
+# STOCK DIAMOND — entradas vendidas para mostrar disponibles en tiempo real
+# ══════════════════════════════════════════════════════
+@app.route("/stock", methods=["GET"])
+def stock():
+    try:
+        ws   = get_sheet()
+        rows = ws.get_all_records()
+        vendidos = {"prevDiamond": 0, "puertaDiamond": 0, "mesaDiamond": 0}
+        for row in rows:
+            evento = str(row.get("evento", "")).lower()
+            estado = str(row.get("estado", "")).upper()
+            if estado in ("ACTIVO", "USADO"):
+                if "preventa diamond" in evento:
+                    vendidos["prevDiamond"] += 1
+                elif "puerta diamond" in evento:
+                    vendidos["puertaDiamond"] += 1
+                elif "mesa diamond" in evento or "mesa vip" in evento:
+                    vendidos["mesaDiamond"] += 1
+        return jsonify({
+            "prevDiamond":   max(0, 50 - vendidos["prevDiamond"]),
+            "puertaDiamond": max(0, 50 - vendidos["puertaDiamond"]),
+            "mesaDiamond":   max(0, 10 - vendidos["mesaDiamond"])
+        })
+    except Exception as e:
+        print(f"Error en /stock: {e}")
+        return jsonify({"prevDiamond": 50, "puertaDiamond": 50, "mesaDiamond": 10})
 
 
 # ══════════════════════════════════════════════════════
