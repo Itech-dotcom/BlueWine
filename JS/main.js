@@ -10,8 +10,8 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  preventa1:    { nombre: 'Preventa 1',         precio: 8000,   limite: 700, disponibles: 700, activa: true },
-  preventa2:    { nombre: 'Preventa 2',         precio: 13000,  limite: 700, disponibles: 700, activa: false },
+  preventa1:    { nombre: 'Preventa 1',         precio: 8000,   limite: 700, disponibles: 700, activa: TextTrackCueList },
+  preventa2:    { nombre: 'Preventa 2',         precio: 13000,  limite: 700, disponibles: 0, activa: true },
   soloMujeres:  { nombre: 'Solo Mujeres 2x',    precio: 12000,  limite: 700, disponibles: 700, activa: true },
   mesaDiamond:  { nombre: 'Mesa Diamond (4 pers.)', precio: 150000, limite: 10,  disponibles: 10,  activa: true },
   preventaVip:  { nombre: 'Preventa VIP',       precio: 15000,  limite: 150, disponibles: 150, activa: true },
@@ -237,9 +237,9 @@ function abrirModal() {
 
 function renderizarTiposEntrada() {
   const grupos = {
-    '🎟️ General': ['preventa1', 'soloMujeres'],
+    '🎟️ General': ['preventa1', 'preventa2', 'soloMujeres'],
     '💎 Mesa Diamond': ['mesaDiamond'],
-    '⭐ VIP':      ['preventaVip',],
+    '⭐ VIP':      ['preventaVip','vip',],
   };
 
   const container = document.getElementById('modal-tipos-container');
@@ -259,7 +259,7 @@ function renderizarTiposEntrada() {
       const esDiamond = ['prevDiamond','puertaDiamond'].includes(id);
       const ultimasEntradas = e.activa && e.disponibles > 0 && e.disponibles <= 5;
 
-      card.className = `modal-tipo-card${esVip ? ' vip' : ''}${esDiamond ? ' diamond' : ''}${!e.activa || e.disponibles === 0 ? ' agotado' : ''}`;
+      card.className = `modal-tipo-card${esVip ? ' vip' : ''}${esDiamond ? ' diamond' : ''}${!e.activa || e.disponibles === 0 ? ' ' : ''}`;
       card.dataset.id = id;
 
       if (e.activa && e.disponibles > 0) {
@@ -268,10 +268,13 @@ function renderizarTiposEntrada() {
 
       card.innerHTML = `
         ${id === 'soloMujeres' ? '<div class="modal-tipo-badge">Promo</div>' : ''}
-        ${!e.activa || e.disponibles === 0 ? '<div class="modal-tipo-badge agotado-badge">Agotado</div>' : ''}
+        ${id === 'preventa1' ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
+        ${!e.activa || e.disponibles === 0 ? '<div class="modal-tipo-badge agotado-badge">Próximamente</div>' : ''}
         <div class="modal-tipo-nombre">${e.nombre}</div>
+        ${id === 'mesaDiamond' ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
         ${id === 'mesaDiamond' ? '<div class="modal-tipo-sub">Frente al escenario</div>' : ''}
         <div class="modal-tipo-precio">${e.precioLabel || formatPrecio(e.precio)}</div>
+        ${id === 'preventaVip' ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
         ${(id === 'prevDiamond' || id === 'mesaDiamond') && e.activa && e.disponibles > 0 ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">Cupos limitados: ' + e.disponibles + ' mesas</span></div>' : ''}
         ${ultimasEntradas ? '<div class="modal-ultimas">⚡ Últimas entradas</div>' : ''}
       `;

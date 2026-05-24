@@ -737,7 +737,8 @@ section { padding: 7rem 2rem; overflow-x: hidden; }
   text-transform: uppercase;
   margin-bottom: 0.6rem;
 }
-.menu-badge.promo { background: rgba(192,71,95,0.15); border: 1px solid var(--wine); color: var(--wine-light); }
+.menu-badge.promo { background: rgba(11, 201, 21, 0.15); border: 1px; }
+
 .menu-nombre {
   font-family: 'Playfair Display', serif;
   font-size: 1.1rem;
@@ -1365,7 +1366,7 @@ footer {
 .modal-tipo-card.diamond:hover { border-color: rgba(150,120,255,0.7); }
 .modal-tipo-badge {
   position: absolute; top: -1px; right: -1px;
-  background: var(--wine);
+  background: rgba(11, 201, 21, 0.15);
   color: #fff;
   font-size: 0.55rem;
   letter-spacing: 0.1em;
@@ -1495,6 +1496,10 @@ footer {
 }
 .modal-tipo-badge.agotado-badge {
   background: var(--wine);
+}
+
+.modal-tipo-badge.badge-disponible {
+  background: rgba(11, 201, 21, 0.15); border: 1px
 }
 .modal-ultimas {
   font-size: 0.62rem;
