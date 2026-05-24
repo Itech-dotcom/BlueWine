@@ -272,7 +272,7 @@ function renderizarTiposEntrada() {
         <div class="modal-tipo-nombre">${e.nombre}</div>
         ${id === 'mesaDiamond' ? '<div class="modal-tipo-sub">Frente al escenario</div>' : ''}
         <div class="modal-tipo-precio">${e.precioLabel || formatPrecio(e.precio)}</div>
-        ${(id === 'prevDiamond' || id === 'mesaDiamond') && e.activa && e.disponibles > 0 ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">Cupos limitados: ' + e.disponibles + '</span></div>' : ''}
+        ${(id === 'prevDiamond' || id === 'mesaDiamond') && e.activa && e.disponibles > 0 ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">Cupos limitados: ' + e.disponibles + ' mesas</span></div>' : ''}
         ${ultimasEntradas ? '<div class="modal-ultimas">⚡ Últimas entradas</div>' : ''}
       `;
 
