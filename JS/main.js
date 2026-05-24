@@ -60,7 +60,7 @@ const NOMBRE_EVENTO_PRINCIPAL = 'Loyaltty';
 // CONFIGURACIÓN IVA Y COMISIÓN — EDITAR AQUÍ SI CAMBIA
 // ══════════════════════════════════════════════════════
 const IVA = 0;             // sin IVA
-const COMISION_MP = 0.0399; // 3.99% MercadoPago
+const COMISION_MP = 0.1; // 10% MercadoPago
 
 function calcularDesglose(precioNeto, cantidad) {
   const subtotal   = precioNeto * cantidad;
@@ -497,7 +497,7 @@ function renderizarCarritoEntradas() {
     </div>
     <div class="carrito-item-desglose">
       <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
-      <div class="desglose-row"><span>Comisión servicio (3.99%)</span><span>${formatPrecio(d.comTotal)}</span></div>
+      <div class="desglose-row"><span>Comisión servicio (10%)</span><span>${formatPrecio(d.comTotal)}</span></div>
       <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
     </div>
   `}).join('');
@@ -814,7 +814,7 @@ function renderizarCarritoComida() {
     </div>
     <div class="carrito-item-desglose">
       <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
-      <div class="desglose-row"><span>Comisión MP (3.99%) × ${item.cantidad}</span><span>${formatPrecio(d.comTotal)}</span></div>
+      <div class="desglose-row"><span>Comisión  (10%) × ${item.cantidad}</span><span>${formatPrecio(d.comTotal)}</span></div>
       <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
     </div>
   `}).join('');
