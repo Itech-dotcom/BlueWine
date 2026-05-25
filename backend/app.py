@@ -2,26 +2,26 @@
 # Blue Wine — Backend MercadoPago + Google Sheets + QR
 
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-import mercadopago
-import os
-import json
-import uuid
-import datetime
-import qrcode
-import io
-import resend
-import base64
-from dotenv import load_dotenv
-import gspread
-from google.oauth2.service_account import Credentials
+from flask_cors import CORS          # permite peticiones desde el frontend (bluewine.cl)
+import mercadopago                   # SDK oficial de MercadoPago
+import os                            # para leer variables de entorno (.env)
+import json                          # para convertir datos a texto y viceversa
+import uuid                          # para generar códigos únicos de ticket
+import datetime                      # para registrar fecha y hora de compra
+import qrcode                        # para generar la imagen del código QR
+import io                            # para manejar la imagen QR en memoria
+import resend                        # para enviar emails con el ticket
+import base64                        # para convertir la imagen QR a texto (adjunto email)
+from dotenv import load_dotenv       # para cargar el archivo .env con claves secretas
+import gspread                       # para leer/escribir en Google Sheets
+from google.oauth2.service_account import Credentials  # autenticación con Google
 
-load_dotenv()
+load_dotenv()  # carga las variables del archivo .env (MP_ACCESS_TOKEN, etc.)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # permite que el frontend haga peticiones al backend sin bloqueos
 
-sdk = mercadopago.SDK(os.getenv("MP_ACCESS_TOKEN"))
+sdk = mercadopago.SDK(os.getenv("MP_ACCESS_TOKEN"))  # inicializa MercadoPago con la clave del .env
 
 # ══════════════════════════════════════════════════════
 # GOOGLE SHEETS — CONFIGURACIÓN
@@ -35,8 +35,9 @@ SCOPES = [
 SPREADSHEET_ID = os.getenv("GOOGLE_SHEET_ID")  # ID del Google Sheet
 
 def get_sheet():
-    """Retorna la hoja 'tickets' del Google Sheet configurado."""
-    creds_json = os.getenv("GOOGLE_CREDENTIALS")
+    # Conecta con Google Sheets y retorna la hoja "tickets" donde se guardan todas las entradas vendidas.
+    # Si la hoja no existe todavía, la crea con los encabezados correctos.
+    creds_json = os.getenv("GOOGLE_CREDENTIALS")      # credenciales del service account de Google
     creds_dict = json.loads(creds_json)
     creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
     client = gspread.authorize(creds)
@@ -44,6 +45,7 @@ def get_sheet():
     try:
         return sheet.worksheet("tickets")
     except gspread.WorksheetNotFound:
+        # primera vez que se ejecuta: crea la hoja con todos los encabezados
         ws = sheet.add_worksheet(title="tickets", rows=1000, cols=16)
         ws.append_row([
             "codigo_ticket", "nombre", "apellido", "rut", "evento", "acompanante_de",
@@ -54,7 +56,8 @@ def get_sheet():
 
 
 def get_sheet_pendientes():
-    """Retorna la hoja 'pendientes' — almacena compradores antes de que se apruebe el pago."""
+    # Conecta con la hoja "pendientes" donde se guardan los datos del comprador ANTES
+    # de que MercadoPago confirme el pago. Se borran una vez que el pago es aprobado.
     creds_json = os.getenv("GOOGLE_CREDENTIALS")
     creds_dict = json.loads(creds_json)
     creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
@@ -73,30 +76,35 @@ def get_sheet_pendientes():
 # ══════════════════════════════════════════════════════
 @app.route("/crear-pago", methods=["POST"])
 def crear_pago():
+    # Recibe los datos del carrito y el comprador desde el frontend,
+    # crea una preferencia de pago en MercadoPago y guarda los datos en "pendientes".
+    # El frontend redirige al usuario a init_point para que pague.
     data         = request.get_json()
-    items        = data.get("items", [])
-    comprador    = data.get("comprador", {})
-    acompanantes = data.get("acompanantes", [])
-    compra_id    = str(uuid.uuid4())
+    items        = data.get("items", [])          # lista de entradas del carrito
+    comprador    = data.get("comprador", {})       # datos del comprador principal
+    acompanantes = data.get("acompanantes", [])    # lista de acompañantes (puede estar vacía)
+    compra_id    = str(uuid.uuid4())               # ID único para identificar esta compra
 
+    # Armar la preferencia de pago para MercadoPago
     preference_data = {
         "items": [
             {
-                "title": item["nombre"],
+                "title": item["nombre"],           # nombre que aparece en MercadoPago
                 "quantity": item["cantidad"],
-                "unit_price": item["precioFinal"],
+                "unit_price": item["precioFinal"], # precio ya con comisión incluida
                 "currency_id": "CLP"
             }
             for item in items
         ],
         "back_urls": {
+            # URLs a las que MP redirige al usuario según resultado del pago
             "success": "https://bluewine.cl/?pago=exitoso",
             "failure": "https://bluewine.cl/?pago=fallido",
             "pending": "https://bluewine.cl/?pago=pendiente"
         },
-        "auto_return": "approved",
-        "notification_url": "https://bluewine-production.up.railway.app/webhook-mp",
-        "external_reference": compra_id
+        "auto_return": "approved",  # redirige automáticamente si el pago fue aprobado
+        "notification_url": "https://bluewine-production.up.railway.app/webhook-mp",  # MP avisa aquí cuando se paga
+        "external_reference": compra_id  # vincula el pago con los datos guardados en pendientes
     }
 
     preference_response = sdk.preference().create(preference_data)
@@ -107,25 +115,27 @@ def crear_pago():
 
     preference = preference_response["response"]
 
-    # ── Guardar en Sheets en vez de en memoria ──
+    # Guardar datos del comprador en la hoja "pendientes" mientras espera confirmación del pago.
+    # Cuando el webhook confirme el pago, se recuperan estos datos para emitir los tickets.
     try:
         ws = get_sheet_pendientes()
         ws.append_row([
             compra_id,
-            json.dumps(comprador),
+            json.dumps(comprador),      # guardado como texto JSON
             json.dumps(items),
             preference["id"],
             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            json.dumps(acompanantes)
+            json.dumps(acompanantes)    # lista de acompañantes en JSON ([] si no hay)
         ])
         print(f"Compra {compra_id} guardada en pendientes")
     except Exception as e:
         print(f"Error guardando pendiente en Sheets: {e}")
 
+    # Retorna la URL de pago al frontend para redirigir al usuario a MercadoPago
     return jsonify({
         "id": preference["id"],
-        "init_point": preference["init_point"],
-        "sandbox_init_point": preference["sandbox_init_point"]
+        "init_point": preference["init_point"],             # URL de pago en producción
+        "sandbox_init_point": preference["sandbox_init_point"]  # URL de prueba
     })
 
 
@@ -134,21 +144,24 @@ def crear_pago():
 # ══════════════════════════════════════════════════════
 @app.route("/webhook-mp", methods=["POST"])
 def webhook_mp():
+    # MercadoPago llama a esta URL automáticamente cuando ocurre un pago.
+    # Aquí se verifica si fue aprobado y se emiten los tickets correspondientes.
     data       = request.get_json(silent=True) or {}
     topic      = data.get("type") or request.args.get("topic")
     payment_id = data.get("data", {}).get("id") or request.args.get("id")
 
     if topic == "payment" and payment_id:
         try:
+            # Consultar a MP los detalles reales del pago (status, monto, etc.)
             payment_info = sdk.payment().get(payment_id)
             payment      = payment_info.get("response", {})
             status       = payment.get("status")
-            compra_id    = payment.get("external_reference")
+            compra_id    = payment.get("external_reference")  # ID que vincula con "pendientes"
 
             print(f"Pago {payment_id} — estado: {status} — compra_id: {compra_id}")
 
             if status == "approved" and compra_id:
-                # ── Verificar idempotencia: si el payment_id ya existe en Sheets, ignorar ──
+                # Evitar emitir tickets duplicados si MP envía el webhook más de una vez
                 ws_t = get_sheet()
                 tickets_existentes = ws_t.get_all_records()
                 for t in tickets_existentes:
@@ -156,13 +169,13 @@ def webhook_mp():
                         print(f"Pago {payment_id} ya procesado anteriormente — ignorando webhook duplicado")
                         return jsonify({"status": "ok"}), 200
 
-                # Buscar en Sheets pendientes
+                # Buscar los datos del comprador en la hoja "pendientes"
                 ws_p    = get_sheet_pendientes()
                 rows_p  = ws_p.get_all_records()
                 fila_p  = None
                 pendiente = None
 
-                for i, row in enumerate(rows_p, start=2):
+                for i, row in enumerate(rows_p, start=2):  # start=2 porque fila 1 es el encabezado
                     if str(row.get("compra_id", "")) == compra_id:
                         fila_p    = i
                         pendiente = row
@@ -173,9 +186,10 @@ def webhook_mp():
                 else:
                     comprador    = json.loads(pendiente["comprador_json"])
                     items        = json.loads(pendiente["items_json"])
-                    acompanantes = json.loads(pendiente.get("acompanantes_json") or "[]")
+                    acompanantes = json.loads(pendiente.get("acompanantes_json") or "[]")  # [] si no hay acompañantes
 
-                    # Construir lista plana de tickets: tipo + precio por cada unidad
+                    # Expandir el carrito en una lista de tickets individuales
+                    # Ej: 3x Preventa 1 → [ticket, ticket, ticket]
                     tickets_lista = []
                     for item in items:
                         for _ in range(item["cantidad"]):
@@ -184,12 +198,13 @@ def webhook_mp():
                                 "precio": item["precioFinal"]
                             })
 
-                    # Lista completa de asistentes: comprador principal + acompañantes
+                    # Unir comprador + acompañantes en una sola lista
+                    # Cada persona recibe su propio ticket con su propio QR y email
                     todos = [comprador] + acompanantes
                     nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
 
                     for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
-                        es_acomp = idx > 0
+                        es_acomp = idx > 0  # el primero es el comprador, los demás son acompañantes
                         _emitir_ticket(
                             comprador      = asistente,
                             evento         = ticket["nombre"],
@@ -197,16 +212,17 @@ def webhook_mp():
                             precio_unit    = ticket["precio"],
                             total          = ticket["precio"],
                             id_pago        = str(payment_id),
-                            acompanante_de = nombre_comprador if es_acomp else ""
+                            acompanante_de = nombre_comprador if es_acomp else ""  # vacío para el comprador principal
                         )
 
-                    # Eliminar de pendientes
+                    # Una vez procesado, borrar de pendientes para no emitir de nuevo
                     ws_p.delete_rows(fila_p)
                     print(f"Compra {compra_id} procesada y eliminada de pendientes")
 
         except Exception as e:
             print("Error procesando webhook:", e)
 
+    # Siempre responder 200 a MP aunque falle, para que no reintente infinitamente
     return jsonify({"status": "ok"}), 200
 
 
@@ -214,8 +230,10 @@ def webhook_mp():
 # EMITIR TICKET: Sheets + QR + Email
 # ══════════════════════════════════════════════════════
 def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, acompanante_de=""):
-    codigo           = str(uuid.uuid4())[:12].upper()
-    url_verificacion = f"https://bluewine-production.up.railway.app/verificar/{codigo}"
+    # Genera un ticket completo para una persona: lo guarda en Sheets, crea el QR y envía el email.
+    # acompanante_de: si no está vacío, indica el nombre del comprador principal (para acompañantes).
+    codigo           = str(uuid.uuid4())[:12].upper()  # código único del ticket, ej: "A1B2C3D4E5F6"
+    url_verificacion = f"https://bluewine-production.up.railway.app/verificar/{codigo}"  # URL que codifica el QR
     fecha            = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # 1. Guardar en Google Sheets
@@ -255,13 +273,15 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
 
 
 def _generar_qr(contenido):
+    # Genera una imagen QR a partir de una URL y la retorna como bytes (PNG en memoria).
+    # El QR apunta a /verificar/{codigo} — cuando lo escanean en puerta, verifican el ticket.
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(contenido)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
-    buf = io.BytesIO()
+    buf = io.BytesIO()       # buffer en memoria, no guarda archivo en disco
     img.save(buf, format="PNG")
-    return buf.getvalue()
+    return buf.getvalue()    # retorna los bytes de la imagen PNG
 
 
 def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de=""):
@@ -329,6 +349,9 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
 # ══════════════════════════════════════════════════════
 @app.route("/stock", methods=["GET"])
 def stock():
+    # El frontend llama a este endpoint cada vez que alguien abre el modal de entradas.
+    # Cuenta cuántas entradas de cada tipo ya fueron vendidas y retorna los cupos restantes.
+    # Si falla (ej: Sheets no responde), retorna los valores máximos como fallback.
     try:
         ws   = get_sheet()
         rows = ws.get_all_records()
@@ -336,21 +359,21 @@ def stock():
         for row in rows:
             evento = str(row.get("evento", "")).lower()
             estado = str(row.get("estado", "")).upper()
-            if estado in ("ACTIVO", "USADO"):
+            if estado in ("ACTIVO", "USADO"):  # no contar tickets anulados
                 if "preventa diamond" in evento:
                     vendidos["prevDiamond"] += 1
                 elif "puerta diamond" in evento:
                     vendidos["puertaDiamond"] += 1
                 elif "mesa diamond" in evento or "mesa vip" in evento:
-                    vendidos["mesaDiamond"] += 1
+                    vendidos["mesaDiamond"] += 1  # "mesa vip" por compatibilidad con tickets antiguos
         return jsonify({
-            "prevDiamond":   max(0, 50 - vendidos["prevDiamond"]),
-            "puertaDiamond": max(0, 50 - vendidos["puertaDiamond"]),
-            "mesaDiamond":   max(0, 10 - vendidos["mesaDiamond"])
+            "prevDiamond":   max(0, 50 - vendidos["prevDiamond"]),   # límite: 50
+            "puertaDiamond": max(0, 50 - vendidos["puertaDiamond"]), # límite: 50
+            "mesaDiamond":   max(0, 10 - vendidos["mesaDiamond"])    # límite: 10 mesas
         })
     except Exception as e:
         print(f"Error en /stock: {e}")
-        return jsonify({"prevDiamond": 50, "puertaDiamond": 50, "mesaDiamond": 10})
+        return jsonify({"prevDiamond": 50, "puertaDiamond": 50, "mesaDiamond": 10})  # fallback
 
 
 # ══════════════════════════════════════════════════════

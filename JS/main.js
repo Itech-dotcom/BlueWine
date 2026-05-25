@@ -209,6 +209,8 @@ function actualizarSlider() {
 // ══════════════════════════════════════════════════════
 // MODAL EVENTO PRINCIPAL — renderizar con datos de ENTRADAS
 // ══════════════════════════════════════════════════════
+// Retorna el color del indicador de cupos según qué tan lleno está el límite.
+// < 20% disponibles → rojo | 20-50% → amarillo | > 50% → verde
 function colorCupos(disponibles, limite) {
   const pct = disponibles / limite;
   if (pct < 0.2)  return '#e53935'; // rojo  — menos del 20%
@@ -216,27 +218,36 @@ function colorCupos(disponibles, limite) {
   return '#43a047';                  // verde — más del 50%
 }
 
+// Consulta al backend cuántos cupos reales quedan (contando tickets ya vendidos en Sheets).
+// Se llama sin bloquear — si falla, los valores por defecto del ENTRADAS se mantienen.
 function actualizarStockDiamond() {
   fetch('https://bluewine-production.up.railway.app/stock')
     .then(r => r.json())
     .then(stock => {
+      // Actualiza los disponibles solo si el backend retornó un número válido
       if (typeof stock.prevDiamond   === 'number') ENTRADAS.prevDiamond.disponibles   = stock.prevDiamond;
       if (typeof stock.puertaDiamond === 'number') ENTRADAS.puertaDiamond.disponibles = stock.puertaDiamond;
-      if (typeof stock.mesaDiamond    === 'number') ENTRADAS.mesaDiamond.disponibles    = stock.mesaDiamond;
-      renderizarTiposEntrada();
+      if (typeof stock.mesaDiamond   === 'number') ENTRADAS.mesaDiamond.disponibles   = stock.mesaDiamond;
+      renderizarTiposEntrada(); // vuelve a dibujar las cards con los cupos actualizados
     })
-    .catch(() => {});
+    .catch(() => {}); // si falla el backend, no se muestra error — se usan valores locales
 }
 
+// Abre el modal de entradas. Primero muestra las cards con datos locales (instantáneo)
+// y luego actualiza los cupos reales del backend en segundo plano.
 function abrirModal() {
   try { renderizarTiposEntrada(); } catch(err) { console.error('renderizarTiposEntrada:', err); }
   actualizarStockDiamond();
   document.getElementById('modal-principal').classList.add('active');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden'; // bloquea el scroll del fondo mientras el modal está abierto
 }
 
+// Dibuja las cards de tipos de entrada en el modal.
+// Para agregar o quitar un tipo de entrada del modal, editar el objeto "grupos" abajo.
+// Para cambiar precios, límites o activar/desactivar entradas, editar el objeto ENTRADAS arriba.
 function renderizarTiposEntrada() {
   const grupos = {
+    // Cada grupo es una sección con título. El array son los IDs de ENTRADAS que aparecen.
     '🎟️ General': ['preventa1', 'preventa2', 'soloMujeres'],
     '💎 Mesa Diamond': ['mesaDiamond'],
     '⭐ VIP':      ['preventaVip', 'vip'],
@@ -255,12 +266,12 @@ function renderizarTiposEntrada() {
     ids.forEach(id => {
       const e = ENTRADAS[id];
       const card = document.createElement('div');
-      const esVip          = ['mesaDiamond','preventaVip','vip'].includes(id);
-      const esDiamond      = false;
-      const esProximamente = e.proximamente === true;
-      const esAgotado      = !e.activa && !esProximamente;
-      const esDisponible   = e.activa && e.disponibles > 0 && id !== 'soloMujeres';
-      const ultimasEntradas = e.activa && e.disponibles > 0 && e.disponibles <= 5;
+      const esVip          = ['mesaDiamond','preventaVip','vip'].includes(id); // aplica estilo dorado/vip
+      const esDiamond      = false; // reservado para uso futuro
+      const esProximamente = e.proximamente === true;       // card apagada con badge "Próximamente"
+      const esAgotado      = !e.activa && !esProximamente;  // card apagada con badge "Agotado"
+      const esDisponible   = e.activa && e.disponibles > 0 && id !== 'soloMujeres'; // badge verde "Disponible"
+      const ultimasEntradas = e.activa && e.disponibles > 0 && e.disponibles <= 5;  // aviso ⚡ últimas 5
 
       card.className = `modal-tipo-card${esVip ? ' vip' : ''}${esDiamond ? ' diamond' : ''}${esAgotado || esProximamente ? ' agotado' : ''}`;
       card.dataset.id = id;
@@ -536,15 +547,20 @@ function eliminarDeCarritoE(id) {
 // CHECKOUT FORM — DATOS DEL COMPRADOR
 // ══════════════════════════════════════════════════════
 
+// Abre el formulario de datos. Si hay más de 1 entrada en el carrito,
+// renderFormulariosAcompanantes genera automáticamente los formularios extra.
 function abrirCheckoutForm() {
   if (carritoEntradas.length === 0) { mostrarToast('⚠️ Agrega entradas al carrito primero', true); return; }
   cerrarTodosModales();
-  renderFormulariosAcompanantes();
+  renderFormulariosAcompanantes(); // genera los formularios de acompañantes según cantidad del carrito
   document.getElementById('modal-checkout').classList.add('active');
   document.body.style.overflow = 'hidden';
   document.getElementById('checkout-error').style.display = 'none';
 }
 
+// Genera dinámicamente los formularios de acompañantes según cuántas entradas hay en el carrito.
+// Si hay 3 entradas → muestra "Comprador principal" + "Acompañante 1" + "Acompañante 2".
+// Si solo hay 1 entrada → muestra el formulario normal sin secciones adicionales.
 function renderFormulariosAcompanantes() {
   const total     = carritoEntradas.reduce((s, i) => s + i.cantidad, 0);
   const container = document.getElementById('acompanantes-container');
@@ -642,6 +658,8 @@ function validarRUT(rut) {
   return dv === dvReal;
 }
 
+// Valida todos los formularios (comprador + acompañantes) y envía los datos al backend
+// para crear la preferencia de pago en MercadoPago. Abre MP en una nueva pestaña.
 function procederPagoEntradas() {
   const modalCheckout = document.getElementById('modal-checkout');
   const btnPagar      = document.getElementById('checkout-btn-pagar');
