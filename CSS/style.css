@@ -1499,7 +1499,15 @@ footer {
 }
 
 .modal-tipo-badge.badge-disponible {
-  background: rgba(11, 201, 21, 0.15); border: 1px
+  background: rgba(11, 201, 21, 0.15);
+  border: 1px solid rgba(11, 201, 21, 0.35);
+  color: #6ee87a;
+}
+
+.modal-tipo-badge.prox-badge {
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  color: var(--gold-light);
 }
 .modal-ultimas {
   font-size: 0.62rem;

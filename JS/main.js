@@ -10,14 +10,14 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  preventa1:    { nombre: 'Preventa 1',         precio: 8000,   limite: 700, disponibles: 700, activa: TextTrackCueList },
-  preventa2:    { nombre: 'Preventa 2',         precio: 13000,  limite: 700, disponibles: 0, activa: true },
-  soloMujeres:  { nombre: 'Solo Mujeres 2x',    precio: 12000,  limite: 700, disponibles: 700, activa: true },
-  mesaDiamond:  { nombre: 'Mesa Diamond (4 pers.)', precio: 150000, limite: 10,  disponibles: 10,  activa: true },
-  preventaVip:  { nombre: 'Preventa VIP',       precio: 15000,  limite: 150, disponibles: 150, activa: true },
-  vip:          { nombre: 'VIP',                precio: 20000,  limite: 150, disponibles: 150, activa: false },
-  prevDiamond:  { nombre: 'Diamond',             precio: 20000,  limite: 50,  disponibles: 50,  activa: false },
-  puertaDiamond:{ nombre: 'Puerta Diamond',     precio: 30000,  limite: 50,  disponibles: 50,  activa: false },
+  preventa1:    { nombre: 'Preventa 1',            precio: 8000,   limite: 700, disponibles: 700, activa: true },
+  preventa2:    { nombre: 'Preventa 2',            precio: 13000,  limite: 700, disponibles: 700, activa: false, proximamente: true },
+  soloMujeres:  { nombre: 'Solo Mujeres 2x',       precio: 12000,  limite: 700, disponibles: 700, activa: true },
+  mesaDiamond:  { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 10,  disponibles: 10,  activa: true },
+  preventaVip:  { nombre: 'Preventa VIP',          precio: 15000,  limite: 150, disponibles: 150, activa: true },
+  vip:          { nombre: 'VIP',                   precio: 20000,  limite: 150, disponibles: 150, activa: false, proximamente: true },
+  prevDiamond:  { nombre: 'Diamond',               precio: 20000,  limite: 50,  disponibles: 50,  activa: false, proximamente: true },
+  puertaDiamond:{ nombre: 'Puerta Diamond',        precio: 30000,  limite: 50,  disponibles: 50,  activa: false, proximamente: true },
 };
 
 // ══════════════════════════════════════════════════════
@@ -239,7 +239,7 @@ function renderizarTiposEntrada() {
   const grupos = {
     '🎟️ General': ['preventa1', 'preventa2', 'soloMujeres'],
     '💎 Mesa Diamond': ['mesaDiamond'],
-    '⭐ VIP':      ['preventaVip','vip',],
+    '⭐ VIP':      ['preventaVip', 'vip'],
   };
 
   const container = document.getElementById('modal-tipos-container');
@@ -255,11 +255,14 @@ function renderizarTiposEntrada() {
     ids.forEach(id => {
       const e = ENTRADAS[id];
       const card = document.createElement('div');
-      const esVip = ['mesaDiamond','preventaVip','vip','prevDiamond','puertaDiamond'].includes(id);
-      const esDiamond = ['prevDiamond','puertaDiamond'].includes(id);
+      const esVip          = ['mesaDiamond','preventaVip','vip'].includes(id);
+      const esDiamond      = false;
+      const esProximamente = e.proximamente === true;
+      const esAgotado      = !e.activa && !esProximamente;
+      const esDisponible   = e.activa && e.disponibles > 0 && id !== 'soloMujeres';
       const ultimasEntradas = e.activa && e.disponibles > 0 && e.disponibles <= 5;
 
-      card.className = `modal-tipo-card${esVip ? ' vip' : ''}${esDiamond ? ' diamond' : ''}${!e.activa || e.disponibles === 0 ? ' ' : ''}`;
+      card.className = `modal-tipo-card${esVip ? ' vip' : ''}${esDiamond ? ' diamond' : ''}${esAgotado || esProximamente ? ' agotado' : ''}`;
       card.dataset.id = id;
 
       if (e.activa && e.disponibles > 0) {
@@ -267,15 +270,14 @@ function renderizarTiposEntrada() {
       }
 
       card.innerHTML = `
-        ${id === 'soloMujeres' ? '<div class="modal-tipo-badge">Promo</div>' : ''}
-        ${id === 'preventa1' ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
-        ${!e.activa || e.disponibles === 0 ? '<div class="modal-tipo-badge agotado-badge">Próximamente</div>' : ''}
+        ${id === 'soloMujeres' ? '<div class="modal-tipo-badge badge-disponible">Promo Disponible</div>' : ''}
+        ${esDisponible   ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
+        ${esProximamente ? '<div class="modal-tipo-badge prox-badge">Próximamente</div>' : ''}
+        ${esAgotado      ? '<div class="modal-tipo-badge agotado-badge">Agotado</div>' : ''}
         <div class="modal-tipo-nombre">${e.nombre}</div>
-        ${id === 'mesaDiamond' ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
         ${id === 'mesaDiamond' ? '<div class="modal-tipo-sub">Frente al escenario</div>' : ''}
         <div class="modal-tipo-precio">${e.precioLabel || formatPrecio(e.precio)}</div>
-        ${id === 'preventaVip' ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
-        ${(id === 'prevDiamond' || id === 'mesaDiamond') && e.activa && e.disponibles > 0 ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">Cupos limitados: ' + e.disponibles + ' mesas</span></div>' : ''}
+        ${id === 'mesaDiamond' && e.activa && e.disponibles > 0 ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">Cupos limitados: ' + e.disponibles + '</span></div>' : ''}
         ${ultimasEntradas ? '<div class="modal-ultimas">⚡ Últimas entradas</div>' : ''}
       `;
 
