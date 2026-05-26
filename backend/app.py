@@ -188,11 +188,12 @@ def webhook_mp():
                     items        = json.loads(pendiente["items_json"])
                     acompanantes = json.loads(pendiente.get("acompanantes_json") or "[]")  # [] si no hay acompañantes
 
-                    # Expandir el carrito en una lista de tickets individuales
-                    # Ej: 3x Preventa 1 → [ticket, ticket, ticket]
+                    # Expandir el carrito en una lista de tickets individuales.
+                    # soloMujeres es promo 2x: 1 ticket = 2 personas, se expande a 2 entradas.
                     tickets_lista = []
                     for item in items:
-                        for _ in range(item["cantidad"]):
+                        personas = item["cantidad"] * (2 if item.get("id") == "soloMujeres" else 1)
+                        for _ in range(personas):
                             tickets_lista.append({
                                 "nombre": item["nombre"],
                                 "precio": item["precioFinal"]
