@@ -36,7 +36,7 @@ const CONFIG_SABADO = {
 };
 
 // ══════════════════════════════════════════════════════
-// CONFIGURACIÓN ANUNCIO EMERGENTE — EDITAR AQUÍ
+// CONFIGURACIÓN ANUNCIO EMERGENTE 
 // activo: true → muestra el popup al cargar la página
 // esGratis: true → muestra "Entrada Liberada" en el popup
 // Usa el evento principal (hero) como referencia por defecto
@@ -57,7 +57,7 @@ const CONFIG_ANUNCIO = {
 const NOMBRE_EVENTO_PRINCIPAL = 'Loyaltty';
 
 // ══════════════════════════════════════════════════════
-// CONFIGURACIÓN IVA Y COMISIÓN — EDITAR AQUÍ SI CAMBIA
+// CONFIGURACIÓN IVA Y COMISIÓN
 // ══════════════════════════════════════════════════════
 const IVA = 0;             // sin IVA
 const COMISION_MP = 0.1; // 10% MercadoPago
@@ -510,7 +510,7 @@ function renderizarCarritoEntradas() {
     </div>
     <div class="carrito-item-desglose">
       <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
-      <div class="desglose-row"><span>Comisión servicio (10%)</span><span>${formatPrecio(d.comTotal)}</span></div>
+      <div class="desglose-row"><span>Comisión ticketera (10%)</span><span>${formatPrecio(d.comTotal)}</span></div>
       <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
     </div>
   `}).join('');
@@ -834,7 +834,7 @@ function renderizarCarritoComida() {
     </div>
     <div class="carrito-item-desglose">
       <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
-      <div class="desglose-row"><span>Comisión  (10%) × ${item.cantidad}</span><span>${formatPrecio(d.comTotal)}</span></div>
+      <div class="desglose-row"><span>Comisión ticketera (10%) × ${item.cantidad}</span><span>${formatPrecio(d.comTotal)}</span></div>
       <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
     </div>
   `}).join('');
