@@ -204,6 +204,11 @@ def webhook_mp():
                     todos = [comprador] + acompanantes
                     nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
 
+                    # Si hay más personas que tickets (ej: promo 2x sin id enviado),
+                    # extender tickets_lista repitiendo el último ticket
+                    while len(tickets_lista) < len(todos):
+                        tickets_lista.append(tickets_lista[-1] if tickets_lista else {"nombre": "Entrada", "precio": 0})
+
                     for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
                         es_acomp = idx > 0  # el primero es el comprador, los demás son acompañantes
                         _emitir_ticket(
