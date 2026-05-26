@@ -562,8 +562,7 @@ function abrirCheckoutForm() {
 // Si hay 3 entradas → muestra "Comprador principal" + "Acompañante 1" + "Acompañante 2".
 // Si solo hay 1 entrada → muestra el formulario normal sin secciones adicionales.
 function renderFormulariosAcompanantes() {
-  // soloMujeres cuenta como 2 personas por ticket (promo 2x)
-  const total     = carritoEntradas.reduce((s, i) => s + (i.id === 'soloMujeres' ? i.cantidad * 2 : i.cantidad), 0);
+  const total     = carritoEntradas.reduce((s, i) => s + i.cantidad, 0);
   const container = document.getElementById('acompanantes-container');
   const headerP   = document.getElementById('checkout-header-principal');
   const titulo    = document.getElementById('checkout-titulo');
@@ -699,7 +698,7 @@ function procederPagoEntradas() {
   const comprador = { nombre, apellido, rut, email, telefono };
 
   // ── Recoger y validar acompañantes ──
-  const totalTickets = carritoEntradas.reduce((s, i) => s + (i.id === 'soloMujeres' ? i.cantidad * 2 : i.cantidad), 0);
+  const totalTickets = carritoEntradas.reduce((s, i) => s + i.cantidad, 0);
   const acompanantes = [];
   for (let i = 1; i < totalTickets; i++) {
     const aNombre   = document.getElementById(`acomp-${i}-nombre`)?.value.trim();
