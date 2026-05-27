@@ -202,14 +202,32 @@ def webhook_mp():
                     # Cada persona recibe su propio ticket con su propio QR y email
                     todos = [comprador] + acompanantes
                     nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
-                    print(f"DEBUG — items: {items}, acompañantes: {len(acompanantes)}, tickets_lista: {len(tickets_lista)}, todos: {len(todos)}")
+                    print(f"DEBUG — acompañantes: {len(acompanantes)}, tickets_lista: {len(tickets_lista)}, todos: {len(todos)}")
 
                     # Si hay más personas que tickets, extender tickets_lista repitiendo el último
                     while len(tickets_lista) < len(todos):
                         tickets_lista.append(tickets_lista[-1] if tickets_lista else {"nombre": "Entrada", "precio": 0})
 
+                    # Mesa Diamond: calcular número de mesa asignada a este grupo
+                    mesa_num = None
+                    es_mesa_diamond = any("Mesa Diamond" in item.get("nombre", "") for item in items)
+                    if es_mesa_diamond:
+                        mesas_vendidas = sum(
+                            1 for t in tickets_existentes
+                            if "mesa diamond" in str(t.get("evento", "")).lower()
+                            and not str(t.get("acompanante_de", "")).strip()
+                        )
+                        mesa_num = mesas_vendidas + 1
+                        print(f"Mesa Diamond asignada: Mesa {mesa_num}")
+
+                    # Nombres de acompañantes para mostrar en el correo del comprador principal
+                    nombres_acomp = [
+                        f"{a.get('nombre','')} {a.get('apellido','')}".strip()
+                        for a in acompanantes
+                    ]
+
                     for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
-                        es_acomp = idx > 0  # el primero es el comprador, los demás son acompañantes
+                        es_acomp = idx > 0
                         _emitir_ticket(
                             comprador      = asistente,
                             evento         = ticket["nombre"],
@@ -217,7 +235,9 @@ def webhook_mp():
                             precio_unit    = ticket["precio"],
                             total          = ticket["precio"],
                             id_pago        = str(payment_id),
-                            acompanante_de = nombre_comprador if es_acomp else ""  # vacío para el comprador principal
+                            acompanante_de = nombre_comprador if es_acomp else "",
+                            mesa           = mesa_num,
+                            companions     = nombres_acomp if not es_acomp else None
                         )
 
                     # Una vez procesado, borrar de pendientes para no emitir de nuevo
@@ -234,7 +254,7 @@ def webhook_mp():
 # ══════════════════════════════════════════════════════
 # EMITIR TICKET: Sheets + QR + Email
 # ══════════════════════════════════════════════════════
-def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, acompanante_de=""):
+def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, acompanante_de="", mesa=None, companions=None):
     # Genera un ticket completo para una persona: lo guarda en Sheets, crea el QR y envía el email.
     # acompanante_de: si no está vacío, indica el nombre del comprador principal (para acompañantes).
     codigo           = str(uuid.uuid4())[:12].upper()  # código único del ticket, ej: "A1B2C3D4E5F6"
@@ -271,7 +291,9 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
             evento         = evento,
             codigo         = codigo,
             qr_img         = qr_img,
-            acompanante_de = acompanante_de
+            acompanante_de = acompanante_de,
+            mesa           = mesa,
+            companions     = companions
         )
     except Exception as e:
         print(f"Error enviando email: {e}")
@@ -289,17 +311,35 @@ def _generar_qr(contenido):
     return buf.getvalue()    # retorna los bytes de la imagen PNG
 
 
-def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de=""):
+def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None):
     resend.api_key = os.getenv("RESEND_API_KEY")
     copia_bw       = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
 
     qr_b64 = base64.b64encode(qr_img).decode("utf-8")
 
+    # Bloque acompañante (si es acompañante de alguien)
+    mesa_acomp = f" · Mesa {mesa}" if mesa else ""
     bloque_acompanante = f"""
       <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:12px 16px;margin:0 0 16px;">
-        <p style="margin:0;font-size:0.9rem;color:#c9a84c;">👥 Acompañante de <strong>{acompanante_de}</strong></p>
+        <p style="margin:0 0 4px;font-size:0.9rem;color:#c9a84c;">👥 Acompañante de <strong>{acompanante_de}</strong></p>
+        {"<p style='margin:0;font-size:0.9rem;color:#c9a84c;'>🪑 " + f"Mesa {mesa}</p>" if mesa else ""}
       </div>
     """ if acompanante_de else ""
+
+    # Bloque mesa Diamond (solo para comprador principal)
+    bloque_mesa = ""
+    if mesa and not acompanante_de:
+        companions_html = ""
+        if companions:
+            items_li = "".join(f"<li style='margin:2px 0;color:#c9a84c;'>{c}</li>" for c in companions)
+            companions_html = f"<ul style='margin:8px 0 0 16px;padding:0;font-size:0.85rem;'>{items_li}</ul>"
+        bloque_mesa = f"""
+      <div style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.4);border-radius:8px;padding:16px;margin:0 0 16px;">
+        <p style="margin:0 0 6px;font-size:1rem;color:#c9a84c;font-weight:bold;">🪑 Mesa {mesa}</p>
+        <p style="margin:0 0 6px;font-size:0.9rem;color:#c9a84c;">🥃 Botella Red Label incluida</p>
+        {"<p style='margin:6px 0 2px;font-size:0.85rem;color:#a08840;'>Acompañantes registrados:</p>" + companions_html if companions else ""}
+      </div>
+    """
 
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
@@ -310,6 +350,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
       <h2 style="font-size:20px;margin-bottom:8px;">¡Tu entrada está confirmada! 🎉</h2>
       <p>Hola <strong>{nombre}</strong>, tu entrada fue procesada exitosamente.</p>
       {bloque_acompanante}
+      {bloque_mesa}
       <div style="background:#13131a;border:1px solid #2a2820;border-radius:8px;padding:20px;margin:20px 0;">
         <p style="margin:0 0 8px;"><strong>Evento:</strong> {evento}</p>
         <p style="margin:0 0 8px;"><strong>Código:</strong> <span style="color:#c9a84c;font-family:monospace;font-size:16px;">{codigo}</span></p>
@@ -374,7 +415,7 @@ def stock():
         return jsonify({
             "prevDiamond":   max(0, 50 - vendidos["prevDiamond"]),   # límite: 50
             "puertaDiamond": max(0, 50 - vendidos["puertaDiamond"]), # límite: 50
-            "mesaDiamond":   max(0, 10 - vendidos["mesaDiamond"])    # límite: 10 mesas
+            "mesaDiamond":   max(0, 13 - vendidos["mesaDiamond"])    # límite: 13 mesas
         })
     except Exception as e:
         print(f"Error en /stock: {e}")
@@ -695,25 +736,33 @@ def verificar_ticket(codigo):
             return _html_verificacion("❌ Ticket no encontrado", "Este código QR no corresponde a ninguna entrada válida.", "invalido", codigo)
 
         estado = ticket.get("estado", "").upper()
+        nombre_completo = f"{ticket.get('nombre','')} {ticket.get('apellido','')}".strip()
+
+        # Buscar acompañantes de este ticket (si es comprador principal)
+        acompanantes = [
+            f"{r.get('nombre','')} {r.get('apellido','')}".strip()
+            for r in rows
+            if str(r.get("acompanante_de", "")).strip().lower() == nombre_completo.lower()
+        ]
 
         if estado == "USADO":
-            return _html_verificacion("⚠️ Entrada ya utilizada", "Esta entrada fue escaneada previamente. No se permite el reingreso.", "usado", codigo, ticket)
+            return _html_verificacion("⚠️ Entrada ya utilizada", "Esta entrada fue escaneada previamente. No se permite el reingreso.", "usado", codigo, ticket, acompanantes)
 
         if estado != "ACTIVO":
             return _html_verificacion("❌ Entrada inválida", f"Estado: {estado}", "invalido", codigo)
 
-        # Marcar como USADO — columna 13
-        ws.update_cell(fila_num, 13, "USADO")
+        # Marcar como USADO — columna 14 (estado)
+        ws.update_cell(fila_num, 14, "USADO")
         print(f"Ticket {codigo} marcado como USADO")
 
-        return _html_verificacion("✅ Entrada válida — ¡Bienvenido!", "La entrada fue marcada como utilizada. Puedes dejar pasar al asistente.", "valido", codigo, ticket)
+        return _html_verificacion("✅ Entrada válida — ¡Bienvenido!", "La entrada fue marcada como utilizada. Puedes dejar pasar al asistente.", "valido", codigo, ticket, acompanantes)
 
     except Exception as e:
         print(f"Error verificando ticket: {e}")
         return _html_verificacion("⚠️ Error del sistema", str(e), "error", codigo)
 
 
-def _html_verificacion(titulo, mensaje, tipo, codigo, ticket=None):
+def _html_verificacion(titulo, mensaje, tipo, codigo, ticket=None, acompanantes=None):
     colores = {
         "valido":   ("#0a1f0a", "#4caf50", "#e8f5e9"),
         "usado":    ("#1f150a", "#ff9800", "#fff3e0"),
@@ -724,14 +773,27 @@ def _html_verificacion(titulo, mensaje, tipo, codigo, ticket=None):
 
     detalles = ""
     if ticket:
-        nombre   = f"{ticket.get('nombre', '')} {ticket.get('apellido', '')}".strip()
+        nombre       = f"{ticket.get('nombre', '')} {ticket.get('apellido', '')}".strip()
+        acomp_de     = ticket.get("acompanante_de", "").strip()
+        acomp_de_html = f'<p style="margin:4px 0;color:#aaa;"><strong style="color:#c9a84c;">👥 Acompañante de:</strong> {acomp_de}</p>' if acomp_de else ""
+
+        acomp_lista = ""
+        if acompanantes:
+            items_html = "".join(f'<li style="margin:2px 0;color:#aaa;">{a}</li>' for a in acompanantes)
+            acomp_lista = f"""
+            <div style="margin-top:10px;">
+              <p style="margin:4px 0;color:#ddd;font-weight:bold;">👥 Acompañantes registrados:</p>
+              <ul style="margin:6px 0 0 16px;padding:0;font-size:13px;">{items_html}</ul>
+            </div>"""
+
         detalles = f"""
         <div style="background:#0f0f15;border:1px solid #2a2820;border-radius:8px;padding:16px;margin-top:16px;text-align:left;font-size:14px;">
           <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Nombre:</strong> {nombre}</p>
           <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">RUT:</strong> {ticket.get('rut','—')}</p>
-          <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Evento:</strong> {ticket.get('evento','—')}</p>
-          <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Fecha compra:</strong> {ticket.get('fecha_compra','—')}</p>
+          <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Entrada:</strong> {ticket.get('evento','—')}</p>
           <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Código:</strong> <span style="font-family:monospace;color:#c9a84c;">{codigo}</span></p>
+          {acomp_de_html}
+          {acomp_lista}
         </div>
         """
 

@@ -13,7 +13,8 @@ const ENTRADAS = {
   preventa1:    { nombre: 'Preventa 1',            precio: 8000,   limite: 700, disponibles: 700, activa: true },
   preventa2:    { nombre: 'Preventa 2',            precio: 13000,  limite: 700, disponibles: 700, activa: false, proximamente: true },
   soloMujeres:  { nombre: 'Solo Mujeres 2x',       precio: 12000,  limite: 700, disponibles: 700, activa: true, personas: 2 },
-  mesaDiamond:  { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 10,  disponibles: 10,  activa: true },
+  mesaDiamond:  { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 13,  disponibles: 13,  activa: true, personas: 4 },
+  meetAndGreet: { nombre: 'Meet & Greet',           precio: 50000,  limite: 10,  disponibles: 10,  activa: true },
   preventaVip:  { nombre: 'Preventa VIP',          precio: 15000,  limite: 150, disponibles: 150, activa: true },
   vip:          { nombre: 'VIP',                   precio: 20000,  limite: 150, disponibles: 150, activa: false, proximamente: true },
   prevDiamond:  { nombre: 'Diamond',               precio: 20000,  limite: 50,  disponibles: 50,  activa: false, proximamente: true },
@@ -249,7 +250,7 @@ function renderizarTiposEntrada() {
   const grupos = {
     // Cada grupo es una sección con título. El array son los IDs de ENTRADAS que aparecen.
     '🎟️ General': ['preventa1', 'preventa2', 'soloMujeres'],
-    '💎 Mesa Diamond': ['mesaDiamond'],
+    '💎 Mesa Diamond': ['mesaDiamond', 'meetAndGreet'],
     '⭐ VIP':      ['preventaVip', 'vip'],
   };
 
@@ -266,7 +267,7 @@ function renderizarTiposEntrada() {
     ids.forEach(id => {
       const e = ENTRADAS[id];
       const card = document.createElement('div');
-      const esVip          = ['mesaDiamond','preventaVip','vip'].includes(id); // aplica estilo dorado/vip
+      const esVip          = ['mesaDiamond','meetAndGreet','preventaVip','vip'].includes(id); // aplica estilo dorado/vip
       const esDiamond      = false; // reservado para uso futuro
       const esProximamente = e.proximamente === true;       // card apagada con badge "Próximamente"
       const esAgotado      = !e.activa && !esProximamente;  // card apagada con badge "Agotado"
@@ -282,13 +283,15 @@ function renderizarTiposEntrada() {
 
       card.innerHTML = `
         ${id === 'soloMujeres' ? '<div class="modal-tipo-badge badge-disponible">Promo Disponible</div>' : ''}
-        ${esDisponible   ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
+        ${id === 'meetAndGreet' ? '<div class="modal-tipo-badge exclusive-badge">✦ Exclusivo</div>' : ''}
+        ${esDisponible && id !== 'meetAndGreet' ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
         ${esProximamente ? '<div class="modal-tipo-badge prox-badge">Próximamente</div>' : ''}
         ${esAgotado      ? '<div class="modal-tipo-badge agotado-badge">Agotado</div>' : ''}
         <div class="modal-tipo-nombre">${e.nombre}</div>
         ${id === 'mesaDiamond' ? '<div class="modal-tipo-sub">Frente al escenario</div>' : ''}
+        ${id === 'meetAndGreet' ? '<div class="modal-tipo-sub">Entrada VIP + Conocer al artista + foto</div>' : ''}
         <div class="modal-tipo-precio">${e.precioLabel || formatPrecio(e.precio)}</div>
-        ${id === 'mesaDiamond' && e.activa && e.disponibles > 0 ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">Cupos limitados: ' + e.disponibles + '</span></div>' : ''}
+        ${(id === 'mesaDiamond' || id === 'meetAndGreet') && e.activa && e.disponibles > 0 ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">Cupos limitados: ' + e.disponibles + '</span></div>' : ''}
         ${ultimasEntradas ? '<div class="modal-ultimas">⚡ Últimas entradas</div>' : ''}
       `;
 

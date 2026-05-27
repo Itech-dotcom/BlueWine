@@ -1509,6 +1509,14 @@ footer {
   border: 1px solid rgba(201, 168, 76, 0.35);
   color: var(--gold-light);
 }
+.modal-tipo-badge.exclusive-badge {
+  background: linear-gradient(135deg, rgba(201,168,76,0.22) 0%, rgba(255,220,120,0.12) 100%);
+  border: 1px solid rgba(201,168,76,0.55);
+  color: #f0d060;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(240,208,80,0.4);
+}
 .modal-ultimas {
   font-size: 0.62rem;
   color: var(--gold);
