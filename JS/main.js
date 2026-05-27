@@ -12,7 +12,7 @@
 const ENTRADAS = {
   preventa1:    { nombre: 'Preventa 1',            precio: 8000,   limite: 700, disponibles: 700, activa: true },
   preventa2:    { nombre: 'Preventa 2',            precio: 13000,  limite: 700, disponibles: 700, activa: false, proximamente: true },
-  soloMujeres:  { nombre: 'Solo Mujeres 2x',       precio: 12000,  limite: 700, disponibles: 700, activa: true },
+  soloMujeres:  { nombre: 'Solo Mujeres 2x',       precio: 12000,  limite: 700, disponibles: 700, activa: true, personas: 2 },
   mesaDiamond:  { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 10,  disponibles: 10,  activa: true },
   preventaVip:  { nombre: 'Preventa VIP',          precio: 15000,  limite: 150, disponibles: 150, activa: true },
   vip:          { nombre: 'VIP',                   precio: 20000,  limite: 150, disponibles: 150, activa: false, proximamente: true },
@@ -562,7 +562,7 @@ function abrirCheckoutForm() {
 // Si hay 3 entradas → muestra "Comprador principal" + "Acompañante 1" + "Acompañante 2".
 // Si solo hay 1 entrada → muestra el formulario normal sin secciones adicionales.
 function renderFormulariosAcompanantes() {
-  const total     = carritoEntradas.reduce((s, i) => s + i.cantidad, 0);
+  const total     = carritoEntradas.reduce((s, i) => s + i.cantidad * (ENTRADAS[i.id]?.personas || 1), 0);
   const container = document.getElementById('acompanantes-container');
   const headerP   = document.getElementById('checkout-header-principal');
   const titulo    = document.getElementById('checkout-titulo');
@@ -698,7 +698,7 @@ function procederPagoEntradas() {
   const comprador = { nombre, apellido, rut, email, telefono };
 
   // ── Recoger y validar acompañantes ──
-  const totalTickets = carritoEntradas.reduce((s, i) => s + i.cantidad, 0);
+  const totalTickets = carritoEntradas.reduce((s, i) => s + i.cantidad * (ENTRADAS[i.id]?.personas || 1), 0);
   const acompanantes = [];
   for (let i = 1; i < totalTickets; i++) {
     const aNombre   = document.getElementById(`acomp-${i}-nombre`)?.value.trim();
