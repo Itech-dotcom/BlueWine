@@ -438,6 +438,27 @@ def recuperar_pendiente():
 
 
 # ══════════════════════════════════════════════════════
+# EMITIR MANUAL — emite ticket directo con datos crudos (uso temporal)
+# ══════════════════════════════════════════════════════
+@app.route("/emitir-manual", methods=["POST"])
+def emitir_manual():
+    data = request.get_json()
+    comprador = data.get("comprador", {})
+    evento    = data.get("evento", "")
+    precio    = data.get("precio", 0)
+    acomp_de  = data.get("acompanante_de", "")
+    if not comprador or not evento:
+        return jsonify({"ok": False, "error": "Faltan campos"}), 400
+    try:
+        _emitir_ticket(comprador=comprador, evento=evento, cantidad=1,
+                       precio_unit=precio, total=precio,
+                       id_pago="MANUAL", acompanante_de=acomp_de)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════
 # REENVIAR TICKET — busca en Sheets y reenvía el email
 # ══════════════════════════════════════════════════════
 @app.route("/reenviar-ticket", methods=["POST"])
