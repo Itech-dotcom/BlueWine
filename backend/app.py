@@ -202,6 +202,7 @@ def webhook_mp():
                     # Cada persona recibe su propio ticket con su propio QR y email
                     todos = [comprador] + acompanantes
                     nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
+                    print(f"DEBUG — items: {items}, acompañantes: {len(acompanantes)}, tickets_lista: {len(tickets_lista)}, todos: {len(todos)}")
 
                     # Si hay más personas que tickets, extender tickets_lista repitiendo el último
                     while len(tickets_lista) < len(todos):
