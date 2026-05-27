@@ -774,6 +774,8 @@ def _html_verificacion(titulo, mensaje, tipo, codigo, ticket=None, acompanantes=
     detalles = ""
     if ticket:
         nombre       = f"{ticket.get('nombre', '')} {ticket.get('apellido', '')}".strip()
+        evento_raw   = ticket.get('evento', '—')
+        tipo_entrada = evento_raw.split(' — ', 1)[-1] if ' — ' in evento_raw else evento_raw
         acomp_de     = ticket.get("acompanante_de", "").strip()
         acomp_de_html = f'<p style="margin:4px 0;color:#aaa;"><strong style="color:#c9a84c;">👥 Acompañante de:</strong> {acomp_de}</p>' if acomp_de else ""
 
@@ -790,7 +792,7 @@ def _html_verificacion(titulo, mensaje, tipo, codigo, ticket=None, acompanantes=
         <div style="background:#0f0f15;border:1px solid #2a2820;border-radius:8px;padding:16px;margin-top:16px;text-align:left;font-size:14px;">
           <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Nombre:</strong> {nombre}</p>
           <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">RUT:</strong> {ticket.get('rut','—')}</p>
-          <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Entrada:</strong> {ticket.get('evento','—')}</p>
+          <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Entrada:</strong> {tipo_entrada}</p>
           <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Código:</strong> <span style="font-family:monospace;color:#c9a84c;">{codigo}</span></p>
           {acomp_de_html}
           {acomp_lista}
