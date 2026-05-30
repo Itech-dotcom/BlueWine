@@ -229,6 +229,7 @@ function actualizarStockDiamond() {
       if (typeof stock.prevDiamond   === 'number') ENTRADAS.prevDiamond.disponibles   = stock.prevDiamond;
       if (typeof stock.puertaDiamond === 'number') ENTRADAS.puertaDiamond.disponibles = stock.puertaDiamond;
       if (typeof stock.mesaDiamond   === 'number') ENTRADAS.mesaDiamond.disponibles   = stock.mesaDiamond;
+      if (typeof stock.meetAndGreet  === 'number') ENTRADAS.meetAndGreet.disponibles  = stock.meetAndGreet;
       renderizarTiposEntrada(); // vuelve a dibujar las cards con los cupos actualizados
     })
     .catch(() => {}); // si falla el backend, no se muestra error — se usan valores locales

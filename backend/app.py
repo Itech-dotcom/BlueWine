@@ -401,7 +401,7 @@ def stock():
     try:
         ws   = get_sheet()
         rows = ws.get_all_records()
-        vendidos = {"prevDiamond": 0, "puertaDiamond": 0, "mesaDiamond": 0}
+        vendidos = {"prevDiamond": 0, "puertaDiamond": 0, "mesaDiamond": 0, "meetAndGreet": 0}
         for row in rows:
             evento = str(row.get("evento", "")).lower()
             estado = str(row.get("estado", "")).upper()
@@ -412,10 +412,13 @@ def stock():
                     vendidos["puertaDiamond"] += 1
                 elif "mesa diamond" in evento or "mesa vip" in evento:
                     vendidos["mesaDiamond"] += 1  # "mesa vip" por compatibilidad con tickets antiguos
+                elif "meet" in evento:
+                    vendidos["meetAndGreet"] += 1
         return jsonify({
             "prevDiamond":   max(0, 50 - vendidos["prevDiamond"]),   # límite: 50
             "puertaDiamond": max(0, 50 - vendidos["puertaDiamond"]), # límite: 50
-            "mesaDiamond":   max(0, 13 - vendidos["mesaDiamond"])    # límite: 13 mesas
+            "mesaDiamond":   max(0, 13 - vendidos["mesaDiamond"]),   # límite: 13 mesas
+            "meetAndGreet":  max(0, 10 - vendidos["meetAndGreet"])   # límite: 10
         })
     except Exception as e:
         print(f"Error en /stock: {e}")
