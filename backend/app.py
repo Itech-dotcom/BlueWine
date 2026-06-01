@@ -188,23 +188,24 @@ def webhook_mp():
                     items        = json.loads(pendiente["items_json"])
                     acompanantes = json.loads(pendiente.get("acompanantes_json") or "[]")  # [] si no hay acompañantes
 
-                    # Expandir el carrito en una lista de tickets individuales.
-                    # Ej: 3x Preventa 1 → [ticket, ticket, ticket]
+                    # Expandir el carrito respetando cuántas personas incluye cada tipo de entrada.
+                    # Ej: 1x Solo Mujeres 2x (personas:2) + 1x Preventa 1 → [soloMujeres, soloMujeres, preventa1]
                     tickets_lista = []
                     for item in items:
+                        personas = item.get("personas", 1)
                         for _ in range(item["cantidad"]):
-                            tickets_lista.append({
-                                "nombre": item["nombre"],
-                                "precio": item["precioFinal"]
-                            })
+                            for _ in range(personas):
+                                tickets_lista.append({
+                                    "nombre": item["nombre"],
+                                    "precio": item["precioFinal"]
+                                })
 
                     # Unir comprador + acompañantes en una sola lista
-                    # Cada persona recibe su propio ticket con su propio QR y email
                     todos = [comprador] + acompanantes
                     nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
                     print(f"DEBUG — acompañantes: {len(acompanantes)}, tickets_lista: {len(tickets_lista)}, todos: {len(todos)}")
 
-                    # Si hay más personas que tickets, extender tickets_lista repitiendo el último
+                    # Safety net: si aún faltan slots, extender repitiendo el último
                     while len(tickets_lista) < len(todos):
                         tickets_lista.append(tickets_lista[-1] if tickets_lista else {"nombre": "Entrada", "precio": 0})
 

@@ -767,7 +767,7 @@ function procederPagoEntradas() {
 
   const items = carritoEntradas.map(i => {
     const d = calcularDesglose(i.precio, i.cantidad);
-    return { id: i.id, nombre: `${NOMBRE_EVENTO_PRINCIPAL} — ${i.nombreMP}`, cantidad: i.cantidad, precioFinal: d.totalUnit };
+    return { id: i.id, nombre: `${NOMBRE_EVENTO_PRINCIPAL} — ${i.nombreMP}`, cantidad: i.cantidad, precioFinal: d.totalUnit, personas: ENTRADAS[i.id]?.personas || 1 };
   });
 
   fetch('https://bluewine-production.up.railway.app/crear-pago', {
