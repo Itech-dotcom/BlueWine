@@ -703,6 +703,12 @@ function procederPagoEntradas() {
 
   // ── Recoger y validar acompañantes ──
   const totalTickets = carritoEntradas.reduce((s, i) => s + i.cantidad * (ENTRADAS[i.id]?.personas || 1), 0);
+  const formulariosPresentes = document.querySelectorAll('#acompanantes-container .acomp-seccion').length;
+  if (totalTickets > 1 && formulariosPresentes < totalTickets - 1) {
+    errorEl.textContent = '⚠️ Tu sesión está desactualizada. Por favor recarga la página e intenta nuevamente.';
+    errorEl.style.display = 'block';
+    return;
+  }
   const acompanantes = [];
   for (let i = 1; i < totalTickets; i++) {
     const aNombre   = document.getElementById(`acomp-${i}-nombre`)?.value.trim();
