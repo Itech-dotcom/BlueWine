@@ -71,5 +71,24 @@ Se usa cuando hay un evento nuevo confirmado. Si faltan datos, pedirlos al usuar
      también `esVip`, `grupos` y badges si los tipos de entrada cambian.
 
 3. **backend/app.py**
+   - **OBLIGATORIO**: actualizar `PRECIOS_ENTRADAS` y `NOMBRE_EVENTO_PRINCIPAL` para
+     que coincidan exactamente con `ENTRADAS`/`NOMBRE_EVENTO_PRINCIPAL` de
+     `JS/main.js` (precios, `personas`, nombres). El backend valida cada compra
+     contra esta tabla — si no se actualiza, `/crear-pago` rechazará los tipos de
+     entrada nuevos o cobrará el precio antiguo.
    - Si se agregan tipos de entrada nuevos con stock limitado (como "Mesa Diamond"
      o "Meet & Greet"), revisar el endpoint `/stock` para incluirlos en el conteo.
+
+## Seguridad — endpoints administrativos
+
+- `/emitir-manual`, `/reenviar-ticket` y `/recuperar-pendiente` requieren el header
+  `X-Admin-Key` con el valor de `ADMIN_KEY` (variable de entorno en Railway,
+  fallback `bw-admin-2026` en el código). Si se rota la clave, actualizarla en
+  Railway y usar el nuevo valor en los comandos PowerShell de administración.
+- `/crear-pago` valida cada item del carrito contra `PRECIOS_ENTRADAS` (precio,
+  `personas`, nombre del evento) y verifica que `len(acompanantes) == total
+  personas - 1`. Nunca confiar en precios/cantidades/nombres que vengan del
+  frontend.
+- `/obtener-entrada-gratis` solo funciona si `ENTRADA_GRATIS_ACTIVA = True` en
+  `backend/app.py` (poner en `True` solo durante una promo de entradas liberadas
+  y volver a `False` después).

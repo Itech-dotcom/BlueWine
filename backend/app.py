@@ -23,6 +23,34 @@ CORS(app)  # permite que el frontend haga peticiones al backend sin bloqueos
 
 sdk = mercadopago.SDK(os.getenv("MP_ACCESS_TOKEN"))  # inicializa MercadoPago con la clave del .env
 
+# Clave para endpoints administrativos (/emitir-manual, /reenviar-ticket, /recuperar-pendiente).
+# Configurar ADMIN_KEY en las variables de entorno de Railway; este valor es solo un fallback.
+ADMIN_KEY = os.getenv("ADMIN_KEY", "bw-admin-2026")
+
+# ══════════════════════════════════════════════════════
+# PRECIOS Y TIPOS DE ENTRADA — fuente de verdad para validar montos
+# Debe reflejar el objeto ENTRADAS de JS/main.js. Cuando cambie el evento
+# (ver CLAUDE.md → "nuevo evento"), actualizar también esta tabla.
+# ══════════════════════════════════════════════════════
+NOMBRE_EVENTO_PRINCIPAL = "Loyaltty"
+COMISION_MP = 0.1  # 10% MercadoPago, igual que en main.js
+
+PRECIOS_ENTRADAS = {
+    "preventa1":     {"nombre": "Preventa 1",             "precio": 8000,   "personas": 1},
+    "preventa2":     {"nombre": "Preventa 2",             "precio": 13000,  "personas": 1},
+    "soloMujeres":   {"nombre": "Solo Mujeres 2x",        "precio": 12000,  "personas": 2},
+    "mesaDiamond":   {"nombre": "Mesa Diamond (4 pers.)", "precio": 150000, "personas": 4},
+    "meetAndGreet":  {"nombre": "Meet & Greet",           "precio": 50000,  "personas": 1},
+    "preventaVip":   {"nombre": "Preventa VIP",           "precio": 15000,  "personas": 1},
+    "vip":           {"nombre": "VIP",                    "precio": 20000,  "personas": 1},
+    "prevDiamond":   {"nombre": "Diamond",                "precio": 20000,  "personas": 1},
+    "puertaDiamond": {"nombre": "Puerta Diamond",         "precio": 30000,  "personas": 1},
+}
+
+# Bandera para activar la entrada liberada (/obtener-entrada-gratis).
+# Mantener en False salvo que el evento actual regale entradas.
+ENTRADA_GRATIS_ACTIVA = False
+
 # ══════════════════════════════════════════════════════
 # GOOGLE SHEETS — CONFIGURACIÓN
 # Las credenciales del service account van en la variable
@@ -79,11 +107,44 @@ def crear_pago():
     # Recibe los datos del carrito y el comprador desde el frontend,
     # crea una preferencia de pago en MercadoPago y guarda los datos en "pendientes".
     # El frontend redirige al usuario a init_point para que pague.
-    data         = request.get_json()
-    items        = data.get("items", [])          # lista de entradas del carrito
-    comprador    = data.get("comprador", {})       # datos del comprador principal
-    acompanantes = data.get("acompanantes", [])    # lista de acompañantes (puede estar vacía)
-    compra_id    = str(uuid.uuid4())               # ID único para identificar esta compra
+    data              = request.get_json()
+    items_recibidos   = data.get("items", [])          # lista de entradas del carrito (sin confiar en precios/cantidades)
+    comprador         = data.get("comprador", {})       # datos del comprador principal
+    acompanantes      = data.get("acompanantes", [])    # lista de acompañantes (puede estar vacía)
+    compra_id         = str(uuid.uuid4())               # ID único para identificar esta compra
+
+    # Validar cada item contra PRECIOS_ENTRADAS — nunca confiar en precio/personas/nombre
+    # que vengan del frontend, para evitar manipulación de montos o tipos de entrada.
+    items = []
+    total_personas = 0
+    for item in items_recibidos:
+        info = PRECIOS_ENTRADAS.get(item.get("id"))
+        if not info:
+            return jsonify({"error": f"Tipo de entrada inválido: {item.get('id')}"}), 400
+        try:
+            cantidad = int(item.get("cantidad", 0))
+        except (TypeError, ValueError):
+            cantidad = 0
+        if cantidad < 1 or cantidad > 20:
+            return jsonify({"error": "Cantidad inválida"}), 400
+
+        precio_final = info["precio"] + round(info["precio"] * COMISION_MP)
+        items.append({
+            "id": item["id"],
+            "nombre": f"{NOMBRE_EVENTO_PRINCIPAL} — {info['nombre']}",
+            "cantidad": cantidad,
+            "precioFinal": precio_final,
+            "personas": info["personas"]
+        })
+        total_personas += cantidad * info["personas"]
+
+    if not items:
+        return jsonify({"error": "El carrito está vacío"}), 400
+
+    # La cantidad de acompañantes debe coincidir exactamente con los cupos comprados
+    # (total de personas - 1 por el comprador principal).
+    if len(acompanantes) != total_personas - 1:
+        return jsonify({"error": "La cantidad de acompañantes no coincide con las entradas compradas"}), 400
 
     # Armar la preferencia de pago para MercadoPago
     preference_data = {
@@ -165,7 +226,7 @@ def webhook_mp():
                 ws_t = get_sheet()
                 tickets_existentes = ws_t.get_all_records()
                 for t in tickets_existentes:
-                    if str(t.get("id_pago", "")) == str(payment_id):
+                    if str(t.get("id_pago_mp", "")) == str(payment_id):
                         print(f"Pago {payment_id} ya procesado anteriormente — ignorando webhook duplicado")
                         return jsonify({"status": "ok"}), 200
 
@@ -432,6 +493,8 @@ def stock():
 # ══════════════════════════════════════════════════════
 @app.route("/recuperar-pendiente", methods=["POST"])
 def recuperar_pendiente():
+    if request.headers.get("X-Admin-Key") != ADMIN_KEY:
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
     data       = request.get_json()
     compra_id  = str(data.get("compra_id", "")).strip()
     email_fix  = str(data.get("email", "")).strip()  # email corregido (opcional)
@@ -488,7 +551,7 @@ def recuperar_pendiente():
 # ══════════════════════════════════════════════════════
 @app.route("/emitir-manual", methods=["POST"])
 def emitir_manual():
-    if request.headers.get("X-Admin-Key") != "bw-admin-2026":
+    if request.headers.get("X-Admin-Key") != ADMIN_KEY:
         return jsonify({"ok": False, "error": "No autorizado"}), 401
     data = request.get_json()
     comprador = data.get("comprador", {})
@@ -511,6 +574,8 @@ def emitir_manual():
 # ══════════════════════════════════════════════════════
 @app.route("/reenviar-ticket", methods=["POST"])
 def reenviar_ticket():
+    if request.headers.get("X-Admin-Key") != ADMIN_KEY:
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
     data       = request.get_json()
     buscar_id  = str(data.get("codigo", "")).strip()
     email_dest = str(data.get("email", "")).strip()
@@ -559,10 +624,17 @@ def reenviar_ticket():
 # ══════════════════════════════════════════════════════
 @app.route("/obtener-entrada-gratis", methods=["POST"])
 def obtener_entrada_gratis():
+    if not ENTRADA_GRATIS_ACTIVA:
+        return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
+
     data          = request.get_json()
     comprador     = data.get("comprador", {})
     nombre_evento = data.get("nombreEvento", "Evento Blue Wine")
-    cantidad      = int(data.get("cantidad", 1))
+    try:
+        cantidad = int(data.get("cantidad", 1))
+    except (TypeError, ValueError):
+        cantidad = 1
+    cantidad = max(1, min(cantidad, 4))  # tope de seguridad
 
     try:
         for _ in range(cantidad):

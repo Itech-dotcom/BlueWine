@@ -289,6 +289,10 @@
             <input type="email" id="co-email" placeholder="tu@correo.cl" autocomplete="email" />
           </div>
           <div class="checkout-form-group">
+            <label for="co-email-confirm">Confirmar correo electrónico <span class="campo-req">*</span></label>
+            <input type="email" id="co-email-confirm" placeholder="tu@correo.cl" autocomplete="email" onpaste="return false;" />
+          </div>
+          <div class="checkout-form-group">
             <label for="co-telefono">Teléfono / WhatsApp <span class="campo-req">*</span></label>
             <input type="tel" id="co-telefono" placeholder="+56 9 xxxx xxxx" autocomplete="tel" />
           </div>
@@ -879,7 +883,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=9"></script>
+  <script src="JS/main.js?v=10"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;

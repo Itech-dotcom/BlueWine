@@ -604,6 +604,10 @@ function renderFormulariosAcompanantes() {
           <input type="email" id="acomp-${i}-email" placeholder="su@correo.cl" autocomplete="off" />
         </div>
         <div class="checkout-form-group">
+          <label>Confirmar correo electrónico <span class="campo-req">*</span></label>
+          <input type="email" id="acomp-${i}-email-confirm" placeholder="su@correo.cl" autocomplete="off" onpaste="return false;" />
+        </div>
+        <div class="checkout-form-group">
           <label>Teléfono / WhatsApp <span class="campo-req">*</span></label>
           <input type="tel" id="acomp-${i}-telefono" placeholder="+56 9 xxxx xxxx" autocomplete="off" />
         </div>
@@ -683,7 +687,7 @@ function procederPagoEntradas() {
   const tc       = document.getElementById('co-tc').checked;
 
   const errorEl = document.getElementById('checkout-error');
-  const campos  = ['co-nombre','co-apellido','co-rut','co-email','co-telefono'];
+  const campos  = ['co-nombre','co-apellido','co-rut','co-email','co-email-confirm','co-telefono'];
   campos.forEach(id => document.getElementById(id).classList.remove('input-error'));
   errorEl.style.display = 'none';
 
@@ -692,6 +696,8 @@ function procederPagoEntradas() {
   if (!rut)      { marcarError('co-rut',      '⚠️ Ingresa tu RUT.',       errorEl); return; }
   if (!validarRUT(rut)) { marcarError('co-rut', '⚠️ El RUT ingresado no es válido. Verifica el dígito verificador.', errorEl); return; }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { marcarError('co-email', '⚠️ Ingresa un correo electrónico válido.', errorEl); return; }
+  const emailConfirm = document.getElementById('co-email-confirm').value.trim();
+  if (email.toLowerCase() !== emailConfirm.toLowerCase()) { marcarError('co-email-confirm', '⚠️ Los correos no coinciden. Verifica que sean iguales.', errorEl); return; }
   if (!telefono) { marcarError('co-telefono', '⚠️ Ingresa tu número de teléfono.', errorEl); return; }
   if (!tc) {
     errorEl.textContent = '📋 Debes leer y aceptar los Términos y Condiciones antes de continuar.';
@@ -722,6 +728,8 @@ function procederPagoEntradas() {
     if (!aRut)      { marcarError(`acomp-${i}-rut`,      `⚠️ Ingresa el RUT del acompañante ${i}.`,      errorEl); return; }
     if (!validarRUT(aRut)) { marcarError(`acomp-${i}-rut`, `⚠️ El RUT del acompañante ${i} no es válido.`, errorEl); return; }
     if (!aEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(aEmail)) { marcarError(`acomp-${i}-email`, `⚠️ Ingresa un correo válido para el acompañante ${i}.`, errorEl); return; }
+    const aEmailConfirm = document.getElementById(`acomp-${i}-email-confirm`)?.value.trim();
+    if (aEmail.toLowerCase() !== (aEmailConfirm || '').toLowerCase()) { marcarError(`acomp-${i}-email-confirm`, `⚠️ Los correos del acompañante ${i} no coinciden.`, errorEl); return; }
     if (!aTelefono) { marcarError(`acomp-${i}-telefono`, `⚠️ Ingresa el teléfono del acompañante ${i}.`, errorEl); return; }
 
     acompanantes.push({ nombre: aNombre, apellido: aApellido, rut: aRut, email: aEmail, telefono: aTelefono });
