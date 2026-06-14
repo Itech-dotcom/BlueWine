@@ -1126,7 +1126,7 @@ footer {
   .nav-logo-img { height: 36px; }
 
   /* HERO responsive fix */
-  #hero { justify-content: space-between; padding: 0 1.2rem; }
+  #hero { justify-content: center; gap: 2rem; padding: 0 1.2rem; }
   .hero-content { padding-top: 8rem; padding-bottom: 1rem; }
   .hero-evento-destacado { padding: 0 0 3rem 0; }
   .hero-evento-img-wrap { width: 85vw; max-width: 320px; }
