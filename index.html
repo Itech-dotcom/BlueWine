@@ -113,17 +113,17 @@
     </div>
 
     <!-- EVENTO DESTACADO CON IMAGEN -->
-    <div class="hero-evento-destacado" style="display:none">
+    <div class="hero-evento-destacado">
       <div class="hero-evento-img-wrap">
         <div class="hero-carrusel" id="heroCarrusel">
-          <img src="Imagenes/EventoLoyaltty.jpeg" alt="Loyaltty - Sábado 6 de Junio" class="hero-carrusel-slide active" />
+          <img src="Imagenes/EventoEntropika.jpeg" alt="DJ Entropika - Viernes 19 de Junio" class="hero-carrusel-slide active" />
         </div>
       </div>
       <div class="hero-evento-footer">
-        <div class="hero-evento-fecha-txt">Sábado 6 de Junio</div>
-        <button class="hero-evento-btn" onclick="abrirModal()">
+        <div class="hero-evento-fecha-txt">Viernes 19 de Junio</div>
+        <button class="hero-evento-btn" style="cursor:default;">
           <span class="hero-evento-dot"></span>
-          Obtén tu entrada
+          Entradas en puerta
         </button>
       </div>
     </div>
@@ -154,18 +154,18 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia">
                 <span class="evento-slide-label">Viernes</span>
-                <span class="evento-slide-nombre-dia">12 de Junio</span>
+                <span class="evento-slide-nombre-dia">19 de Junio</span>
               </div>
               <div class="evento-slide-content">
-                <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
-                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este viernes no hay evento</div>
-                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
+                <div class="evento-tag">Evento</div>
+                <div class="evento-title">DJ Entropika</div>
+                <div class="evento-desc">Una noche con DJ Entropika en el Stage Principal. Apertura de puertas 00:00 hrs. +18. Entradas disponibles directo en puerta.</div>
                 <div id="badge-gratis-viernes" class="evento-badge-gratis" style="display:none;"></div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
-                  <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
+                  <button class="hero-evento-btn" style="margin-top:0.5rem;cursor:default;">
                     <span class="hero-evento-dot"></span>
-                    Seguir en Instagram
-                  </a>
+                    Entradas en puerta
+                  </button>
                 </div>
               </div>
             </div>
@@ -176,12 +176,12 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia sabado">
                 <span class="evento-slide-label">Sábado</span>
-                <span class="evento-slide-nombre-dia">13 de Junio</span>
+                <span class="evento-slide-nombre-dia">20 de Junio</span>
               </div>
               <div class="evento-slide-content">
                 <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
                 <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este sábado no hay evento</div>
-                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
+                <div class="evento-desc">Este sábado no tenemos evento programado. ¡Pero el viernes 19 sí! No te pierdas la noche con DJ Entropika, entradas disponibles en puerta.</div>
                 <div id="badge-gratis-sabado" class="evento-badge-gratis" style="display:none;"></div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
                   <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
@@ -883,7 +883,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=10"></script>
+  <script src="JS/main.js?v=11"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;
