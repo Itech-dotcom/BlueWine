@@ -609,7 +609,117 @@
     </div>
   </section>
 
-  <!-- GALERÍA -->
+  <!-- ═══════════════════════════════════════════════════════
+       GALERÍA — OPCIÓN 1 ACTIVA: subsecciones con slider
+       Para cambiar: comentar este bloque y descomentar Opción 2 u Opción 3 más abajo.
+  ════════════════════════════════════════════════════════ -->
+  <section id="galeria">
+    <div class="container">
+      <div class="galeria-header reveal">
+        <p class="section-label">Imágenes</p>
+        <h2 class="section-title">Galería <em>Blue Wine</em></h2>
+      </div>
+      <div class="galeria-tabs">
+        <button class="galeria-tab active" onclick="mostrarGaleriaTab('instalaciones', this)">Instalaciones</button>
+        <button class="galeria-tab" onclick="mostrarGaleriaTab('artistas', this)">Artistas</button>
+        <button class="galeria-tab" onclick="mostrarGaleriaTab('eventos', this)">Eventos &amp; Más</button>
+      </div>
+    </div>
+
+    <!-- Instalaciones -->
+    <div class="galeria-subseccion active" id="galeria-instalaciones">
+      <div class="galeria-slider-wrap">
+        <div class="galeria-slider" id="galeriaSlider-instalaciones">
+          <!-- Agregar fotos de instalaciones aquí — JS agrupa en páginas de 4 automáticamente -->
+          <div class="galeria-item"><img src="Imagenes/PistaBaile.jpg" alt="Pista de baile Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/Bar.jpg" alt="Bar Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/Mesas.jpg" alt="Mesas Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/Local.jpeg" alt="Local Blue Wine" loading="lazy"/></div>
+        </div>
+        <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-instalaciones',-1)" style="display:none">‹</button>
+        <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-instalaciones',1)" style="display:none">›</button>
+      </div>
+      <div class="galeria-dots" id="galeriaDots-instalaciones" style="display:none"></div>
+    </div>
+
+    <!-- Artistas -->
+    <div class="galeria-subseccion" id="galeria-artistas">
+      <div class="galeria-slider-wrap">
+        <div class="galeria-slider" id="galeriaSlider-artistas">
+          <!-- Agregar fotos de artistas aquí — JS agrupa en páginas de 4 automáticamente -->
+          <!-- <div class="galeria-item"><img src="Imagenes/Artista_NOMBRE.jpeg" alt="NOMBRE en Blue Wine" loading="lazy"/></div> -->
+        </div>
+        <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-artistas',-1)" style="display:none">‹</button>
+        <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-artistas',1)" style="display:none">›</button>
+      </div>
+      <div class="galeria-dots" id="galeriaDots-artistas" style="display:none"></div>
+    </div>
+
+    <!-- Eventos & Más (tragos, pizzas, ambiente) -->
+    <div class="galeria-subseccion" id="galeria-eventos">
+      <div class="galeria-slider-wrap">
+        <div class="galeria-slider" id="galeriaSlider-eventos">
+          <!-- Agregar fotos de eventos, tragos, pizzas aquí — JS agrupa en páginas de 4 automáticamente -->
+          <!-- <div class="galeria-item"><img src="Imagenes/FOTO.jpeg" alt="..." loading="lazy"/></div> -->
+        </div>
+        <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-eventos',-1)" style="display:none">‹</button>
+        <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-eventos',1)" style="display:none">›</button>
+      </div>
+      <div class="galeria-dots" id="galeriaDots-eventos" style="display:none"></div>
+    </div>
+  </section>
+
+  <!--
+  ═══════════════════════════════════════════════════════
+  OPCIÓN 2 (INACTIVA): fotos de cada espacio con descripción
+  Para activar: quitar estos comentarios y comentar el bloque Opción 1 arriba.
+  ════════════════════════════════════════════════════════
+  <section id="galeria">
+    <div class="container">
+      <div class="galeria-header reveal">
+        <p class="section-label">Imágenes</p>
+        <h2 class="section-title">Galería <em>Blue Wine</em></h2>
+      </div>
+      <div class="galeria-espacios-grid">
+        <div class="galeria-espacio-card">
+          <div class="galeria-item"><img src="Imagenes/PistaBaile.jpg" alt="Pista de baile" loading="lazy"/></div>
+          <div class="galeria-espacio-desc">
+            <h3>Pista de Baile</h3>
+            <p>Descripción del espacio.</p>
+          </div>
+        </div>
+        <div class="galeria-espacio-card">
+          <div class="galeria-item"><img src="Imagenes/Bar.jpg" alt="Bar" loading="lazy"/></div>
+          <div class="galeria-espacio-desc">
+            <h3>Bar</h3>
+            <p>Descripción del espacio.</p>
+          </div>
+        </div>
+        <div class="galeria-espacio-card">
+          <div class="galeria-item"><img src="Imagenes/Mesas.jpg" alt="Mesas" loading="lazy"/></div>
+          <div class="galeria-espacio-desc">
+            <h3>Mesas &amp; Lounge</h3>
+            <p>Descripción del espacio.</p>
+          </div>
+        </div>
+        <div class="galeria-espacio-card">
+          <div class="galeria-item"><img src="Imagenes/Local.jpeg" alt="Local" loading="lazy"/></div>
+          <div class="galeria-espacio-desc">
+            <h3>El Local</h3>
+            <p>Descripción del espacio.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  -->
+
+  <!--
+  ═══════════════════════════════════════════════════════
+  OPCIÓN 3 (INACTIVA): galería simple, todas las fotos juntas
+  Para activar: quitar estos comentarios y comentar el bloque Opción 1 arriba.
+  También descomentar la línea de inicializarGaleriaSlider('galeriaSlider-simple') en main.js.
+  ════════════════════════════════════════════════════════
   <section id="galeria">
     <div class="container">
       <div class="galeria-header reveal">
@@ -617,13 +727,20 @@
         <h2 class="section-title">Galería <em>Blue Wine</em></h2>
       </div>
     </div>
-    <div class="galeria-grid">
-      <div class="galeria-item"><img src="Imagenes/PistaBaile.jpg" alt="Pista de baile Blue Wine" loading="lazy"/></div>
-      <div class="galeria-item"><img src="Imagenes/Bar.jpg" alt="Bar Blue Wine" loading="lazy"/></div>
-      <div class="galeria-item"><img src="Imagenes/Mesas.jpg" alt="Mesas Blue Wine" loading="lazy"/></div>
-      <div class="galeria-item"><img src="Imagenes/Local.jpeg" alt="Local Blue Wine" loading="lazy"/></div>
+    <div class="galeria-slider-wrap">
+      <div class="galeria-slider" id="galeriaSlider-simple">
+        <div class="galeria-item"><img src="Imagenes/PistaBaile.jpg" alt="Pista de baile Blue Wine" loading="lazy"/></div>
+        <div class="galeria-item"><img src="Imagenes/Bar.jpg" alt="Bar Blue Wine" loading="lazy"/></div>
+        <div class="galeria-item"><img src="Imagenes/Mesas.jpg" alt="Mesas Blue Wine" loading="lazy"/></div>
+        <div class="galeria-item"><img src="Imagenes/Local.jpeg" alt="Local Blue Wine" loading="lazy"/></div>
+        <!-- Agregar más fotos aquí — JS las agrupa en páginas de 4 automáticamente -->
+      </div>
+      <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-simple',-1)" style="display:none">‹</button>
+      <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-simple',1)" style="display:none">›</button>
     </div>
+    <div class="galeria-dots" id="galeriaDots-simple" style="display:none"></div>
   </section>
+  -->
 
   <!-- ═══════════════════════════════════════
        SECCIÓN 4: RESERVAS
@@ -883,7 +1000,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=11"></script>
+  <script src="JS/main.js?v=12"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;

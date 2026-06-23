@@ -913,6 +913,91 @@ function mostrarToast(msg, esError = false) {
 }
 
 // ══════════════════════════════════════════════════════
+// GALERÍA — Slider dinámico con pestañas
+// Agrupa .galeria-item en páginas de 4 (escritorio) / 2 (móvil)
+// Para agregar fotos: añadir <div class="galeria-item"><img .../></div>
+// dentro del .galeria-slider correspondiente. El JS reagrupa solo.
+// ══════════════════════════════════════════════════════
+function inicializarGaleriaSlider(sliderId) {
+  const slider = document.getElementById(sliderId);
+  if (!slider) return;
+  const items = Array.from(slider.querySelectorAll('.galeria-item'));
+  if (items.length === 0) return;
+  const porPagina = window.innerWidth <= 480 ? 2 : 4;
+  const paginas = [];
+  for (let i = 0; i < items.length; i += porPagina) paginas.push(items.slice(i, i + porPagina));
+
+  slider.innerHTML = '';
+  slider.dataset.slide = '0';
+  paginas.forEach(pag => {
+    const grid = document.createElement('div');
+    grid.className = 'galeria-slide';
+    pag.forEach(item => grid.appendChild(item));
+    slider.appendChild(grid);
+  });
+
+  const wrap = slider.closest('.galeria-slider-wrap');
+  const dotsId = sliderId.replace('galeriaSlider-', 'galeriaDots-');
+  const dotsWrap = document.getElementById(dotsId);
+
+  if (paginas.length > 1) {
+    if (wrap) wrap.querySelectorAll('.slider-arrow').forEach(a => a.style.removeProperty('display'));
+    if (dotsWrap) {
+      dotsWrap.style.display = 'flex';
+      dotsWrap.innerHTML = paginas.map((_, i) =>
+        `<span class="slider-dot${i === 0 ? ' active' : ''}" onclick="irAGaleriaSlide('${sliderId}',${i})"></span>`
+      ).join('');
+    }
+  } else {
+    if (wrap) wrap.querySelectorAll('.slider-arrow').forEach(a => a.style.display = 'none');
+    if (dotsWrap) dotsWrap.style.display = 'none';
+  }
+
+  if (wrap) {
+    let tx = 0;
+    wrap.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+    wrap.addEventListener('touchend', e => {
+      const diff = tx - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) moverGaleriaSlider(sliderId, diff > 0 ? 1 : -1);
+    });
+  }
+}
+
+function moverGaleriaSlider(sliderId, dir) {
+  const slider = document.getElementById(sliderId);
+  if (!slider) return;
+  const total = slider.querySelectorAll('.galeria-slide').length;
+  const current = ((parseInt(slider.dataset.slide) || 0) + dir + total) % total;
+  slider.dataset.slide = current;
+  actualizarGaleriaSlider(sliderId);
+}
+
+function irAGaleriaSlide(sliderId, i) {
+  const slider = document.getElementById(sliderId);
+  if (!slider) return;
+  slider.dataset.slide = i;
+  actualizarGaleriaSlider(sliderId);
+}
+
+function actualizarGaleriaSlider(sliderId) {
+  const slider = document.getElementById(sliderId);
+  if (!slider) return;
+  const current = parseInt(slider.dataset.slide) || 0;
+  slider.style.transform = `translateX(-${current * 100}%)`;
+  const dotsId = sliderId.replace('galeriaSlider-', 'galeriaDots-');
+  const dotsWrap = document.getElementById(dotsId);
+  if (dotsWrap) dotsWrap.querySelectorAll('.slider-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+}
+
+function mostrarGaleriaTab(tab, btn) {
+  document.querySelectorAll('.galeria-subseccion').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.galeria-tab').forEach(t => t.classList.remove('active'));
+  const sec = document.getElementById('galeria-' + tab);
+  if (sec) sec.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════
 // PAGO EXITOSO — Detectar redirección de MercadoPago
 // ══════════════════════════════════════════════════════
 function cerrarModalExitoso() {
@@ -969,6 +1054,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (Math.abs(diff) > 50) moverSlider(diff > 0 ? 1 : -1);
     });
   }
+
+  // Galería — inicializar sliders (Opción 1)
+  ['instalaciones', 'artistas', 'eventos'].forEach(tab => inicializarGaleriaSlider('galeriaSlider-' + tab));
+  // Para Opción 3 (si está activa): inicializarGaleriaSlider('galeriaSlider-simple');
 
   actualizarBadgeCarrito();
   renderBadgesGratis();
