@@ -116,11 +116,11 @@
     <div class="hero-evento-destacado">
       <div class="hero-evento-img-wrap">
         <div class="hero-carrusel" id="heroCarrusel">
-          <img src="Imagenes/EventoEntropika.jpeg" alt="DJ Entropika - Viernes 19 de Junio" class="hero-carrusel-slide active" />
+          <img src="Imagenes/EventoTusake.png" alt="DJ Tusake - Viernes 26 de Junio" class="hero-carrusel-slide active" />
         </div>
       </div>
       <div class="hero-evento-footer">
-        <div class="hero-evento-fecha-txt">Viernes 19 de Junio</div>
+        <div class="hero-evento-fecha-txt">Viernes 26 de Junio</div>
         <button class="hero-evento-btn" style="cursor:default;">
           <span class="hero-evento-dot"></span>
           Entradas en puerta
@@ -154,17 +154,17 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia">
                 <span class="evento-slide-label">Viernes</span>
-                <span class="evento-slide-nombre-dia">19 de Junio</span>
+                <span class="evento-slide-nombre-dia">26 de Junio</span>
               </div>
               <div class="evento-slide-content">
-                <div class="evento-tag">Evento</div>
-                <div class="evento-title">DJ Entropika</div>
-                <div class="evento-desc">Una noche con DJ Entropika en el Stage Principal. Apertura de puertas 00:00 hrs. +18. Entradas disponibles directo en puerta.</div>
+                <div class="evento-tag">DJ Tusake</div>
+                <div class="evento-title">DJ Tusake en Blue Wine</div>
+                <div class="evento-desc">Una noche de música electrónica en Quillón. Apertura a las 00:00 — entrada en puerta.</div>
                 <div id="badge-gratis-viernes" class="evento-badge-gratis" style="display:none;"></div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
-                  <button class="hero-evento-btn" style="margin-top:0.5rem;cursor:default;">
+                  <button class="hero-evento-btn" style="cursor:default;">
                     <span class="hero-evento-dot"></span>
-                    Entradas en puerta
+                    Entrada en puerta · 00:00
                   </button>
                 </div>
               </div>
@@ -176,12 +176,12 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia sabado">
                 <span class="evento-slide-label">Sábado</span>
-                <span class="evento-slide-nombre-dia">20 de Junio</span>
+                <span class="evento-slide-nombre-dia">27 de Junio</span>
               </div>
               <div class="evento-slide-content">
                 <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
                 <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este sábado no hay evento</div>
-                <div class="evento-desc">Este sábado no tenemos evento programado. ¡Pero el viernes 19 sí! No te pierdas la noche con DJ Entropika, entradas disponibles en puerta.</div>
+                <div class="evento-desc">El evento de esta semana es el <strong>viernes 26</strong> con <strong>DJ Tusake</strong>. ¡No te lo pierdas!</div>
                 <div id="badge-gratis-sabado" class="evento-badge-gratis" style="display:none;"></div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
                   <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
@@ -549,7 +549,7 @@
       <div class="nosotros-grid">
         <div class="reveal-left">
           <div class="nosotros-img-wrap">
-            <img src="Imagenes/Lugar.jpg" alt="Blue Wine Multiespacio - Quillón" style="width:100%; height:100%; object-fit:cover; border-radius:12px; display:block;"/>
+            <img src="Imagenes/galeria/Lugar.jpg" alt="Blue Wine Multiespacio - Quillón" style="width:100%; height:100%; object-fit:cover; border-radius:12px; display:block;"/>
             <div class="nosotros-img-tag">"Un rincón para el alma"</div>
           </div>
         </div>
@@ -609,9 +609,173 @@
     </div>
   </section>
 
+  <!--
+  GALERÍA — OPCIÓN 1 (INACTIVA): subsecciones con slider
+  Para activar: quitar este comentario y comentar el bloque Opción 2 más abajo.
+  <section id="galeria">
+    <div class="container">
+      <div class="galeria-header reveal">
+        <p class="section-label">Imágenes</p>
+        <h2 class="section-title">Galería <em>Blue Wine</em></h2>
+      </div>
+      <div class="galeria-tabs">
+        <button class="galeria-tab active" onclick="mostrarGaleriaTab('artistas', this)">Artistas</button>
+        <button class="galeria-tab" onclick="mostrarGaleriaTab('eventos', this)">Eventos &amp; Más</button>
+        <button class="galeria-tab" onclick="mostrarGaleriaTab('instalaciones', this)">Instalaciones</button>
+      </div>
+    </div>
+    <div class="galeria-subseccion active" id="galeria-artistas">
+      <div class="galeria-slider-wrap">
+        <div class="galeria-slider" id="galeriaSlider-artistas">
+          <div class="galeria-item"><img src="Imagenes/entropika.jpeg" alt="Entropika en Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/loyaltty.jpeg" alt="Loyaltty en Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/rene.jpeg" alt="René en Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/tobal.jpeg" alt="Tobal en Blue Wine" loading="lazy"/></div>
+        </div>
+        <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-artistas',-1)" style="display:none">‹</button>
+        <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-artistas',1)" style="display:none">›</button>
+      </div>
+      <div class="galeria-dots" id="galeriaDots-artistas" style="display:none"></div>
+    </div>
+    <div class="galeria-subseccion" id="galeria-eventos">
+      <div class="galeria-slider-wrap">
+        <div class="galeria-slider" id="galeriaSlider-eventos">
+          <div class="galeria-item"><img src="Imagenes/trago_1.jpeg" alt="Trago Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/trago_2.jpeg" alt="Cocktail Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/pizza_1.jpeg" alt="Pizza Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/pizza_2.jpeg" alt="Pizza Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/Bar.jpg" alt="Bar Blue Wine" loading="lazy"/></div>
+        </div>
+        <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-eventos',-1)" style="display:none">‹</button>
+        <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-eventos',1)" style="display:none">›</button>
+      </div>
+      <div class="galeria-dots" id="galeriaDots-eventos" style="display:none"></div>
+    </div>
+    <div class="galeria-subseccion" id="galeria-instalaciones">
+      <div class="galeria-slider-wrap">
+        <div class="galeria-slider" id="galeriaSlider-instalaciones">
+          <div class="galeria-item"><img src="Imagenes/PistaBaile.jpg" alt="Pista de baile Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/salon_1.jpeg" alt="Salón Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/salon_2.jpeg" alt="Salón Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/comedor_1.jpeg" alt="Comedor terraza Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/comedor_2.jpeg" alt="Comedor terraza Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/mesas_2.jpeg" alt="Mesas Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/vip_1.jpeg" alt="Zona VIP Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/vip_2.jpeg" alt="Zona VIP Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/estacionamiento_1.jpeg" alt="Estacionamiento Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/Lugar.jpg" alt="Exterior Blue Wine" loading="lazy"/></div>
+        </div>
+        <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-instalaciones',-1)" style="display:none">‹</button>
+        <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-instalaciones',1)" style="display:none">›</button>
+      </div>
+      <div class="galeria-dots" id="galeriaDots-instalaciones" style="display:none"></div>
+    </div>
+  </section>
+  -->
+
+  <!--
+  GALERÍA — OPCIÓN 2 (INACTIVA): todas las fotos con descripción y slider
+  Para activar: quitar este comentario y comentar el bloque Opción 3 más abajo.
+  <section id="galeria" class="galeria-v2">
+    <div class="container">
+      <div class="galeria-header reveal">
+        <p class="section-label">Imágenes</p>
+        <h2 class="section-title">Galería <em>Blue Wine</em></h2>
+      </div>
+    </div>
+    <div class="galeria-slider-wrap">
+      <div class="galeria-slider" id="galeriaSlider-galeria">
+
+        <div class="galeria-item">
+          <img src="Imagenes/entropika.jpeg" alt="DJ Entropika en Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>DJ Entropika</h3><p>Una noche que nos sorprendió a todos. Entropika tomó el stage y no lo soltó hasta las 5 de la mañana.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/loyaltty.jpeg" alt="Loyaltty en Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Loyaltty</h3><p>El viernes que arrancó con todo. Loyaltty trajo su sonido y la gente respondió desde el primer track.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/rene.jpeg" alt="René en Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Tío René — Maquijero</h3><p>Stage Principal encendido. El Tío René pasó los mejores temas de la noche con una energía que no se termina.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/tobal.jpeg" alt="Tobal en Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Tobal MJ</h3><p>Una sesión que nos tuvo bailando sin parar. De los nuestros, de los que siempre responden.</p></div>
+        </div>
+
+        <div class="galeria-item">
+          <img src="Imagenes/trago_1.jpeg" alt="Cócteles Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Cócteles</h3><p>De la barra para la noche. Nuestros tragos están hechos para durar hasta que cierre el local.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/trago_2.jpeg" alt="Barra Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>La Barra</h3><p>Con o sin Red Bull, la noche empieza acá. Siempre hay alguien atendiendo y las copas no esperan.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/pizza_1.jpeg" alt="Pizza Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Pizzas</h3><p>La mitad de la noche también se come. Pizzas para los que saben que bailar con hambre no funciona.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/pizza_2.jpeg" alt="Pizza Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Pizzas</h3><p>La opción favorita después de las 2 AM. Para los que llegaron con hambre y se quedaron con ganas de más.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/Bar.jpg" alt="Bar Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Bar</h3><p>Nuestro bar no descansa. Desde que abrimos hasta que cerramos, siempre hay algo bueno saliendo de acá.</p></div>
+        </div>
+
+        <div class="galeria-item">
+          <img src="Imagenes/PistaBaile.jpg" alt="Pista de baile Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Pista de Baile</h3><p>El corazón del lugar. Todo pasa acá, y cuando prende de verdad, se nota.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/salon_1.jpeg" alt="Salón Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Salón Principal</h3><p>Capacidad para una noche grande. El salón donde armamos todo, listo para lo que venga.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/salon_2.jpeg" alt="Salón Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Salón Principal</h3><p>Vista desde adentro. El ambiente que armamos noche a noche para que cada uno sienta que llegó al lugar correcto.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/comedor_1.jpeg" alt="Comedor terraza Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Comedor &amp; Terraza</h3><p>Para los que quieren algo más tranquilo sin alejarse de la fiesta. Buena música, mejor compañía.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/comedor_2.jpeg" alt="Comedor terraza Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Comedor &amp; Terraza</h3><p>Para llegar, comer algo rico y quedarse. La terraza siempre está disponible para los que quieren empezar la noche con calma.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/mesas_2.jpeg" alt="Mesas Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Mesas</h3><p>Reservadas para los grupos que quieren tener su propio rincón. Sin apuros, sin buscar donde sentarse.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/vip_1.jpeg" alt="Zona VIP Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Zona VIP</h3><p>Para los que buscan algo diferente dentro de la noche. Más espacio, mejor servicio, misma energía.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/vip_2.jpeg" alt="Zona VIP Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Zona VIP</h3><p>Arriba, con mejor vista y menos ruido. El sector para los que quieren disfrutar la noche a su manera.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/estacionamiento_1.jpeg" alt="Estacionamiento Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>Estacionamiento</h3><p>Amplio y vigilado. Llegar y que te quede cerca siempre es un detalle que no pasa desapercibido.</p></div>
+        </div>
+        <div class="galeria-item">
+          <img src="Imagenes/Lugar.jpg" alt="Exterior Blue Wine" loading="lazy"/>
+          <div class="galeria-card-desc"><h3>El Local</h3><p>Así se ve desde afuera. Una fachada que ya te anticipa lo que viene adentro.</p></div>
+        </div>
+
+      </div>
+      <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-galeria',-1)" style="display:none">‹</button>
+      <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-galeria',1)" style="display:none">›</button>
+    </div>
+    <div class="galeria-dots" id="galeriaDots-galeria" style="display:none"></div>
+  </section>
+  -->
+
   <!-- ═══════════════════════════════════════════════════════
-       GALERÍA — OPCIÓN 1 ACTIVA: subsecciones con slider
-       Para cambiar: comentar este bloque y descomentar Opción 2 u Opción 3 más abajo.
+       GALERÍA — ORIGINAL (ACTIVA): 3 tabs con slider
+       Opciones alternativas comentadas más abajo (Opción 1, 2, 3).
   ════════════════════════════════════════════════════════ -->
   <section id="galeria">
     <div class="container">
@@ -631,10 +795,10 @@
       <div class="galeria-slider-wrap">
         <div class="galeria-slider" id="galeriaSlider-instalaciones">
           <!-- Agregar fotos de instalaciones aquí — JS agrupa en páginas de 4 automáticamente -->
-          <div class="galeria-item"><img src="Imagenes/PistaBaile.jpg" alt="Pista de baile Blue Wine" loading="lazy"/></div>
-          <div class="galeria-item"><img src="Imagenes/Bar.jpg" alt="Bar Blue Wine" loading="lazy"/></div>
-          <div class="galeria-item"><img src="Imagenes/Mesas.jpg" alt="Mesas Blue Wine" loading="lazy"/></div>
-          <div class="galeria-item"><img src="Imagenes/Local.jpeg" alt="Local Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/PistaBaile.jpg" alt="Pista de baile Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/Bar.jpg" alt="Bar Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/Mesas.jpg" alt="Mesas Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/Local.jpeg" alt="Local Blue Wine" loading="lazy"/></div>
         </div>
         <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-instalaciones',-1)" style="display:none">‹</button>
         <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-instalaciones',1)" style="display:none">›</button>
@@ -647,7 +811,7 @@
       <div class="galeria-slider-wrap">
         <div class="galeria-slider" id="galeriaSlider-artistas">
           <!-- Agregar fotos de artistas aquí — JS agrupa en páginas de 4 automáticamente -->
-          <!-- <div class="galeria-item"><img src="Imagenes/Artista_NOMBRE.jpeg" alt="NOMBRE en Blue Wine" loading="lazy"/></div> -->
+          <!-- <div class="galeria-item"><img src="Imagenes/galeria/ARTISTA.jpeg" alt="ARTISTA en Blue Wine" loading="lazy"/></div> -->
         </div>
         <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-artistas',-1)" style="display:none">‹</button>
         <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-artistas',1)" style="display:none">›</button>
@@ -660,7 +824,7 @@
       <div class="galeria-slider-wrap">
         <div class="galeria-slider" id="galeriaSlider-eventos">
           <!-- Agregar fotos de eventos, tragos, pizzas aquí — JS agrupa en páginas de 4 automáticamente -->
-          <!-- <div class="galeria-item"><img src="Imagenes/FOTO.jpeg" alt="..." loading="lazy"/></div> -->
+          <!-- <div class="galeria-item"><img src="Imagenes/galeria/FOTO.jpeg" alt="..." loading="lazy"/></div> -->
         </div>
         <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-eventos',-1)" style="display:none">‹</button>
         <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-eventos',1)" style="display:none">›</button>
@@ -670,75 +834,86 @@
   </section>
 
   <!--
-  ═══════════════════════════════════════════════════════
-  OPCIÓN 2 (INACTIVA): fotos de cada espacio con descripción
-  Para activar: quitar estos comentarios y comentar el bloque Opción 1 arriba.
-  ════════════════════════════════════════════════════════
-  <section id="galeria">
+  GALERÍA — OPCIÓN 3 (INACTIVA): 2 tabs — Galería + Instalaciones con descripción
+  Para activar: quitar este comentario y comentar la galería original arriba.
+  <section id="galeria" class="galeria-v3">
     <div class="container">
       <div class="galeria-header reveal">
         <p class="section-label">Imágenes</p>
         <h2 class="section-title">Galería <em>Blue Wine</em></h2>
       </div>
-      <div class="galeria-espacios-grid">
-        <div class="galeria-espacio-card">
-          <div class="galeria-item"><img src="Imagenes/PistaBaile.jpg" alt="Pista de baile" loading="lazy"/></div>
-          <div class="galeria-espacio-desc">
-            <h3>Pista de Baile</h3>
-            <p>Descripción del espacio.</p>
-          </div>
-        </div>
-        <div class="galeria-espacio-card">
-          <div class="galeria-item"><img src="Imagenes/Bar.jpg" alt="Bar" loading="lazy"/></div>
-          <div class="galeria-espacio-desc">
-            <h3>Bar</h3>
-            <p>Descripción del espacio.</p>
-          </div>
-        </div>
-        <div class="galeria-espacio-card">
-          <div class="galeria-item"><img src="Imagenes/Mesas.jpg" alt="Mesas" loading="lazy"/></div>
-          <div class="galeria-espacio-desc">
-            <h3>Mesas &amp; Lounge</h3>
-            <p>Descripción del espacio.</p>
-          </div>
-        </div>
-        <div class="galeria-espacio-card">
-          <div class="galeria-item"><img src="Imagenes/Local.jpeg" alt="Local" loading="lazy"/></div>
-          <div class="galeria-espacio-desc">
-            <h3>El Local</h3>
-            <p>Descripción del espacio.</p>
-          </div>
-        </div>
+      <div class="galeria-tabs">
+        <button class="galeria-tab active" onclick="mostrarGaleriaTab('eventos3', this)">Galería</button>
+        <button class="galeria-tab" onclick="mostrarGaleriaTab('instalaciones3', this)">Instalaciones</button>
       </div>
     </div>
-  </section>
-  -->
-
-  <!--
-  ═══════════════════════════════════════════════════════
-  OPCIÓN 3 (INACTIVA): galería simple, todas las fotos juntas
-  Para activar: quitar estos comentarios y comentar el bloque Opción 1 arriba.
-  También descomentar la línea de inicializarGaleriaSlider('galeriaSlider-simple') en main.js.
-  ════════════════════════════════════════════════════════
-  <section id="galeria">
-    <div class="container">
-      <div class="galeria-header reveal">
-        <p class="section-label">Imágenes</p>
-        <h2 class="section-title">Galería <em>Blue Wine</em></h2>
+    <div class="galeria-subseccion active" id="galeria-eventos3">
+      <div class="galeria-slider-wrap">
+        <div class="galeria-slider" id="galeriaSlider-eventos3">
+          <div class="galeria-item"><img src="Imagenes/galeria/entropika.jpeg" alt="Entropika en Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/loyaltty.jpeg" alt="Loyaltty en Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/rene.jpeg" alt="René en Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/tobal.jpeg" alt="Tobal MJ en Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/trago_1.jpeg" alt="Cócteles Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/trago_2.jpeg" alt="Bar Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/pizza_1.jpeg" alt="Pizza Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/pizza_2.jpeg" alt="Pizza Blue Wine" loading="lazy"/></div>
+          <div class="galeria-item"><img src="Imagenes/galeria/Bar.jpg" alt="Bar Blue Wine" loading="lazy"/></div>
+        </div>
+        <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-eventos3',-1)" style="display:none">‹</button>
+        <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-eventos3',1)" style="display:none">›</button>
       </div>
+      <div class="galeria-dots" id="galeriaDots-eventos3" style="display:none"></div>
     </div>
-    <div class="galeria-slider-wrap">
-      <div class="galeria-slider" id="galeriaSlider-simple">
-        <div class="galeria-item"><img src="Imagenes/PistaBaile.jpg" alt="Pista de baile Blue Wine" loading="lazy"/></div>
-        <div class="galeria-item"><img src="Imagenes/Bar.jpg" alt="Bar Blue Wine" loading="lazy"/></div>
-        <div class="galeria-item"><img src="Imagenes/Mesas.jpg" alt="Mesas Blue Wine" loading="lazy"/></div>
-        <div class="galeria-item"><img src="Imagenes/Local.jpeg" alt="Local Blue Wine" loading="lazy"/></div>
-        <!-- Agregar más fotos aquí — JS las agrupa en páginas de 4 automáticamente -->
+    <div class="galeria-subseccion" id="galeria-instalaciones3">
+      <div class="galeria-slider-wrap">
+        <div class="galeria-slider" id="galeriaSlider-instalaciones3">
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/PistaBaile.jpg" alt="Pista de baile Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>Pista de Baile</h3><p>El corazón del lugar. Todo pasa acá, y cuando prende de verdad, se nota.</p></div>
+          </div>
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/salon_1.jpeg" alt="Salón Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>Salón Principal</h3><p>Capacidad para una noche grande. El salón donde armamos todo, listo para lo que venga.</p></div>
+          </div>
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/salon_2.jpeg" alt="Salón Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>Salón Principal</h3><p>Vista desde adentro. El ambiente que armamos noche a noche para que cada uno sienta que llegó al lugar correcto.</p></div>
+          </div>
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/comedor_1.jpeg" alt="Comedor terraza Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>Comedor &amp; Terraza</h3><p>Para los que quieren algo más tranquilo sin alejarse de la fiesta. Buena música, mejor compañía.</p></div>
+          </div>
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/comedor_2.jpeg" alt="Comedor terraza Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>Comedor &amp; Terraza</h3><p>Para llegar, comer algo rico y quedarse. La terraza siempre está disponible para los que quieren empezar con calma.</p></div>
+          </div>
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/mesas_2.jpeg" alt="Mesas Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>Mesas</h3><p>Reservadas para los grupos que quieren tener su propio rincón. Sin apuros, sin buscar donde sentarse.</p></div>
+          </div>
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/vip_1.jpeg" alt="Zona VIP Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>Zona VIP</h3><p>Para los que buscan algo diferente dentro de la noche. Más espacio, mejor servicio, misma energía.</p></div>
+          </div>
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/vip_2.jpeg" alt="Zona VIP Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>Zona VIP</h3><p>Arriba, con mejor vista y menos ruido. El sector para los que quieren disfrutar la noche a su manera.</p></div>
+          </div>
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/estacionamiento_1.jpeg" alt="Estacionamiento Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>Estacionamiento</h3><p>Amplio y vigilado. Llegar y que te quede cerca siempre es un detalle que no pasa desapercibido.</p></div>
+          </div>
+          <div class="galeria-item galeria-item-with-desc">
+            <img src="Imagenes/galeria/Lugar.jpg" alt="Exterior Blue Wine" loading="lazy"/>
+            <div class="galeria-card-desc"><h3>El Local</h3><p>Así se ve desde afuera. Una fachada que ya te anticipa lo que viene adentro.</p></div>
+          </div>
+        </div>
+        <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-instalaciones3',-1)" style="display:none">‹</button>
+        <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-instalaciones3',1)" style="display:none">›</button>
       </div>
-      <button class="slider-arrow slider-prev" onclick="moverGaleriaSlider('galeriaSlider-simple',-1)" style="display:none">‹</button>
-      <button class="slider-arrow slider-next" onclick="moverGaleriaSlider('galeriaSlider-simple',1)" style="display:none">›</button>
+      <div class="galeria-dots" id="galeriaDots-instalaciones3" style="display:none"></div>
     </div>
-    <div class="galeria-dots" id="galeriaDots-simple" style="display:none"></div>
   </section>
   -->
 
@@ -1000,7 +1175,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=12"></script>
+  <script src="JS/main.js?v=15"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;

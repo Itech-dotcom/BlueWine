@@ -943,21 +943,69 @@ section { padding: 7rem 2rem; overflow-x: hidden; }
   padding-bottom: 0.5rem;
 }
 
-/* GALERÍA — OPCIÓN 2: espacios con descripción */
-.galeria-espacios-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
+/* GALERÍA — OPCIÓN 2: todas las fotos con descripción y slider */
+.galeria-v2 .galeria-item {
+  aspect-ratio: unset;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
 }
-.galeria-espacio-card { display: flex; flex-direction: column; gap: 1rem; }
-.galeria-espacio-desc h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.3rem;
+.galeria-v2 .galeria-item img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  height: auto;
+  display: block;
+  flex-shrink: 0;
+  transition: transform 0.4s ease;
+}
+.galeria-v2 .galeria-item:hover img { transform: scale(1.04); }
+.galeria-card-desc {
+  padding: 0.55rem 0.7rem 0.65rem;
+  background: var(--blue-mid);
+  flex: 1;
+}
+.galeria-card-desc h3 {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--gold-light);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.2rem;
 }
-.galeria-espacio-desc p { color: var(--text-muted); font-size: 0.9rem; }
-.galeria-icon { font-size: 2.5rem; opacity: 0.2; }
+.galeria-card-desc p {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+/* legacy — clases de la versión anterior, mantener por si se reactiva */
+.galeria-espacios-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:2rem; }
+.galeria-espacio-card { display:flex; flex-direction:column; gap:1rem; }
+.galeria-espacio-desc h3 { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--gold-light); margin-bottom:0.4rem; }
+.galeria-espacio-desc p { color:var(--text-muted); font-size:0.9rem; }
+.galeria-icon { font-size:2.5rem; opacity:0.2; }
+
+/* GALERÍA — OPCIÓN 3: 2 tabs (Eventos + Instalaciones con desc.) */
+.galeria-v3 .galeria-slide { gap: 1rem; }
+.galeria-item-with-desc {
+  aspect-ratio: unset !important;
+  display: flex;
+  flex-direction: column;
+  overflow: visible !important;
+}
+.galeria-item-with-desc img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  height: auto !important;
+  display: block;
+  flex-shrink: 0;
+  transition: transform 0.4s ease;
+}
+.galeria-item-with-desc:hover img { transform: scale(1.04); }
+.galeria-v3 .galeria-slider { align-items: start; }
+.galeria-v3 .galeria-slide { align-items: start; }
 
 /* CONTACTO */
 #contacto {

@@ -55,10 +55,12 @@ const CONFIG_ANUNCIO = {
 // ── Nombre del evento principal — se antepone al tipo de entrada en el ticket
 // Ej: "Loyaltty — Preventa 1"
 // ← EDITAR AQUÍ cuando cambie el evento
-const NOMBRE_EVENTO_PRINCIPAL = 'Loyaltty';
+const NOMBRE_EVENTO_PRINCIPAL = 'DJ Tusake';
 
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN
+
+
 // ══════════════════════════════════════════════════════
 const IVA = 0;             // sin IVA
 const COMISION_MP = 0.1; // 10% MercadoPago
@@ -961,6 +963,13 @@ function inicializarGaleriaSlider(sliderId) {
       if (Math.abs(diff) > 50) moverGaleriaSlider(sliderId, diff > 0 ? 1 : -1);
     });
   }
+
+  // Ajustar altura del wrap al primer slide tras render
+  requestAnimationFrame(() => {
+    const firstSlide = slider.querySelector('.galeria-slide');
+    const w = slider.closest('.galeria-slider-wrap');
+    if (firstSlide && w) w.style.height = firstSlide.offsetHeight + 'px';
+  });
 }
 
 function moverGaleriaSlider(sliderId, dir) {
@@ -987,6 +996,9 @@ function actualizarGaleriaSlider(sliderId) {
   const dotsId = sliderId.replace('galeriaSlider-', 'galeriaDots-');
   const dotsWrap = document.getElementById(dotsId);
   if (dotsWrap) dotsWrap.querySelectorAll('.slider-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  const slides = slider.querySelectorAll('.galeria-slide');
+  const wrap = slider.closest('.galeria-slider-wrap');
+  if (wrap && slides[current]) wrap.style.height = slides[current].offsetHeight + 'px';
 }
 
 function mostrarGaleriaTab(tab, btn) {
@@ -1055,9 +1067,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Galería — inicializar sliders (Opción 1)
-  ['instalaciones', 'artistas', 'eventos'].forEach(tab => inicializarGaleriaSlider('galeriaSlider-' + tab));
-  // Para Opción 3 (si está activa): inicializarGaleriaSlider('galeriaSlider-simple');
+  // Galería — inicializar sliders (Opción 1: artistas/eventos/instalaciones | Opción 2: galeria | Opción 3: simple)
+  ['artistas', 'eventos', 'instalaciones', 'galeria', 'eventos3', 'instalaciones3'].forEach(tab => inicializarGaleriaSlider('galeriaSlider-' + tab));
 
   actualizarBadgeCarrito();
   renderBadgesGratis();

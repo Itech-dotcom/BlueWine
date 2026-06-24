@@ -32,7 +32,7 @@ ADMIN_KEY = os.getenv("ADMIN_KEY", "bw-admin-2026")
 # Debe reflejar el objeto ENTRADAS de JS/main.js. Cuando cambie el evento
 # (ver CLAUDE.md → "nuevo evento"), actualizar también esta tabla.
 # ══════════════════════════════════════════════════════
-NOMBRE_EVENTO_PRINCIPAL = "Loyaltty"
+NOMBRE_EVENTO_PRINCIPAL = "DJ Tusake"
 COMISION_MP = 0.1  # 10% MercadoPago, igual que en main.js
 
 PRECIOS_ENTRADAS = {
