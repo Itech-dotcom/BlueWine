@@ -113,7 +113,7 @@
     </div>
 
     <!-- EVENTO DESTACADO CON IMAGEN -->
-    <div class="hero-evento-destacado">
+    <div class="hero-evento-destacado" style="display:none">
       <div class="hero-evento-img-wrap">
         <div class="hero-carrusel" id="heroCarrusel">
           <img src="Imagenes/EventoTusake.png" alt="DJ Tusake - Viernes 26 de Junio" class="hero-carrusel-slide active" />
@@ -154,18 +154,18 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia">
                 <span class="evento-slide-label">Viernes</span>
-                <span class="evento-slide-nombre-dia">26 de Junio</span>
+                <span class="evento-slide-nombre-dia">3 de Julio</span>
               </div>
               <div class="evento-slide-content">
-                <div class="evento-tag">DJ Tusake</div>
-                <div class="evento-title">DJ Tusake en Blue Wine</div>
-                <div class="evento-desc">Una noche de música electrónica en Quillón. Apertura a las 00:00 — entrada en puerta.</div>
+                <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
+                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este viernes no hay evento</div>
+                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
                 <div id="badge-gratis-viernes" class="evento-badge-gratis" style="display:none;"></div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
-                  <button class="hero-evento-btn" style="cursor:default;">
+                  <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
                     <span class="hero-evento-dot"></span>
-                    Entrada en puerta · 00:00
-                  </button>
+                    Seguir en Instagram
+                  </a>
                 </div>
               </div>
             </div>
@@ -176,12 +176,12 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia sabado">
                 <span class="evento-slide-label">Sábado</span>
-                <span class="evento-slide-nombre-dia">27 de Junio</span>
+                <span class="evento-slide-nombre-dia">4 de Julio</span>
               </div>
               <div class="evento-slide-content">
                 <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
                 <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este sábado no hay evento</div>
-                <div class="evento-desc">El evento de esta semana es el <strong>viernes 26</strong> con <strong>DJ Tusake</strong>. ¡No te lo pierdas!</div>
+                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
                 <div id="badge-gratis-sabado" class="evento-badge-gratis" style="display:none;"></div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
                   <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
@@ -1169,7 +1169,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=16"></script>
+  <script src="JS/main.js?v=17"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;
