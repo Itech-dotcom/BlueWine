@@ -358,7 +358,9 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
             companions     = companions
         )
     except Exception as e:
-        print(f"Error enviando email: {e}")
+        import traceback
+        print(f"ERROR CRÍTICO enviando email a {comprador.get('email','?')} — ticket {codigo}: {e}")
+        print(traceback.format_exc())
 
 
 def _generar_qr(contenido):
@@ -449,7 +451,8 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
     }
 
     response = resend.Emails.send(params)
-    print(f"Email enviado a {destinatario} via Resend — ID: {response['id']}")
+    email_id = response.get("id") if isinstance(response, dict) else getattr(response, "id", None)
+    print(f"Email enviado a {destinatario} via Resend — ID: {email_id}")
 
 
 # ══════════════════════════════════════════════════════
@@ -484,7 +487,7 @@ def stock():
         })
     except Exception as e:
         print(f"Error en /stock: {e}")
-        return jsonify({"prevDiamond": 50, "puertaDiamond": 50, "mesaDiamond": 10})  # fallback
+        return jsonify({"prevDiamond": 50, "puertaDiamond": 50, "mesaDiamond": 10, "meetAndGreet": 10})  # fallback
 
 
 # ══════════════════════════════════════════════════════
@@ -517,24 +520,39 @@ def recuperar_pendiente():
         if not pendiente:
             return jsonify({"ok": False, "error": "compra_id no encontrado en pendientes"}), 404
 
-        comprador = json.loads(pendiente["comprador_json"])
-        items     = json.loads(pendiente["items_json"])
+        comprador    = json.loads(pendiente["comprador_json"])
+        items        = json.loads(pendiente["items_json"])
+        acompanantes = json.loads(pendiente.get("acompanantes_json") or "[]")
 
         if email_fix:
             comprador["email"] = email_fix
 
-        emitidos = []
+        # Expandir items respetando personas por entrada (igual que en el webhook)
+        tickets_lista = []
         for item in items:
+            personas = item.get("personas", 1)
             for _ in range(item["cantidad"]):
-                _emitir_ticket(
-                    comprador   = comprador,
-                    evento      = item["nombre"],
-                    cantidad    = 1,
-                    precio_unit = item["precioFinal"],
-                    total       = item["precioFinal"],
-                    id_pago     = "RECUPERADO_MANUAL"
-                )
-                emitidos.append(item["nombre"])
+                for _ in range(personas):
+                    tickets_lista.append({"nombre": item["nombre"], "precio": item["precioFinal"]})
+
+        todos = [comprador] + acompanantes
+        nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
+
+        while len(tickets_lista) < len(todos):
+            tickets_lista.append(tickets_lista[-1] if tickets_lista else {"nombre": "Entrada", "precio": 0})
+
+        emitidos = []
+        for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
+            _emitir_ticket(
+                comprador   = asistente,
+                evento      = ticket["nombre"],
+                cantidad    = 1,
+                precio_unit = ticket["precio"],
+                total       = ticket["precio"],
+                id_pago     = "RECUPERADO_MANUAL",
+                acompanante_de = nombre_comprador if idx > 0 else ""
+            )
+            emitidos.append(ticket["nombre"])
 
         ws_p.delete_rows(fila_p)
         print(f"Pendiente {compra_id} recuperado manualmente — tickets: {emitidos}")

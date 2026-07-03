@@ -252,9 +252,9 @@ function abrirModal() {
 function renderizarTiposEntrada() {
   const grupos = {
     // Cada grupo es una sección con título. El array son los IDs de ENTRADAS que aparecen.
-    '🎟️ General': ['preventa1', 'preventa2', 'soloMujeres'],
-    '💎 Mesa Diamond': ['mesaDiamond', 'meetAndGreet'],
-    '⭐ VIP':      ['preventaVip', 'vip'],
+    // Para agregar tipos: añadir el ID aquí (debe existir en el objeto ENTRADAS arriba).
+    '🎟️ General': ['preventa1'],
+    '⭐ VIP':      ['preventaVip'],
   };
 
   const container = document.getElementById('modal-tipos-container');
@@ -516,7 +516,7 @@ function renderizarCarritoEntradas() {
     </div>
     <div class="carrito-item-desglose">
       <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
-      <div class="desglose-row"><span>Comisión ticketera (10%)</span><span>${formatPrecio(d.comTotal)}</span></div>
+      <div class="desglose-row"><span>Comisión ticketera (15%)</span><span>${formatPrecio(d.comTotal)}</span></div>
       <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
     </div>
   `}).join('');
