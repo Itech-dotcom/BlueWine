@@ -10,12 +10,12 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  preventa1:    { nombre: 'Preventa 1',            precio: 8000,   limite: 700, disponibles: 700, activa: false },
+  preventa1:    { nombre: 'General',               precio: 5000,   limite: 700, disponibles: 700, activa: true  },
   preventa2:    { nombre: 'Preventa 2',            precio: 13000,  limite: 700, disponibles: 700, activa: false },
   soloMujeres:  { nombre: 'Solo Mujeres 2x',       precio: 12000,  limite: 700, disponibles: 700, activa: false, personas: 2 },
   mesaDiamond:  { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 13,  disponibles: 13,  activa: false, personas: 4 },
   meetAndGreet: { nombre: 'Meet & Greet',           precio: 50000,  limite: 10,  disponibles: 10,  activa: false },
-  preventaVip:  { nombre: 'Preventa VIP',          precio: 15000,  limite: 150, disponibles: 150, activa: false },
+  preventaVip:  { nombre: 'VIP',                   precio: 10000,  limite: 150, disponibles: 150, activa: true  },
   vip:          { nombre: 'VIP',                   precio: 20000,  limite: 150, disponibles: 150, activa: false },
   prevDiamond:  { nombre: 'Diamond',               precio: 20000,  limite: 50,  disponibles: 50,  activa: false },
   puertaDiamond:{ nombre: 'Puerta Diamond',        precio: 30000,  limite: 50,  disponibles: 50,  activa: false },
@@ -44,18 +44,18 @@ const CONFIG_SABADO = {
 // ══════════════════════════════════════════════════════
 const CONFIG_ANUNCIO = {
   activo:   false,                             // ← false para desactivar el popup
-  titulo:   'Loyaltty — Stage Principal',      // ← nombre del evento
-  fecha:    'Sábado 6 de Junio',               // ← fecha visible
-  desc:     'Una noche que no querrás perderte. Entradas limitadas.',
+  titulo:   'Piero 47 — Blue Wine',           // ← nombre del evento
+  fecha:    'Sábado 11 de Julio',              // ← fecha visible
+  desc:     'Preventa disponible en línea. ¡No te quedes sin tu entrada!',
   esGratis: false,                             // ← true si es entrada liberada
-  precio:   null,                              // ← ej: 8000 si quieres mostrar precio (null = no mostrar)
-  imagen:   'Imagenes/EventoLoyaltty.jpeg',    // ← ruta de la imagen (null = sin imagen)
+  precio:   5000,                              // ← precio desde
+  imagen:   'Imagenes/piero_47.PNG',           // ← ruta de la imagen
 };
 
 // ── Nombre del evento principal — se antepone al tipo de entrada en el ticket
 // Ej: "Loyaltty — Preventa 1"
 // ← EDITAR AQUÍ cuando cambie el evento
-const NOMBRE_EVENTO_PRINCIPAL = 'DJ Tusake';
+const NOMBRE_EVENTO_PRINCIPAL = 'Piero 47';
 
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN
@@ -63,7 +63,7 @@ const NOMBRE_EVENTO_PRINCIPAL = 'DJ Tusake';
 
 // ══════════════════════════════════════════════════════
 const IVA = 0;             // sin IVA
-const COMISION_MP = 0.1; // 10% MercadoPago
+const COMISION_MP = 0.15; // 15% MercadoPago
 
 function calcularDesglose(precioNeto, cantidad) {
   const subtotal   = precioNeto * cantidad;
