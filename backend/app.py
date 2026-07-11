@@ -302,6 +302,14 @@ def webhook_mp():
                             companions     = nombres_acomp if not es_acomp else None
                         )
 
+                    # Enviar resumen de la compra completa a Blue Wine (1 solo email por compra)
+                    _enviar_resumen_compra(
+                        comprador     = comprador,
+                        todos         = todos,
+                        tickets_lista = tickets_lista,
+                        id_pago       = str(payment_id)
+                    )
+
                     # Una vez procesado, borrar de pendientes para no emitir de nuevo
                     ws_p.delete_rows(fila_p)
                     print(f"Compra {compra_id} procesada y eliminada de pendientes")
@@ -361,6 +369,67 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
         import traceback
         print(f"ERROR CRÍTICO enviando email a {comprador.get('email','?')} — ticket {codigo}: {e}")
         print(traceback.format_exc())
+
+
+def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago):
+    # Manda UN solo email resumen a Blue Wine con todos los tickets de la compra.
+    # Así en vez de recibir N copias individuales, recibe 1 resumen por compra.
+    try:
+        resend.api_key = os.getenv("RESEND_API_KEY")
+        copia_bw       = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
+
+        nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
+        total_personas   = len(todos)
+
+        filas_html = ""
+        for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
+            rol   = "Comprador principal" if idx == 0 else f"Acompañante {idx}"
+            nombre = f"{asistente.get('nombre','')} {asistente.get('apellido','')}".strip()
+            email  = asistente.get("email", "—")
+            rut    = asistente.get("rut", "—")
+            tipo   = ticket.get("nombre", "—")
+            filas_html += f"""
+            <tr>
+              <td style="padding:8px 12px;border-bottom:1px solid #2a2820;color:#c9a84c;font-size:13px;">{rol}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #2a2820;font-size:13px;">{nombre}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #2a2820;font-size:13px;">{rut}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #2a2820;font-size:13px;">{email}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #2a2820;font-size:13px;">{tipo}</td>
+            </tr>"""
+
+        html_resumen = f"""
+        <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
+          <h2 style="color:#c9a84c;margin-bottom:4px;">🎟️ Nueva compra registrada</h2>
+          <p style="color:#7a7060;font-size:13px;margin:0 0 20px;">Pago ID: {id_pago}</p>
+          <p><strong>Comprador:</strong> {nombre_comprador} — {comprador.get('email','—')} — {comprador.get('telefono','—')}</p>
+          <p><strong>Total personas:</strong> {total_personas}</p>
+          <table style="width:100%;border-collapse:collapse;margin-top:16px;background:#13131a;border-radius:8px;overflow:hidden;">
+            <thead>
+              <tr style="background:#1a1a2e;">
+                <th style="padding:10px 12px;text-align:left;color:#c9a84c;font-size:13px;">Rol</th>
+                <th style="padding:10px 12px;text-align:left;color:#c9a84c;font-size:13px;">Nombre</th>
+                <th style="padding:10px 12px;text-align:left;color:#c9a84c;font-size:13px;">RUT</th>
+                <th style="padding:10px 12px;text-align:left;color:#c9a84c;font-size:13px;">Email</th>
+                <th style="padding:10px 12px;text-align:left;color:#c9a84c;font-size:13px;">Tipo entrada</th>
+              </tr>
+            </thead>
+            <tbody>{filas_html}</tbody>
+          </table>
+          <hr style="border:none;border-top:1px solid #2a2820;margin:24px 0;" />
+          <p style="color:#7a7060;font-size:11px;text-align:center;">Blue Wine · Sistema de tickets automático</p>
+        </div>
+        """
+
+        response = resend.Emails.send({
+            "from":    "Blue Wine <tickets@bluewine.cl>",
+            "to":      [copia_bw],
+            "subject": f"🎟️ Nueva compra — {nombre_comprador} ({total_personas} persona{'s' if total_personas > 1 else ''})",
+            "html":    html_resumen,
+        })
+        email_id = response.get("id") if isinstance(response, dict) else getattr(response, "id", None)
+        print(f"Resumen de compra enviado a {copia_bw} — ID: {email_id}")
+    except Exception as e:
+        print(f"Error enviando resumen de compra: {e}")
 
 
 def _generar_qr(contenido):
@@ -437,15 +506,14 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
     params = {
         "from": "Blue Wine <tickets@bluewine.cl>",
         "to": [destinatario],
-        "bcc": [copia_bw],
         "subject": f"🎟️ Tu entrada para {evento} — Blue Wine",
         "html": html_body,
         "attachments": [
             {
                 "content": qr_b64,
                 "filename": "ticket-qr.png",
-                "content_id": "qr-ticket",  # ← coincide con cid:qr-ticket en el HTML
-                "content_type": "image/png",  # ← necesario para que Gmail/Outlook rendericen el QR inline
+                "content_id": "qr-ticket",
+                "content_type": "image/png",
             }
         ],
     }
