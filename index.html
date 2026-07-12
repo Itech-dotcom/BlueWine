@@ -310,6 +310,12 @@
             <span>He leído y acepto los <button type="button" class="link-tc" onclick="abrirTerminos()">Términos y Condiciones</button></span>
           </label>
         </div>
+        <div class="checkout-tc-wrap" style="margin-top:0.5rem;">
+          <label class="checkout-tc-label" for="co-privacidad">
+            <input type="checkbox" id="co-privacidad" />
+            <span>He leído y acepto la <button type="button" class="link-tc" onclick="abrirPrivacidad()">Política de Privacidad</button> y autorizo el tratamiento de mis datos personales</span>
+          </label>
+        </div>
 
         <div id="checkout-error" class="checkout-error" style="display:none;"></div>
 
@@ -338,11 +344,38 @@
         <h4>5. Responsabilidad</h4>
         <p>Blue Wine no se hace responsable por pérdidas, robos o accidentes ocurridos dentro del recinto. El asistente acepta estas condiciones al ingresar.</p>
         <h4>6. Datos personales</h4>
-        <p>Los datos ingresados serán utilizados únicamente para la emisión y envío del ticket, y no serán compartidos con terceros.</p>
+        <p>Los datos personales ingresados (nombre, apellido, RUT, correo electrónico y teléfono) serán tratados conforme a la Ley 19.628 sobre Protección de la Vida Privada. Serán utilizados exclusivamente para la emisión, envío y verificación de entradas. Consulta nuestra <button type="button" class="link-tc" onclick="document.getElementById('modal-terminos').classList.remove('active');abrirPrivacidad()">Política de Privacidad</button> para más información.</p>
         <h4>7. Contacto</h4>
         <p>Consultas: <strong>bluewine.contacto@gmail.com</strong> · Instagram: <strong>@bluewine.quillon</strong></p>
       </div>
       <button class="btn-pagar" style="margin-top:1.2rem;" onclick="aceptarTerminosYVolver()">Acepto los términos ✓</button>
+    </div>
+  </div>
+
+  <!-- MODAL POLÍTICA DE PRIVACIDAD -->
+  <div id="modal-privacidad" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+    <div class="modal-box modal-box-terminos">
+      <button class="modal-close" onclick="document.getElementById('modal-privacidad').classList.remove('active')">✕</button>
+      <p class="section-label">Blue Wine</p>
+      <h3 class="modal-titulo">Política de Privacidad</h3>
+      <div class="modal-divider"></div>
+      <div class="terminos-contenido">
+        <h4>1. Responsable del tratamiento</h4>
+        <p>MultiEspacio Blue Wine, con domicilio en Quillón, Región de Ñuble, Chile. Contacto: <strong>bluewine.contacto@gmail.com</strong></p>
+        <h4>2. Datos que recolectamos</h4>
+        <p>Al adquirir una entrada recolectamos: <strong>nombre, apellido, RUT, correo electrónico y teléfono</strong>. Estos datos son proporcionados voluntariamente por el usuario.</p>
+        <h4>3. Finalidad del tratamiento</h4>
+        <p>Tus datos se usan exclusivamente para: (a) emitir y enviar tu ticket QR por correo electrónico, (b) verificar tu identidad en la puerta del evento, y (c) contactarte en caso de cambios o cancelación del evento.</p>
+        <h4>4. Terceros que acceden a tus datos</h4>
+        <p><strong>MercadoPago</strong> procesa el pago (no compartimos tu RUT con ellos). <strong>Google Sheets</strong> almacena los registros de tickets. <strong>Resend</strong> envía los correos con tu ticket. Ninguno de estos terceros usa tus datos para fines distintos al servicio.</p>
+        <h4>5. Plazo de conservación</h4>
+        <p>Tus datos se conservan por un máximo de 90 días después del evento. Puedes solicitar su eliminación anticipada escribiendo a <strong>bluewine.contacto@gmail.com</strong>.</p>
+        <h4>6. Tus derechos (Ley 19.628)</h4>
+        <p>Tienes derecho a acceder, rectificar, cancelar u oponerte al tratamiento de tus datos. Para ejercerlos, escríbenos a <strong>bluewine.contacto@gmail.com</strong> indicando tu nombre y RUT.</p>
+        <h4>7. Seguridad</h4>
+        <p>Los datos se almacenan en Google Sheets con acceso restringido. No almacenamos datos de tarjetas de crédito — el pago es procesado íntegramente por MercadoPago.</p>
+      </div>
+      <button class="btn-pagar" style="margin-top:1.2rem;" onclick="aceptarPrivacidadYVolver()">Acepto la Política de Privacidad ✓</button>
     </div>
   </div>
 
@@ -1174,7 +1207,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=20"></script>
+  <script src="JS/main.js?v=21"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;

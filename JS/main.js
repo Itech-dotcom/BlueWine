@@ -643,6 +643,15 @@ function aceptarTerminosYVolver() {
   document.getElementById('modal-terminos').classList.remove('active');
 }
 
+function abrirPrivacidad() {
+  document.getElementById('modal-privacidad').classList.add('active');
+}
+
+function aceptarPrivacidadYVolver() {
+  document.getElementById('co-privacidad').checked = true;
+  document.getElementById('modal-privacidad').classList.remove('active');
+}
+
 function formatearRUT(valor) {
   // Limpia y formatea RUT chileno mientras el usuario escribe
   let v = valor.replace(/[^0-9kK]/g, '').toUpperCase();
@@ -686,7 +695,8 @@ function procederPagoEntradas() {
   const rut      = document.getElementById('co-rut').value.trim();
   const email    = document.getElementById('co-email').value.trim();
   const telefono = document.getElementById('co-telefono').value.trim();
-  const tc       = document.getElementById('co-tc').checked;
+  const tc         = document.getElementById('co-tc').checked;
+  const privacidad = document.getElementById('co-privacidad').checked;
 
   const errorEl = document.getElementById('checkout-error');
   const campos  = ['co-nombre','co-apellido','co-rut','co-email','co-email-confirm','co-telefono'];
@@ -703,6 +713,11 @@ function procederPagoEntradas() {
   if (!telefono) { marcarError('co-telefono', '⚠️ Ingresa tu número de teléfono.', errorEl); return; }
   if (!tc) {
     errorEl.textContent = '📋 Debes leer y aceptar los Términos y Condiciones antes de continuar.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (!privacidad) {
+    errorEl.textContent = '🔒 Debes aceptar la Política de Privacidad para continuar.';
     errorEl.style.display = 'block';
     return;
   }
