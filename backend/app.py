@@ -288,9 +288,10 @@ def webhook_mp():
                         for a in acompanantes
                     ]
 
+                    qrs_emitidos = []
                     for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
                         es_acomp = idx > 0
-                        _emitir_ticket(
+                        codigo, qr_img = _emitir_ticket(
                             comprador      = asistente,
                             evento         = ticket["nombre"],
                             cantidad       = 1,
@@ -301,13 +302,15 @@ def webhook_mp():
                             mesa           = mesa_num,
                             companions     = nombres_acomp if not es_acomp else None
                         )
+                        qrs_emitidos.append((asistente, ticket, codigo, qr_img))
 
                     # Enviar resumen de la compra completa a Blue Wine (1 solo email por compra)
                     _enviar_resumen_compra(
                         comprador     = comprador,
                         todos         = todos,
                         tickets_lista = tickets_lista,
-                        id_pago       = str(payment_id)
+                        id_pago       = str(payment_id),
+                        qrs           = qrs_emitidos
                     )
 
                     # Una vez procesado, borrar de pendientes para no emitir de nuevo
@@ -370,8 +373,10 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
         print(f"ERROR CRÍTICO enviando email a {comprador.get('email','?')} — ticket {codigo}: {e}")
         print(traceback.format_exc())
 
+    return codigo, qr_img
 
-def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago):
+
+def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
     # Manda UN solo email resumen a Blue Wine con todos los tickets de la compra.
     # Así en vez de recibir N copias individuales, recibe 1 resumen por compra.
     try:
@@ -381,13 +386,31 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago):
         nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
         total_personas   = len(todos)
 
-        filas_html = ""
+        # Construir filas de la tabla y adjuntos QR
+        filas_html  = ""
+        adjuntos    = []
+        qrs_map     = {i: (codigo, qr_img) for i, (_, _, codigo, qr_img) in enumerate(qrs)} if qrs else {}
+
         for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
-            rol   = "Comprador principal" if idx == 0 else f"Acompañante {idx}"
+            rol    = "Comprador principal" if idx == 0 else f"Acompañante {idx}"
             nombre = f"{asistente.get('nombre','')} {asistente.get('apellido','')}".strip()
             email  = asistente.get("email", "—")
             rut    = asistente.get("rut", "—")
             tipo   = ticket.get("nombre", "—")
+            cid    = f"qr-resumen-{idx}"
+
+            qr_cell = ""
+            if idx in qrs_map:
+                codigo_t, qr_img_t = qrs_map[idx]
+                qr_b64_t = base64.b64encode(qr_img_t).decode("utf-8")
+                adjuntos.append({
+                    "content":      qr_b64_t,
+                    "filename":     f"qr-{nombre.replace(' ','_')}.png",
+                    "content_id":   cid,
+                    "content_type": "image/png",
+                })
+                qr_cell = f'<img src="cid:{cid}" width="80" height="80" style="border:2px solid #c9a84c;border-radius:4px;" /><br><span style="font-family:monospace;font-size:10px;color:#c9a84c;">{codigo_t}</span>'
+
             filas_html += f"""
             <tr>
               <td style="padding:8px 12px;border-bottom:1px solid #2a2820;color:#c9a84c;font-size:13px;">{rol}</td>
@@ -395,10 +418,11 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago):
               <td style="padding:8px 12px;border-bottom:1px solid #2a2820;font-size:13px;">{rut}</td>
               <td style="padding:8px 12px;border-bottom:1px solid #2a2820;font-size:13px;">{email}</td>
               <td style="padding:8px 12px;border-bottom:1px solid #2a2820;font-size:13px;">{tipo}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #2a2820;text-align:center;">{qr_cell}</td>
             </tr>"""
 
         html_resumen = f"""
-        <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
+        <div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
           <h2 style="color:#c9a84c;margin-bottom:4px;">🎟️ Nueva compra registrada</h2>
           <p style="color:#7a7060;font-size:13px;margin:0 0 20px;">Pago ID: {id_pago}</p>
           <p><strong>Comprador:</strong> {nombre_comprador} — {comprador.get('email','—')} — {comprador.get('telefono','—')}</p>
@@ -411,6 +435,7 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago):
                 <th style="padding:10px 12px;text-align:left;color:#c9a84c;font-size:13px;">RUT</th>
                 <th style="padding:10px 12px;text-align:left;color:#c9a84c;font-size:13px;">Email</th>
                 <th style="padding:10px 12px;text-align:left;color:#c9a84c;font-size:13px;">Tipo entrada</th>
+                <th style="padding:10px 12px;text-align:left;color:#c9a84c;font-size:13px;">QR</th>
               </tr>
             </thead>
             <tbody>{filas_html}</tbody>
@@ -420,12 +445,16 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago):
         </div>
         """
 
-        response = resend.Emails.send({
+        params_resumen = {
             "from":    "Blue Wine <tickets@bluewine.cl>",
             "to":      [copia_bw],
             "subject": f"🎟️ Nueva compra — {nombre_comprador} ({total_personas} persona{'s' if total_personas > 1 else ''})",
             "html":    html_resumen,
-        })
+        }
+        if adjuntos:
+            params_resumen["attachments"] = adjuntos
+
+        response = resend.Emails.send(params_resumen)
         email_id = response.get("id") if isinstance(response, dict) else getattr(response, "id", None)
         print(f"Resumen de compra enviado a {copia_bw} — ID: {email_id}")
     except Exception as e:
