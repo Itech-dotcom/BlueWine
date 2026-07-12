@@ -85,7 +85,7 @@
       <li><a href="#eventos-privados">Eventos Privados</a></li>
     </ul>
     <div class="nav-carritos">
-      <button class="nav-carrito-btn" onclick="abrirCarritoEntradas()" title="Carrito Entradas">
+      <button class="nav-carrito-btn" onclick="abrirCarritoEntradas()" title="Carrito Entradas" style="display:none">
         🎟️ <span class="badge-carrito" id="badge-carrito-entradas" style="display:none">0</span>
       </button>
       <button class="nav-carrito-btn" onclick="abrirCarritoComida()" title="Carrito Comida">
@@ -113,7 +113,7 @@
     </div>
 
     <!-- EVENTO DESTACADO CON IMAGEN -->
-    <div class="hero-evento-destacado">
+    <div class="hero-evento-destacado" style="display:none">
       <div class="hero-evento-img-wrap">
         <div class="hero-carrusel" id="heroCarrusel">
           <img src="Imagenes/piero_47.PNG" alt="Piero 47 - Sábado 11 de Julio" class="hero-carrusel-slide active" />
@@ -154,18 +154,18 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia">
                 <span class="evento-slide-label">Viernes</span>
-                <span class="evento-slide-nombre-dia">10 de Julio</span>
+                <span class="evento-slide-nombre-dia">17 de Julio</span>
               </div>
               <div class="evento-slide-content">
                 <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
                 <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este viernes no hay evento</div>
-                <div class="evento-desc">El evento de esta semana es el <strong>sábado 11</strong> con <strong>Piero 47</strong>. ¡Consigue tu entrada en línea!</div>
+                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
                 <div id="badge-gratis-viernes" class="evento-badge-gratis" style="display:none;"></div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
-                  <button class="hero-evento-btn" onclick="abrirModal()">
+                  <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
                     <span class="hero-evento-dot"></span>
-                    Ver entradas →
-                  </button>
+                    Seguir en Instagram
+                  </a>
                 </div>
               </div>
             </div>
@@ -176,18 +176,18 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia sabado">
                 <span class="evento-slide-label">Sábado</span>
-                <span class="evento-slide-nombre-dia">11 de Julio</span>
+                <span class="evento-slide-nombre-dia">18 de Julio</span>
               </div>
               <div class="evento-slide-content">
-                <div class="evento-tag">Piero 47</div>
-                <div class="evento-title">Piero 47 en Blue Wine</div>
-                <div class="evento-desc">Preventa disponible en línea. Line up: DJ Nico Godoy · Anima MC Jeeims. Apertura 00:00.</div>
+                <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
+                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este sábado no hay evento</div>
+                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
                 <div id="badge-gratis-sabado" class="evento-badge-gratis" style="display:none;"></div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
-                  <button class="hero-evento-btn" onclick="abrirModal()">
+                  <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
                     <span class="hero-evento-dot"></span>
-                    Ver entradas disponibles
-                  </button>
+                    Seguir en Instagram
+                  </a>
                 </div>
               </div>
             </div>
@@ -202,7 +202,7 @@
   </section>
 
   <!-- MODAL EVENTO PRINCIPAL — TIPOS DE ENTRADA (generado dinámicamente) -->
-  <div id="modal-principal" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+  <div id="modal-principal" class="modal-overlay" onclick="cerrarModalOverlay(event)" style="display:none">
     <div class="modal-box modal-box-principal">
       <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
       <p class="section-label">Piero 47 · Sábado 11 de Julio</p>
@@ -243,7 +243,7 @@
   </div>
 
   <!-- CARRITO ENTRADAS -->
-  <div id="carrito-entradas" class="modal-overlay" onclick="cerrarModalOverlay(event)">
+  <div id="carrito-entradas" class="modal-overlay" onclick="cerrarModalOverlay(event)" style="display:none">
     <div class="modal-box modal-box-carrito">
       <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
       <p class="section-label">Carrito</p>
@@ -1207,7 +1207,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=21"></script>
+  <script src="JS/main.js?v=22"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;
