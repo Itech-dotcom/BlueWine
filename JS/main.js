@@ -10,15 +10,17 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  preventa1:    { nombre: 'General',               precio: 5000,   limite: 700, disponibles: 0,   activa: false },
-  preventa2:    { nombre: 'Preventa 2',            precio: 13000,  limite: 700, disponibles: 700, activa: false },
-  soloMujeres:  { nombre: 'Solo Mujeres 2x',       precio: 12000,  limite: 700, disponibles: 700, activa: false, personas: 2 },
-  mesaDiamond:  { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 13,  disponibles: 13,  activa: false, personas: 4 },
-  meetAndGreet: { nombre: 'Meet & Greet',           precio: 50000,  limite: 10,  disponibles: 10,  activa: false },
-  preventaVip:  { nombre: 'VIP',                   precio: 10000,  limite: 150, disponibles: 0,   activa: false },
-  vip:          { nombre: 'VIP',                   precio: 20000,  limite: 150, disponibles: 150, activa: false },
-  prevDiamond:  { nombre: 'Diamond',               precio: 20000,  limite: 50,  disponibles: 50,  activa: false },
-  puertaDiamond:{ nombre: 'Puerta Diamond',        precio: 30000,  limite: 50,  disponibles: 50,  activa: false },
+  generalMujeres: { nombre: 'General Mujeres',      precio: 5000,   limite: 700, disponibles: 700, activa: true  },
+  generalHombres: { nombre: 'General Hombres',      precio: 7000,   limite: 700, disponibles: 700, activa: true  },
+  preventaVip:    { nombre: 'VIP',                  precio: 10000,  limite: 150, disponibles: 150, activa: true  },
+  preventa1:      { nombre: 'General',              precio: 5000,   limite: 700, disponibles: 0,   activa: false },
+  preventa2:      { nombre: 'Preventa 2',           precio: 13000,  limite: 700, disponibles: 700, activa: false },
+  soloMujeres:    { nombre: 'Solo Mujeres 2x',      precio: 12000,  limite: 700, disponibles: 700, activa: false, personas: 2 },
+  mesaDiamond:    { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 13,  disponibles: 13,  activa: false, personas: 4 },
+  meetAndGreet:   { nombre: 'Meet & Greet',          precio: 50000,  limite: 10,  disponibles: 10,  activa: false },
+  vip:            { nombre: 'VIP',                  precio: 20000,  limite: 150, disponibles: 150, activa: false },
+  prevDiamond:    { nombre: 'Diamond',              precio: 20000,  limite: 50,  disponibles: 50,  activa: false },
+  puertaDiamond:  { nombre: 'Puerta Diamond',       precio: 30000,  limite: 50,  disponibles: 50,  activa: false },
 };
 
 // ══════════════════════════════════════════════════════
@@ -43,19 +45,19 @@ const CONFIG_SABADO = {
 // Usa el evento principal (hero) como referencia por defecto
 // ══════════════════════════════════════════════════════
 const CONFIG_ANUNCIO = {
-  activo:   false,                             // ← false para desactivar el popup
-  titulo:   'Piero 47 — Blue Wine',           // ← nombre del evento
-  fecha:    'Sábado 11 de Julio',              // ← fecha visible
-  desc:     'Preventa disponible en línea. ¡No te quedes sin tu entrada!',
-  esGratis: false,                             // ← true si es entrada liberada
-  precio:   5000,                              // ← precio desde
-  imagen:   'Imagenes/piero_47.PNG',           // ← ruta de la imagen
+  activo:   false,
+  titulo:   'Secreto en Quillón — Blue Wine',
+  fecha:    'Sábado 18 de Julio',
+  desc:     'Preventa disponible en línea. Mujeres $5.000 · Hombres $7.000 · VIP $10.000',
+  esGratis: false,
+  precio:   5000,
+  imagen:   'Imagenes/secreto_quillon.jpg',
 };
 
 // ── Nombre del evento principal — se antepone al tipo de entrada en el ticket
 // Ej: "Loyaltty — Preventa 1"
 // ← EDITAR AQUÍ cuando cambie el evento
-const NOMBRE_EVENTO_PRINCIPAL = 'Piero 47';
+const NOMBRE_EVENTO_PRINCIPAL = 'Secreto en Quillón';
 
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN
@@ -251,10 +253,9 @@ function abrirModal() {
 // Para cambiar precios, límites o activar/desactivar entradas, editar el objeto ENTRADAS arriba.
 function renderizarTiposEntrada() {
   const grupos = {
-    // Cada grupo es una sección con título. El array son los IDs de ENTRADAS que aparecen.
-    // Para agregar tipos: añadir el ID aquí (debe existir en el objeto ENTRADAS arriba).
-    '🎟️ General': ['preventa1'],
-    '⭐ VIP':      ['preventaVip'],
+    '👩 Mujeres': ['generalMujeres'],
+    '👨 Hombres': ['generalHombres'],
+    '⭐ VIP':     ['preventaVip'],
   };
 
   const container = document.getElementById('modal-tipos-container');

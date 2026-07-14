@@ -32,19 +32,21 @@ ADMIN_KEY = os.getenv("ADMIN_KEY", "bw-admin-2026")
 # Debe reflejar el objeto ENTRADAS de JS/main.js. Cuando cambie el evento
 # (ver CLAUDE.md → "nuevo evento"), actualizar también esta tabla.
 # ══════════════════════════════════════════════════════
-NOMBRE_EVENTO_PRINCIPAL = "Piero 47"
+NOMBRE_EVENTO_PRINCIPAL = "Secreto en Quillón"
 COMISION_MP = 0.15  # 15% MercadoPago, igual que en main.js
 
 PRECIOS_ENTRADAS = {
-    "preventa1":     {"nombre": "General",                "precio": 5000,   "personas": 1},
-    "preventa2":     {"nombre": "Preventa 2",             "precio": 13000,  "personas": 1},
-    "soloMujeres":   {"nombre": "Solo Mujeres 2x",        "precio": 12000,  "personas": 2},
-    "mesaDiamond":   {"nombre": "Mesa Diamond (4 pers.)", "precio": 150000, "personas": 4},
-    "meetAndGreet":  {"nombre": "Meet & Greet",           "precio": 50000,  "personas": 1},
-    "preventaVip":   {"nombre": "VIP",                    "precio": 10000,  "personas": 1},
-    "vip":           {"nombre": "VIP",                    "precio": 20000,  "personas": 1},
-    "prevDiamond":   {"nombre": "Diamond",                "precio": 20000,  "personas": 1},
-    "puertaDiamond": {"nombre": "Puerta Diamond",         "precio": 30000,  "personas": 1},
+    "generalMujeres": {"nombre": "General Mujeres",       "precio": 5000,   "personas": 1},
+    "generalHombres": {"nombre": "General Hombres",       "precio": 7000,   "personas": 1},
+    "preventaVip":    {"nombre": "VIP",                   "precio": 10000,  "personas": 1},
+    "preventa1":      {"nombre": "General",               "precio": 5000,   "personas": 1},
+    "preventa2":      {"nombre": "Preventa 2",            "precio": 13000,  "personas": 1},
+    "soloMujeres":    {"nombre": "Solo Mujeres 2x",       "precio": 12000,  "personas": 2},
+    "mesaDiamond":    {"nombre": "Mesa Diamond (4 pers.)","precio": 150000, "personas": 4},
+    "meetAndGreet":   {"nombre": "Meet & Greet",          "precio": 50000,  "personas": 1},
+    "vip":            {"nombre": "VIP",                   "precio": 20000,  "personas": 1},
+    "prevDiamond":    {"nombre": "Diamond",               "precio": 20000,  "personas": 1},
+    "puertaDiamond":  {"nombre": "Puerta Diamond",        "precio": 30000,  "personas": 1},
 }
 
 # Bandera para activar la entrada liberada (/obtener-entrada-gratis).

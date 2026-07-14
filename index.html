@@ -85,7 +85,7 @@
       <li><a href="#eventos-privados">Eventos Privados</a></li>
     </ul>
     <div class="nav-carritos">
-      <button class="nav-carrito-btn" onclick="abrirCarritoEntradas()" title="Carrito Entradas" style="display:none">
+      <button class="nav-carrito-btn" onclick="abrirCarritoEntradas()" title="Carrito Entradas">
         🎟️ <span class="badge-carrito" id="badge-carrito-entradas" style="display:none">0</span>
       </button>
       <button class="nav-carrito-btn" onclick="abrirCarritoComida()" title="Carrito Comida">
@@ -113,14 +113,14 @@
     </div>
 
     <!-- EVENTO DESTACADO CON IMAGEN -->
-    <div class="hero-evento-destacado" style="display:none">
+    <div class="hero-evento-destacado">
       <div class="hero-evento-img-wrap">
         <div class="hero-carrusel" id="heroCarrusel">
-          <img src="Imagenes/piero_47.PNG" alt="Piero 47 - Sábado 11 de Julio" class="hero-carrusel-slide active" />
+          <img src="Imagenes/secreto_quillon.jpg" alt="Secreto en Quillón - Sábado 18 de Julio" class="hero-carrusel-slide active" />
         </div>
       </div>
       <div class="hero-evento-footer">
-        <div class="hero-evento-fecha-txt">Sábado 11 de Julio</div>
+        <div class="hero-evento-fecha-txt">Sábado 18 de Julio</div>
         <button class="hero-evento-btn" onclick="abrirModal()">
           <span class="hero-evento-dot"></span>
           Ver entradas →
@@ -179,15 +179,15 @@
                 <span class="evento-slide-nombre-dia">18 de Julio</span>
               </div>
               <div class="evento-slide-content">
-                <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
-                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este sábado no hay evento</div>
-                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
+                <div class="evento-tag">Secreto en Quillón</div>
+                <div class="evento-title">Secreto en Quillón en Blue Wine</div>
+                <div class="evento-desc">Invitados sorpresa. Line up: DJ Crozz · DJ del Prado · Anima Joshe Villa. Apertura 00:00.</div>
                 <div id="badge-gratis-sabado" class="evento-badge-gratis" style="display:none;"></div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
-                  <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
+                  <button class="hero-evento-btn" onclick="abrirModal()">
                     <span class="hero-evento-dot"></span>
-                    Seguir en Instagram
-                  </a>
+                    Ver entradas disponibles
+                  </button>
                 </div>
               </div>
             </div>
@@ -202,18 +202,14 @@
   </section>
 
   <!-- MODAL EVENTO PRINCIPAL — TIPOS DE ENTRADA (generado dinámicamente) -->
-  <div id="modal-principal" class="modal-overlay" onclick="cerrarModalOverlay(event)" style="display:none">
+  <div id="modal-principal" class="modal-overlay" onclick="cerrarModalOverlay(event)">
     <div class="modal-box modal-box-principal">
       <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
-      <p class="section-label">Piero 47 · Sábado 11 de Julio</p>
-      <h3 class="modal-titulo">Entradas agotadas en línea</h3>
+      <p class="section-label">Secreto en Quillón · Sábado 18 de Julio</p>
+      <h3 class="modal-titulo">Selecciona tu entrada y agrégala al carrito</h3>
       <div class="modal-divider"></div>
-      <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:14px 16px;margin-bottom:1rem;text-align:center;">
-        <p style="margin:0;font-size:0.95rem;color:#c9a84c;font-weight:600;">🚪 Entradas disponibles solo en puerta</p>
-        <p style="margin:6px 0 0;font-size:0.82rem;color:#a08840;">Dirígete directamente al recinto esta noche.</p>
-      </div>
       <div id="modal-tipos-container"></div>
-      <p class="modal-nota" style="margin-top:1rem;">La venta en línea está cerrada. Entradas disponibles en la puerta del evento.</p>
+      <p class="modal-nota" style="margin-top:1rem;">Selecciona el tipo de entrada para agregarlo al carrito. Puedes agregar varios tipos antes de pagar.</p>
       <button class="btn-outline" style="width:100%;margin-top:0.8rem;justify-content:center;" onclick="cerrarTodosModales();abrirCarritoEntradas()">Ver carrito de entradas 🎟️</button>
     </div>
   </div>
@@ -243,7 +239,7 @@
   </div>
 
   <!-- CARRITO ENTRADAS -->
-  <div id="carrito-entradas" class="modal-overlay" onclick="cerrarModalOverlay(event)" style="display:none">
+  <div id="carrito-entradas" class="modal-overlay" onclick="cerrarModalOverlay(event)">
     <div class="modal-box modal-box-carrito">
       <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
       <p class="section-label">Carrito</p>
@@ -1207,7 +1203,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=22"></script>
+  <script src="JS/main.js?v=23"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;
