@@ -206,10 +206,14 @@
     <div class="modal-box modal-box-principal">
       <button class="modal-close" onclick="cerrarTodosModales()">✕</button>
       <p class="section-label">Secreto en Quillón · Sábado 18 de Julio</p>
-      <h3 class="modal-titulo">Selecciona tu entrada y agrégala al carrito</h3>
+      <h3 class="modal-titulo">Entradas agotadas en línea</h3>
       <div class="modal-divider"></div>
+      <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:14px 16px;margin-bottom:1rem;text-align:center;">
+        <p style="margin:0;font-size:0.95rem;color:#c9a84c;font-weight:600;">🚪 Entradas disponibles solo en puerta</p>
+        <p style="margin:6px 0 0;font-size:0.82rem;color:#a08840;">Dirígete directamente al recinto esta noche.</p>
+      </div>
       <div id="modal-tipos-container"></div>
-      <p class="modal-nota" style="margin-top:1rem;">Selecciona el tipo de entrada para agregarlo al carrito. Puedes agregar varios tipos antes de pagar.</p>
+      <p class="modal-nota" style="margin-top:1rem;">La venta en línea está cerrada. Entradas disponibles en la puerta del evento.</p>
       <button class="btn-outline" style="width:100%;margin-top:0.8rem;justify-content:center;" onclick="cerrarTodosModales();abrirCarritoEntradas()">Ver carrito de entradas 🎟️</button>
     </div>
   </div>
@@ -1203,7 +1207,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=23"></script>
+  <script src="JS/main.js?v=24"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;

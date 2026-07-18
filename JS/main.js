@@ -10,9 +10,9 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  generalMujeres: { nombre: 'General Mujeres',      precio: 5000,   limite: 700, disponibles: 700, activa: true  },
-  generalHombres: { nombre: 'General Hombres',      precio: 7000,   limite: 700, disponibles: 700, activa: true  },
-  preventaVip:    { nombre: 'VIP',                  precio: 10000,  limite: 150, disponibles: 150, activa: true  },
+  generalMujeres: { nombre: 'General Mujeres',      precio: 5000,   limite: 700, disponibles: 0,   activa: false },
+  generalHombres: { nombre: 'General Hombres',      precio: 7000,   limite: 700, disponibles: 0,   activa: false },
+  preventaVip:    { nombre: 'VIP',                  precio: 10000,  limite: 150, disponibles: 0,   activa: false },
   preventa1:      { nombre: 'General',              precio: 5000,   limite: 700, disponibles: 0,   activa: false },
   preventa2:      { nombre: 'Preventa 2',           precio: 13000,  limite: 700, disponibles: 700, activa: false },
   soloMujeres:    { nombre: 'Solo Mujeres 2x',      precio: 12000,  limite: 700, disponibles: 700, activa: false, personas: 2 },
