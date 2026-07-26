@@ -773,7 +773,7 @@ def obtener_entrada_gratis():
         return jsonify({"ok": False, "error": "Error al verificar disponibilidad. Intenta nuevamente."}), 500
 
     try:
-        _emitir_ticket(
+        codigo, qr_img = _emitir_ticket(
             comprador   = comprador,
             evento      = f"{NOMBRE_EVENTO_PRINCIPAL} — Entrada Gratuita",
             cantidad    = 1,
@@ -782,6 +782,16 @@ def obtener_entrada_gratis():
             id_pago     = "ENTRADA_LIBERADA"
         )
         print(f"Entrada gratuita emitida: {rut} — total emitidas: {total_gratis + 1}/{LIMITE_ENTRADAS_GRATIS}")
+        try:
+            _enviar_resumen_compra(
+                comprador     = comprador,
+                todos         = [comprador],
+                tickets_lista = [{"nombre": f"{NOMBRE_EVENTO_PRINCIPAL} — Entrada Gratuita", "precio": 0}],
+                id_pago       = "ENTRADA_LIBERADA",
+                qrs           = [qr_img]
+            )
+        except Exception as e:
+            print(f"Error enviando resumen gratis a Blue Wine: {e}")
         return jsonify({"ok": True})
     except Exception as e:
         print(f"Error generando entrada gratis: {e}")
