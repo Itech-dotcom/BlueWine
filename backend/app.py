@@ -51,7 +51,7 @@ PRECIOS_ENTRADAS = {
 
 # Bandera para activar la entrada liberada (/obtener-entrada-gratis).
 # Mantener en False salvo que el evento actual regale entradas.
-ENTRADA_GRATIS_ACTIVA = True
+ENTRADA_GRATIS_ACTIVA = False
 LIMITE_ENTRADAS_GRATIS = 100
 
 # ══════════════════════════════════════════════════════
