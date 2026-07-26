@@ -782,13 +782,14 @@ def obtener_entrada_gratis():
             id_pago     = "ENTRADA_LIBERADA"
         )
         print(f"Entrada gratuita emitida: {rut} — total emitidas: {total_gratis + 1}/{LIMITE_ENTRADAS_GRATIS}")
+        ticket_gratis = {"nombre": f"{NOMBRE_EVENTO_PRINCIPAL} — Entrada Gratuita", "precio": 0}
         try:
             _enviar_resumen_compra(
                 comprador     = comprador,
                 todos         = [comprador],
-                tickets_lista = [{"nombre": f"{NOMBRE_EVENTO_PRINCIPAL} — Entrada Gratuita", "precio": 0}],
+                tickets_lista = [ticket_gratis],
                 id_pago       = "ENTRADA_LIBERADA",
-                qrs           = [qr_img]
+                qrs           = [(comprador, ticket_gratis, codigo, qr_img)]
             )
         except Exception as e:
             print(f"Error enviando resumen gratis a Blue Wine: {e}")
