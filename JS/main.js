@@ -29,8 +29,8 @@ const ENTRADAS = {
 // horaCorte: hora límite de entrada liberada (solo se muestra si esGratis: true)
 // ══════════════════════════════════════════════════════
 const CONFIG_VIERNES = {
-  esGratis:  false,       // ← cambiar a true para mostrar entrada liberada
-  horaCorte: '23:00',     // ← hora límite entrada liberada
+  esGratis:  true,
+  horaCorte: '23:59',
 };
 
 const CONFIG_SABADO = {
@@ -46,18 +46,18 @@ const CONFIG_SABADO = {
 // ══════════════════════════════════════════════════════
 const CONFIG_ANUNCIO = {
   activo:   false,
-  titulo:   'Secreto en Quillón — Blue Wine',
-  fecha:    'Sábado 18 de Julio',
-  desc:     'Preventa disponible en línea. Mujeres $5.000 · Hombres $7.000 · VIP $10.000',
-  esGratis: false,
-  precio:   5000,
-  imagen:   'Imagenes/secreto_quillon.jpg',
+  titulo:   'Pre Aniversario Blue Wine — Fiesta de la Guaracha',
+  fecha:    'Viernes 31 de Julio',
+  desc:     '¡100 entradas GRATIS disponibles en la página! DJ Chepe El Frenix · Laura Vélez · Hamilton Morales · XCAR',
+  esGratis: true,
+  precio:   0,
+  imagen:   'Imagenes/preaniversariofiestaguaracha.jpg',
 };
 
 // ── Nombre del evento principal — se antepone al tipo de entrada en el ticket
 // Ej: "Loyaltty — Preventa 1"
 // ← EDITAR AQUÍ cuando cambie el evento
-const NOMBRE_EVENTO_PRINCIPAL = 'Secreto en Quillón';
+const NOMBRE_EVENTO_PRINCIPAL = 'Pre Aniversario Blue Wine';
 
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN
@@ -309,9 +309,7 @@ function renderizarTiposEntrada() {
 
 // ── Modal viernes/sábado (entrada general)
 function abrirModalGeneral(nombre, precio) {
-  const configKey  = nombre.toLowerCase().includes('viernes') ? 'viernes' : 'sabado';
-  const config     = configKey === 'viernes' ? CONFIG_VIERNES : CONFIG_SABADO;
-  const esGratis   = config.esGratis;
+  const esGratis = precio === 0;
 
   const modal = document.getElementById('modal-general');
   document.getElementById('modal-general-nombre').textContent = nombre;
@@ -338,6 +336,8 @@ function abrirModalGeneral(nombre, precio) {
   }
 
   document.getElementById('modal-general-cantidad').textContent = 1;
+  const cantWrap = document.querySelector('.modal-cantidad-wrap');
+  if (cantWrap) cantWrap.style.display = esGratis ? 'none' : '';
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -346,6 +346,7 @@ function cambiarCantidadGeneral(delta) {
   const modal    = document.getElementById('modal-general');
   const precio   = parseInt(modal.dataset.precio);
   const esGratis = modal.dataset.esGratis === 'true';
+  if (esGratis) return;
   let cant = parseInt(modal.dataset.cantidad) + delta;
   cant = Math.max(1, Math.min(20, cant));
   modal.dataset.cantidad = cant;
@@ -775,7 +776,7 @@ function procederPagoEntradas() {
           document.body.style.overflow = 'hidden';
         }, 300);
       } else {
-        errorEl.textContent = '⚠️ Error al generar la entrada. Intenta nuevamente.';
+        errorEl.textContent = '⚠️ ' + (data.error || 'Error al generar la entrada. Intenta nuevamente.');
         errorEl.style.display = 'block';
       }
     })

@@ -32,7 +32,7 @@ ADMIN_KEY = os.getenv("ADMIN_KEY", "bw-admin-2026")
 # Debe reflejar el objeto ENTRADAS de JS/main.js. Cuando cambie el evento
 # (ver CLAUDE.md → "nuevo evento"), actualizar también esta tabla.
 # ══════════════════════════════════════════════════════
-NOMBRE_EVENTO_PRINCIPAL = "Secreto en Quillón"
+NOMBRE_EVENTO_PRINCIPAL = "Pre Aniversario Blue Wine"
 COMISION_MP = 0.15  # 15% MercadoPago, igual que en main.js
 
 PRECIOS_ENTRADAS = {
@@ -51,7 +51,8 @@ PRECIOS_ENTRADAS = {
 
 # Bandera para activar la entrada liberada (/obtener-entrada-gratis).
 # Mantener en False salvo que el evento actual regale entradas.
-ENTRADA_GRATIS_ACTIVA = False
+ENTRADA_GRATIS_ACTIVA = True
+LIMITE_ENTRADAS_GRATIS = 100
 
 # ══════════════════════════════════════════════════════
 # GOOGLE SHEETS — CONFIGURACIÓN
@@ -368,7 +369,7 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
             qr_img         = qr_img,
             acompanante_de = acompanante_de,
             mesa           = mesa,
-            companions     = companions
+            companions     = companions,
         )
     except Exception as e:
         import traceback
@@ -517,6 +518,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
       {bloque_mesa}
       <div style="background:#13131a;border:1px solid #2a2820;border-radius:8px;padding:20px;margin:20px 0;">
         <p style="margin:0 0 8px;"><strong>Evento:</strong> {evento}</p>
+        <p style="margin:0 0 8px;">⏰ Acceso hasta las 01:00 hrs</p>
         <p style="margin:0 0 8px;"><strong>Código:</strong> <span style="color:#c9a84c;font-family:monospace;font-size:16px;">{codigo}</span></p>
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
       </div>
@@ -744,25 +746,42 @@ def obtener_entrada_gratis():
     if not ENTRADA_GRATIS_ACTIVA:
         return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
 
-    data          = request.get_json()
-    comprador     = data.get("comprador", {})
-    nombre_evento = data.get("nombreEvento", "Evento Blue Wine")
-    try:
-        cantidad = int(data.get("cantidad", 1))
-    except (TypeError, ValueError):
-        cantidad = 1
-    cantidad = max(1, min(cantidad, 4))  # tope de seguridad
+    data      = request.get_json()
+    comprador = data.get("comprador", {})
+    rut       = str(comprador.get("rut", "")).strip()
 
     try:
-        for _ in range(cantidad):
-            _emitir_ticket(
-                comprador   = comprador,
-                evento      = nombre_evento,
-                cantidad    = 1,
-                precio_unit = 0,
-                total       = 0,
-                id_pago     = "ENTRADA_LIBERADA"
-            )
+        ws   = get_sheet()
+        rows = ws.get_all_records()
+
+        # Contar entradas gratis ya emitidas y verificar RUT duplicado
+        total_gratis = 0
+        for row in rows:
+            if str(row.get("id_pago_mp", "")) == "ENTRADA_LIBERADA":
+                total_gratis += 1
+                if rut and str(row.get("rut", "")).strip() == rut:
+                    estado_ticket = str(row.get("estado", "")).upper()
+                    if estado_ticket == "ACTIVO":
+                        return jsonify({"ok": False, "error": "Ya tienes una entrada registrada para este evento. No es posible obtener una segunda entrada."}), 400
+                    # Si está USADO (asistió al evento anterior) → puede pedir nueva entrada
+
+        if total_gratis >= LIMITE_ENTRADAS_GRATIS:
+            return jsonify({"ok": False, "error": "Las entradas gratuitas se han agotado."}), 400
+
+    except Exception as e:
+        print(f"Error verificando límite/duplicado: {e}")
+        return jsonify({"ok": False, "error": "Error al verificar disponibilidad. Intenta nuevamente."}), 500
+
+    try:
+        _emitir_ticket(
+            comprador   = comprador,
+            evento      = f"{NOMBRE_EVENTO_PRINCIPAL} — Entrada Gratuita",
+            cantidad    = 1,
+            precio_unit = 0,
+            total       = 0,
+            id_pago     = "ENTRADA_LIBERADA"
+        )
+        print(f"Entrada gratuita emitida: {rut} — total emitidas: {total_gratis + 1}/{LIMITE_ENTRADAS_GRATIS}")
         return jsonify({"ok": True})
     except Exception as e:
         print(f"Error generando entrada gratis: {e}")
@@ -953,6 +972,7 @@ def verificar_ticket(codigo):
     except Exception as e:
         print(f"Error verificando ticket: {e}")
         return _html_verificacion("⚠️ Error del sistema", str(e), "error", codigo)
+    
 
 
 def _html_verificacion(titulo, mensaje, tipo, codigo, ticket=None, acompanantes=None):

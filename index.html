@@ -113,17 +113,17 @@
     </div>
 
     <!-- EVENTO DESTACADO CON IMAGEN -->
-    <div class="hero-evento-destacado" style="display:none">
+    <div class="hero-evento-destacado">
       <div class="hero-evento-img-wrap">
         <div class="hero-carrusel" id="heroCarrusel">
-          <img src="Imagenes/secreto_quillon.jpg" alt="Secreto en Quillón - Sábado 18 de Julio" class="hero-carrusel-slide active" />
+          <img src="Imagenes/preaniversariofiestaguaracha.jpg" alt="Pre Aniversario Blue Wine - Viernes 31 de Julio" class="hero-carrusel-slide active" />
         </div>
       </div>
       <div class="hero-evento-footer">
-        <div class="hero-evento-fecha-txt">Sábado 18 de Julio</div>
-        <button class="hero-evento-btn" onclick="abrirModal()">
+        <div class="hero-evento-fecha-txt">Viernes 31 de Julio · 🎉 100 Entradas Gratis</div>
+        <button class="hero-evento-btn" onclick="abrirModalGeneral('Pre Aniversario Blue Wine — Entrada Gratuita', 0)">
           <span class="hero-evento-dot"></span>
-          Ver entradas →
+          Obtener entrada gratis →
         </button>
       </div>
     </div>
@@ -154,18 +154,17 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia">
                 <span class="evento-slide-label">Viernes</span>
-                <span class="evento-slide-nombre-dia">24 de Julio</span>
+                <span class="evento-slide-nombre-dia">31 de Julio</span>
               </div>
               <div class="evento-slide-content">
-                <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
-                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este viernes no hay evento</div>
-                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
-                <div id="badge-gratis-viernes" class="evento-badge-gratis" style="display:none;"></div>
+                <div class="evento-tag">Pre Aniversario Blue Wine</div>
+                <div class="evento-title">Fiesta de la Guaracha</div>
+                <div class="evento-desc">DJ Chepe El Frenix · Laura Vélez · Hamilton Morales · XCAR</div>
                 <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
-                  <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
+                  <button class="hero-evento-btn" onclick="abrirModalGeneral('Pre Aniversario Blue Wine — Entrada Gratuita', 0)" style="margin-top:0.5rem;">
                     <span class="hero-evento-dot"></span>
-                    Seguir en Instagram
-                  </a>
+                    Obtener entrada gratis →
+                  </button>
                 </div>
               </div>
             </div>
@@ -176,7 +175,7 @@
             <div class="evento-slide-inner">
               <div class="evento-slide-dia sabado">
                 <span class="evento-slide-label">Sábado</span>
-                <span class="evento-slide-nombre-dia">25 de Julio</span>
+                <span class="evento-slide-nombre-dia">1 de Agosto</span>
               </div>
               <div class="evento-slide-content">
                 <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
@@ -302,7 +301,7 @@
           </div>
         </div>
 
-        <div id="acompanantes-container"></div>
+        <!-- <div id="acompanantes-container"></div> -->
 
         <div class="checkout-tc-wrap">
           <label class="checkout-tc-label" for="co-tc">
@@ -1207,7 +1206,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=25"></script>
+  <script src="JS/main.js?v=26"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;
