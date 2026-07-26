@@ -782,17 +782,7 @@ def obtener_entrada_gratis():
             id_pago     = "ENTRADA_LIBERADA"
         )
         print(f"Entrada gratuita emitida: {rut} — total emitidas: {total_gratis + 1}/{LIMITE_ENTRADAS_GRATIS}")
-        ticket_gratis = {"nombre": f"{NOMBRE_EVENTO_PRINCIPAL} — Entrada Gratuita", "precio": 0}
-        try:
-            _enviar_resumen_compra(
-                comprador     = comprador,
-                todos         = [comprador],
-                tickets_lista = [ticket_gratis],
-                id_pago       = "ENTRADA_LIBERADA",
-                qrs           = [(comprador, ticket_gratis, codigo, qr_img)]
-            )
-        except Exception as e:
-            print(f"Error enviando resumen gratis a Blue Wine: {e}")
+        # Resumen a Blue Wine desactivado para entradas gratis (límite Resend 100/día)
         return jsonify({"ok": True})
     except Exception as e:
         print(f"Error generando entrada gratis: {e}")
