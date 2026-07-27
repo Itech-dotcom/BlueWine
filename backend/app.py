@@ -36,6 +36,9 @@ NOMBRE_EVENTO_PRINCIPAL = "Pre Aniversario Blue Wine"
 COMISION_MP = 0.15  # 15% MercadoPago, igual que en main.js
 
 PRECIOS_ENTRADAS = {
+    "general":        {"nombre": "General",               "precio": 5000,   "personas": 1},
+    "vip":            {"nombre": "VIP",                   "precio": 10000,  "personas": 1},
+    "mesaGoldenVip":  {"nombre": "Mesa Golden VIP",       "precio": 150000, "personas": 1},
     "generalMujeres": {"nombre": "General Mujeres",       "precio": 5000,   "personas": 1},
     "generalHombres": {"nombre": "General Hombres",       "precio": 7000,   "personas": 1},
     "preventaVip":    {"nombre": "VIP",                   "precio": 10000,  "personas": 1},
@@ -44,7 +47,6 @@ PRECIOS_ENTRADAS = {
     "soloMujeres":    {"nombre": "Solo Mujeres 2x",       "precio": 12000,  "personas": 2},
     "mesaDiamond":    {"nombre": "Mesa Diamond (4 pers.)","precio": 150000, "personas": 4},
     "meetAndGreet":   {"nombre": "Meet & Greet",          "precio": 50000,  "personas": 1},
-    "vip":            {"nombre": "VIP",                   "precio": 20000,  "personas": 1},
     "prevDiamond":    {"nombre": "Diamond",               "precio": 20000,  "personas": 1},
     "puertaDiamond":  {"nombre": "Puerta Diamond",        "precio": 30000,  "personas": 1},
 }
@@ -567,28 +569,40 @@ def stock():
     try:
         ws   = get_sheet()
         rows = ws.get_all_records()
-        vendidos = {"prevDiamond": 0, "puertaDiamond": 0, "mesaDiamond": 0, "meetAndGreet": 0}
+        vendidos = {"general": 0, "vip": 0, "mesaGoldenVip": 0,
+                    "prevDiamond": 0, "puertaDiamond": 0, "mesaDiamond": 0, "meetAndGreet": 0}
         for row in rows:
-            evento = str(row.get("evento", "")).lower()
+            evento = str(row.get("evento", "")).strip()
+            evento_l = evento.lower()
             estado = str(row.get("estado", "")).upper()
             if estado in ("ACTIVO", "USADO"):  # no contar tickets anulados
-                if "preventa diamond" in evento:
+                if evento == "General":
+                    vendidos["general"] += 1
+                elif evento == "VIP":
+                    vendidos["vip"] += 1
+                elif evento == "Mesa Golden VIP":
+                    vendidos["mesaGoldenVip"] += 1
+                elif "preventa diamond" in evento_l:
                     vendidos["prevDiamond"] += 1
-                elif "puerta diamond" in evento:
+                elif "puerta diamond" in evento_l:
                     vendidos["puertaDiamond"] += 1
-                elif "mesa diamond" in evento or "mesa vip" in evento:
+                elif "mesa diamond" in evento_l or "mesa vip" in evento_l:
                     vendidos["mesaDiamond"] += 1  # "mesa vip" por compatibilidad con tickets antiguos
-                elif "meet" in evento:
+                elif "meet" in evento_l:
                     vendidos["meetAndGreet"] += 1
         return jsonify({
-            "prevDiamond":   max(0, 50 - vendidos["prevDiamond"]),   # límite: 50
-            "puertaDiamond": max(0, 50 - vendidos["puertaDiamond"]), # límite: 50
-            "mesaDiamond":   max(0, 13 - vendidos["mesaDiamond"]),   # límite: 13 mesas
-            "meetAndGreet":  max(0, 10 - vendidos["meetAndGreet"])   # límite: 10
+            "general":       max(0, 100 - vendidos["general"]),
+            "vip":           max(0, 50  - vendidos["vip"]),
+            "mesaGoldenVip": max(0, 4   - vendidos["mesaGoldenVip"]),
+            "prevDiamond":   max(0, 50  - vendidos["prevDiamond"]),
+            "puertaDiamond": max(0, 50  - vendidos["puertaDiamond"]),
+            "mesaDiamond":   max(0, 13  - vendidos["mesaDiamond"]),
+            "meetAndGreet":  max(0, 10  - vendidos["meetAndGreet"])
         })
     except Exception as e:
         print(f"Error en /stock: {e}")
-        return jsonify({"prevDiamond": 50, "puertaDiamond": 50, "mesaDiamond": 10, "meetAndGreet": 10})  # fallback
+        return jsonify({"general": 100, "vip": 50, "mesaGoldenVip": 4,
+                        "prevDiamond": 50, "puertaDiamond": 50, "mesaDiamond": 10, "meetAndGreet": 10})
 
 
 # ══════════════════════════════════════════════════════
