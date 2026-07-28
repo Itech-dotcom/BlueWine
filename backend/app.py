@@ -576,11 +576,11 @@ def stock():
             evento_l = evento.lower()
             estado = str(row.get("estado", "")).upper()
             if estado in ("ACTIVO", "USADO"):  # no contar tickets anulados
-                if evento == "General":
+                if evento == f"{NOMBRE_EVENTO_PRINCIPAL} — General":
                     vendidos["general"] += 1
-                elif evento == "VIP":
+                elif evento == f"{NOMBRE_EVENTO_PRINCIPAL} — VIP":
                     vendidos["vip"] += 1
-                elif evento == "Mesa Golden VIP":
+                elif evento == f"{NOMBRE_EVENTO_PRINCIPAL} — Mesa Golden VIP":
                     vendidos["mesaGoldenVip"] += 1
                 elif "preventa diamond" in evento_l:
                     vendidos["prevDiamond"] += 1
