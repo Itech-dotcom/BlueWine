@@ -10,9 +10,9 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  general:       { nombre: 'General',         precio: 5000,   limite: 100, disponibles: 100, activa: true  },
-  vip:           { nombre: 'VIP',             precio: 10000,  limite: 50,  disponibles: 50,  activa: true  },
-  mesaGoldenVip: { nombre: 'Mesa Golden VIP', precio: 150000, limite: 4,   disponibles: 4,   activa: true, desc: 'Podrás compartir con DJs' },
+  general:       { nombre: 'General',         precio: 5000,   limite: 100, disponibles: 100, activa: false },
+  vip:           { nombre: 'VIP',             precio: 10000,  limite: 50,  disponibles: 50,  activa: false },
+  mesaGoldenVip: { nombre: 'Mesa Golden VIP', precio: 150000, limite: 4,   disponibles: 4,   activa: false, desc: 'Podrás compartir con DJs' },
   generalMujeres: { nombre: 'General Mujeres',       precio: 5000,   limite: 700, disponibles: 0,   activa: false },
   generalHombres: { nombre: 'General Hombres',       precio: 7000,   limite: 700, disponibles: 0,   activa: false },
   preventaVip:    { nombre: 'VIP',                   precio: 10000,  limite: 150, disponibles: 0,   activa: false },
