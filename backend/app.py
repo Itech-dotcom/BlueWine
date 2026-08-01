@@ -10,8 +10,11 @@ import uuid                          # para generar códigos únicos de ticket
 import datetime                      # para registrar fecha y hora de compra
 import qrcode                        # para generar la imagen del código QR
 import io                            # para manejar la imagen QR en memoria
-import resend                        # para enviar emails con el ticket
+import smtplib                        # para enviar emails via Brevo SMTP
 import base64                        # para convertir la imagen QR a texto (adjunto email)
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from dotenv import load_dotenv       # para cargar el archivo .env con claves secretas
 import gspread                       # para leer/escribir en Google Sheets
 from google.oauth2.service_account import Credentials  # autenticación con Google
@@ -381,19 +384,47 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
     return codigo, qr_img
 
 
+def _smtp_send(to_list, subject, html, inline_imgs=None):
+    # Envía un email HTML via Brevo SMTP. inline_imgs: lista de {"cid": str, "data": bytes}
+    # para imágenes referenciadas como <img src="cid:..."> en el HTML.
+    smtp_login = os.getenv("BREVO_SMTP_LOGIN")
+    smtp_key   = os.getenv("BREVO_SMTP_KEY")
+
+    msg = MIMEMultipart("related")
+    msg["From"]    = "Blue Wine <tickets@bluewine.cl>"
+    msg["To"]      = ", ".join(to_list)
+    msg["Subject"] = subject
+
+    alt = MIMEMultipart("alternative")
+    msg.attach(alt)
+    alt.attach(MIMEText(html, "html", "utf-8"))
+
+    if inline_imgs:
+        for img in inline_imgs:
+            mime_img = MIMEImage(img["data"])
+            mime_img.add_header("Content-ID", f'<{img["cid"]}>')
+            mime_img.add_header("Content-Disposition", "inline")
+            msg.attach(mime_img)
+
+    with smtplib.SMTP("smtp-relay.brevo.com", 587) as s:
+        s.starttls()
+        s.login(smtp_login, smtp_key)
+        s.sendmail("tickets@bluewine.cl", to_list, msg.as_string())
+    print(f"Email enviado via Brevo a {', '.join(to_list)}")
+
+
 def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
     # Manda UN solo email resumen a Blue Wine con todos los tickets de la compra.
     # Así en vez de recibir N copias individuales, recibe 1 resumen por compra.
     try:
-        resend.api_key = os.getenv("RESEND_API_KEY")
-        copia_bw       = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
+        copia_bw = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
 
         nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
         total_personas   = len(todos)
 
-        # Construir filas de la tabla y adjuntos QR
+        # Construir filas de la tabla e imágenes inline
         filas_html  = ""
-        adjuntos    = []
+        inline_imgs = []
         qrs_map     = {i: (codigo, qr_img) for i, (_, _, codigo, qr_img) in enumerate(qrs)} if qrs else {}
 
         for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
@@ -407,13 +438,7 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
             qr_cell = ""
             if idx in qrs_map:
                 codigo_t, qr_img_t = qrs_map[idx]
-                qr_b64_t = base64.b64encode(qr_img_t).decode("utf-8")
-                adjuntos.append({
-                    "content":      qr_b64_t,
-                    "filename":     f"qr-{nombre.replace(' ','_')}.png",
-                    "content_id":   cid,
-                    "content_type": "image/png",
-                })
+                inline_imgs.append({"cid": cid, "data": qr_img_t})
                 qr_cell = f'<img src="cid:{cid}" width="80" height="80" style="border:2px solid #c9a84c;border-radius:4px;" /><br><span style="font-family:monospace;font-size:10px;color:#c9a84c;">{codigo_t}</span>'
 
             filas_html += f"""
@@ -450,18 +475,13 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
         </div>
         """
 
-        params_resumen = {
-            "from":    "Blue Wine <tickets@bluewine.cl>",
-            "to":      [copia_bw],
-            "subject": f"🎟️ Nueva compra — {nombre_comprador} ({total_personas} persona{'s' if total_personas > 1 else ''})",
-            "html":    html_resumen,
-        }
-        if adjuntos:
-            params_resumen["attachments"] = adjuntos
-
-        response = resend.Emails.send(params_resumen)
-        email_id = response.get("id") if isinstance(response, dict) else getattr(response, "id", None)
-        print(f"Resumen de compra enviado a {copia_bw} — ID: {email_id}")
+        _smtp_send(
+            to_list     = [copia_bw],
+            subject     = f"🎟️ Nueva compra — {nombre_comprador} ({total_personas} persona{'s' if total_personas > 1 else ''})",
+            html        = html_resumen,
+            inline_imgs = inline_imgs or None,
+        )
+        print(f"Resumen de compra enviado a {copia_bw}")
     except Exception as e:
         print(f"Error enviando resumen de compra: {e}")
 
@@ -479,10 +499,6 @@ def _generar_qr(contenido):
 
 
 def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None):
-    resend.api_key = os.getenv("RESEND_API_KEY")
-    copia_bw       = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
-
-    qr_b64 = base64.b64encode(qr_img).decode("utf-8")
 
     # Bloque acompañante (si es acompañante de alguien)
     mesa_acomp = f" · Mesa {mesa}" if mesa else ""
@@ -538,24 +554,13 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
     </div>
     """
 
-    params = {
-        "from": "Blue Wine <tickets@bluewine.cl>",
-        "to": [destinatario],
-        "subject": f"🎟️ Tu entrada para {evento} — Blue Wine",
-        "html": html_body,
-        "attachments": [
-            {
-                "content": qr_b64,
-                "filename": "ticket-qr.png",
-                "content_id": "qr-ticket",
-                "content_type": "image/png",
-            }
-        ],
-    }
-
-    response = resend.Emails.send(params)
-    email_id = response.get("id") if isinstance(response, dict) else getattr(response, "id", None)
-    print(f"Email enviado a {destinatario} via Resend — ID: {email_id}")
+    _smtp_send(
+        to_list     = [destinatario],
+        subject     = f"🎟️ Tu entrada para {evento} — Blue Wine",
+        html        = html_body,
+        inline_imgs = [{"cid": "qr-ticket", "data": qr_img}],
+    )
+    print(f"Email ticket enviado a {destinatario} via Brevo")
 
 
 # ══════════════════════════════════════════════════════
@@ -848,7 +853,6 @@ def enviar_recordatorios():
 
 
 def _enviar_email_recordatorio(destinatario, nombre, evento, fecha_evento, codigo):
-    resend.api_key = os.getenv("RESEND_API_KEY")
 
     try:
         dt = datetime.datetime.strptime(fecha_evento, "%Y-%m-%d")
@@ -879,13 +883,12 @@ def _enviar_email_recordatorio(destinatario, nombre, evento, fecha_evento, codig
     </div>
     """
 
-    resend.Emails.send({
-        "from":    "Blue Wine <tickets@bluewine.cl>",
-        "to":      [destinatario],
-        "subject": f"⏰ Recordatorio: {evento} es mañana — Blue Wine",
-        "html":    html_body,
-    })
-    print(f"Recordatorio enviado a {destinatario}")
+    _smtp_send(
+        to_list = [destinatario],
+        subject = f"⏰ Recordatorio: {evento} es mañana — Blue Wine",
+        html    = html_body,
+    )
+    print(f"Recordatorio enviado a {destinatario} via Brevo")
 
 
 
@@ -904,8 +907,7 @@ def reserva():
     mensaje  = data.get("mensaje", "")
 
     try:
-        resend.api_key = os.getenv("RESEND_API_KEY")
-        copia_bw       = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
+        copia_bw = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
 
         html_body = f"""
         <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
@@ -928,13 +930,12 @@ def reserva():
         </div>
         """
 
-        resend.Emails.send({
-            "from":    "Blue Wine <tickets@bluewine.cl>",
-            "to":      [copia_bw],
-            "subject": f"📋 Nueva reserva de {nombre} — Blue Wine",
-            "html":    html_body,
-        })
-        print(f"Email reserva enviado — {nombre}")
+        _smtp_send(
+            to_list = [copia_bw],
+            subject = f"📋 Nueva reserva de {nombre} — Blue Wine",
+            html    = html_body,
+        )
+        print(f"Email reserva enviado via Brevo — {nombre}")
         return jsonify({"ok": True})
 
     except Exception as e:
