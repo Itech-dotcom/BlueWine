@@ -12,6 +12,7 @@ import datetime                      # para registrar fecha y hora de compra
 import qrcode                        # para generar la imagen del código QR
 import io                            # para manejar la imagen QR en memoria
 import base64                        # para adjuntar imágenes inline en emails Brevo
+import psycopg2                      # para guardar tickets en PostgreSQL
 from dotenv import load_dotenv       # para cargar el archivo .env con claves secretas
 import gspread                       # para leer/escribir en Google Sheets
 from google.oauth2.service_account import Credentials  # autenticación con Google
@@ -102,6 +103,70 @@ def get_sheet_pendientes():
         ws = sheet.add_worksheet(title="pendientes", rows=500, cols=6)
         ws.append_row(["compra_id", "comprador_json", "items_json", "preference_id", "fecha", "acompanantes_json"])
         return ws
+
+
+# ══════════════════════════════════════════════════════
+# POSTGRESQL — CONEXIÓN Y SETUP
+# ══════════════════════════════════════════════════════
+def get_db():
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
+
+def init_db():
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS tickets (
+                        id               SERIAL PRIMARY KEY,
+                        codigo           TEXT UNIQUE NOT NULL,
+                        nombre           TEXT,
+                        apellido         TEXT,
+                        rut              TEXT,
+                        evento           TEXT,
+                        acompanante_de   TEXT DEFAULT '',
+                        email            TEXT,
+                        telefono         TEXT,
+                        cantidad         INTEGER DEFAULT 1,
+                        precio_unit      INTEGER,
+                        total            INTEGER,
+                        fecha_compra     TIMESTAMP,
+                        id_pago          TEXT,
+                        estado           TEXT DEFAULT 'ACTIVO',
+                        url_verificacion TEXT
+                    )
+                """)
+            conn.commit()
+        print("PostgreSQL inicializado")
+    except Exception as e:
+        print(f"Error inicializando PostgreSQL: {e}")
+
+def _guardar_ticket_pg(codigo, comprador, evento, acompanante_de, cantidad, precio_unit, total, fecha, id_pago, url_verificacion):
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO tickets (codigo, nombre, apellido, rut, evento, acompanante_de,
+                        email, telefono, cantidad, precio_unit, total, fecha_compra, id_pago, estado, url_verificacion)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'ACTIVO',%s)
+                    ON CONFLICT (codigo) DO NOTHING
+                """, (
+                    codigo,
+                    comprador.get("nombre", ""),
+                    comprador.get("apellido", ""),
+                    comprador.get("rut", ""),
+                    evento,
+                    acompanante_de,
+                    comprador.get("email", ""),
+                    comprador.get("telefono", ""),
+                    cantidad, precio_unit, total,
+                    fecha, id_pago, url_verificacion,
+                ))
+            conn.commit()
+        print(f"Ticket {codigo} guardado en PostgreSQL")
+    except Exception as e:
+        print(f"Error guardando en PostgreSQL: {e}")
+
+init_db()
 
 
 # ══════════════════════════════════════════════════════
@@ -358,6 +423,9 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
     except Exception as e:
         print(f"Error guardando en Sheets: {e}")
 
+    # 1b. Guardar también en PostgreSQL
+    _guardar_ticket_pg(codigo, comprador, evento, acompanante_de, cantidad, precio_unit, total, fecha, id_pago, url_verificacion)
+
     # 2. Generar QR
     qr_img = _generar_qr(url_verificacion)
 
@@ -570,31 +638,37 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
 def stock():
     # El frontend llama a este endpoint cada vez que alguien abre el modal de entradas.
     # Cuenta cuántas entradas de cada tipo ya fueron vendidas y retorna los cupos restantes.
-    # Si falla (ej: Sheets no responde), retorna los valores máximos como fallback.
+    # Si falla, retorna los valores máximos como fallback.
     try:
-        ws   = get_sheet()
-        rows = ws.get_all_records()
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT evento, COUNT(*) FROM tickets
+                    WHERE estado IN ('ACTIVO','USADO')
+                    GROUP BY evento
+                """)
+                rows = cur.fetchall()
+
         vendidos = {"general": 0, "vip": 0, "mesaGoldenVip": 0,
                     "prevDiamond": 0, "puertaDiamond": 0, "mesaDiamond": 0, "meetAndGreet": 0}
-        for row in rows:
-            evento = str(row.get("evento", "")).strip()
+        for evento, cnt in rows:
+            evento   = str(evento).strip()
             evento_l = evento.lower()
-            estado = str(row.get("estado", "")).upper()
-            if estado in ("ACTIVO", "USADO"):  # no contar tickets anulados
-                if evento == f"{NOMBRE_EVENTO_PRINCIPAL} — General":
-                    vendidos["general"] += 1
-                elif evento == f"{NOMBRE_EVENTO_PRINCIPAL} — VIP":
-                    vendidos["vip"] += 1
-                elif evento == f"{NOMBRE_EVENTO_PRINCIPAL} — Mesa Golden VIP":
-                    vendidos["mesaGoldenVip"] += 1
-                elif "preventa diamond" in evento_l:
-                    vendidos["prevDiamond"] += 1
-                elif "puerta diamond" in evento_l:
-                    vendidos["puertaDiamond"] += 1
-                elif "mesa diamond" in evento_l or "mesa vip" in evento_l:
-                    vendidos["mesaDiamond"] += 1  # "mesa vip" por compatibilidad con tickets antiguos
-                elif "meet" in evento_l:
-                    vendidos["meetAndGreet"] += 1
+            if evento == f"{NOMBRE_EVENTO_PRINCIPAL} — General":
+                vendidos["general"] += cnt
+            elif evento == f"{NOMBRE_EVENTO_PRINCIPAL} — VIP":
+                vendidos["vip"] += cnt
+            elif evento == f"{NOMBRE_EVENTO_PRINCIPAL} — Mesa Golden VIP":
+                vendidos["mesaGoldenVip"] += cnt
+            elif "preventa diamond" in evento_l:
+                vendidos["prevDiamond"] += cnt
+            elif "puerta diamond" in evento_l:
+                vendidos["puertaDiamond"] += cnt
+            elif "mesa diamond" in evento_l or "mesa vip" in evento_l:
+                vendidos["mesaDiamond"] += cnt
+            elif "meet" in evento_l:
+                vendidos["meetAndGreet"] += cnt
+
         return jsonify({
             "general":       max(0, 100 - vendidos["general"]),
             "vip":           max(0, 50  - vendidos["vip"]),
