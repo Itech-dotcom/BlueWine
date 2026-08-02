@@ -980,26 +980,49 @@ def reenviar_ticket():
     if not buscar_id or not email_dest:
         return jsonify({"ok": False, "error": "Faltan campos codigo y email"}), 400
 
+    # Buscar en PostgreSQL primero (fuente de verdad), luego Sheets como fallback
+    ticket = None
+    codigo = nombre = evento = url_qr = None
+
     try:
-        ws   = get_sheet()
-        rows = ws.get_all_records()
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT codigo, nombre, apellido, evento, url_verificacion
+                    FROM tickets
+                    WHERE UPPER(codigo) = UPPER(%s) OR id_pago = %s
+                    LIMIT 1
+                """, (buscar_id, buscar_id))
+                row = cur.fetchone()
+        if row:
+            codigo, nom, ape, evento, url_qr = row
+            nombre  = f"{nom or ''} {ape or ''}".strip()
+            url_qr  = url_qr or f"https://bluewine-production.up.railway.app/verificar/{codigo}"
+            ticket  = True
+    except Exception as e:
+        print(f"[reenviar] PG falló, probando Sheets: {e}")
 
-        ticket = None
-        for row in rows:
-            codigo  = str(row.get("codigo_ticket", "")).upper()
-            id_pago = str(row.get("id_pago_mp", ""))
-            if codigo == buscar_id.upper() or id_pago == buscar_id:
-                ticket = row
-                break
+    if not ticket:
+        try:
+            ws   = get_sheet()
+            rows = ws.get_all_records()
+            for row in rows:
+                c = str(row.get("codigo_ticket", "")).upper()
+                p = str(row.get("id_pago_mp", ""))
+                if c == buscar_id.upper() or p == buscar_id:
+                    codigo  = row["codigo_ticket"]
+                    nombre  = f"{row.get('nombre','')} {row.get('apellido','')}".strip()
+                    evento  = row.get("evento", "Blue Wine")
+                    url_qr  = row.get("url_verificacion", f"https://bluewine-production.up.railway.app/verificar/{codigo}")
+                    ticket  = True
+                    break
+        except Exception as e:
+            print(f"[reenviar] Sheets falló: {e}")
 
-        if not ticket:
-            return jsonify({"ok": False, "error": "Ticket no encontrado"}), 404
+    if not ticket:
+        return jsonify({"ok": False, "error": "Ticket no encontrado"}), 404
 
-        codigo   = ticket["codigo_ticket"]
-        nombre   = f"{ticket.get('nombre','')} {ticket.get('apellido','')}".strip()
-        evento   = ticket.get("evento", "Blue Wine")
-        url_qr   = ticket.get("url_verificacion", f"https://bluewine-production.up.railway.app/verificar/{codigo}")
-
+    try:
         qr_img = _generar_qr(url_qr)
         _enviar_email_ticket(
             destinatario = email_dest,
@@ -1010,7 +1033,6 @@ def reenviar_ticket():
         )
         print(f"Ticket {codigo} reenviado a {email_dest}")
         return jsonify({"ok": True, "codigo": codigo, "nombre": nombre, "evento": evento})
-
     except Exception as e:
         print(f"Error en reenviar-ticket: {e}")
         return jsonify({"ok": False, "error": str(e)}), 500
