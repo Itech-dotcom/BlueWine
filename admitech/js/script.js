@@ -1,5 +1,3 @@
-const API_BASE = 'https://bluewine-production.up.railway.app';
-
 // ── TABS ──
 function switchTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));

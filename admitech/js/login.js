@@ -158,6 +158,12 @@ async function intentarLoginHuella() {
   }
 }
 
+function cerrarSesion() {
+  sessionStorage.removeItem('bwAdminKey');
+  localStorage.removeItem('bwAdminKey');
+  location.reload();
+}
+
 function mostrarApp() {
   document.getElementById('login-overlay').classList.add('hidden');
   document.getElementById('app-shell').classList.add('visible');
