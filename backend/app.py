@@ -406,8 +406,7 @@ def _smtp_send(to_list, subject, html, inline_imgs=None):
             mime_img.add_header("Content-Disposition", "inline")
             msg.attach(mime_img)
 
-    with smtplib.SMTP("smtp-relay.brevo.com", 587, timeout=30) as s:
-        s.starttls()
+    with smtplib.SMTP_SSL("smtp-relay.brevo.com", 465, timeout=30) as s:
         s.login(smtp_login, smtp_key)
         s.sendmail("tickets@bluewine.cl", to_list, msg.as_string())
     print(f"Email enviado via Brevo a {', '.join(to_list)}")
