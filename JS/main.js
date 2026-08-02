@@ -59,7 +59,7 @@ const CONFIG_ANUNCIO = {
 // ── Nombre del evento principal — se antepone al tipo de entrada en el ticket
 // Ej: "Loyaltty — Preventa 1"
 // ← EDITAR AQUÍ cuando cambie el evento
-const NOMBRE_EVENTO_PRINCIPAL = 'Pre Aniversario Blue Wine';
+let NOMBRE_EVENTO_PRINCIPAL = 'Pre Aniversario Blue Wine';
 
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN
@@ -1157,6 +1157,7 @@ async function cargarConfigRemota() {
     }
 
     if (cfg.eventoViernes) {
+      if (cfg.eventoViernes.nombre) NOMBRE_EVENTO_PRINCIPAL = cfg.eventoViernes.nombre;
       _aplicarFechaSlide(slides[0], 'viernes', cfg.eventoViernes.fecha);
       if (cfg.eventoActivo) {
         _aplicarEvento(slides[0], cfg.eventoViernes);

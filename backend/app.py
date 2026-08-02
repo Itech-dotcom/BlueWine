@@ -17,6 +17,7 @@ import hmac                          # para verificar firma HMAC-SHA256 del webh
 import hashlib                       # para el algoritmo SHA-256
 import threading                     # para actualizar Sheets en background al verificar tickets
 import secrets                       # para generar IDs criptográficamente seguros
+import html as _html                 # para escapar datos de usuario en templates HTML
 from dotenv import load_dotenv       # para cargar el archivo .env con claves secretas
 from flask_limiter import Limiter    # para rate limiting en endpoints públicos
 import gspread                       # para leer/escribir en Google Sheets
@@ -268,6 +269,24 @@ def _get_entradas_config():
         return PRECIOS_ENTRADAS
 
 
+def _get_nombre_evento():
+    """Lee NOMBRE_EVENTO_PRINCIPAL desde el config en PostgreSQL (eventoViernes.nombre).
+    Fallback a la constante hardcodeada si no existe o está vacío."""
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT valor FROM config WHERE clave = 'eventoViernes'")
+                row = cur.fetchone()
+        if row:
+            ev = json.loads(row[0])
+            nombre = ev.get('nombre', '').strip()
+            if nombre:
+                return nombre
+    except Exception:
+        pass
+    return NOMBRE_EVENTO_PRINCIPAL
+
+
 def _get_stock_disponible():
     """Retorna {key: cupos_disponibles} consultando PostgreSQL.
     Si limite == 0, se omite la clave (sin límite). Usado para validar stock en /crear-pago."""
@@ -288,7 +307,7 @@ def _get_stock_disponible():
             if limite <= 0:
                 continue
             nombre_entrada = val.get("nombre", key)
-            evento_key = f"{NOMBRE_EVENTO_PRINCIPAL} — {nombre_entrada}"
+            evento_key = f"{_get_nombre_evento()} — {nombre_entrada}"
             result[key] = max(0, limite - vendidos.get(evento_key, 0))
         return result
     except Exception as e:
@@ -329,9 +348,10 @@ def crear_pago():
 
         precio_final = info["precio"] + round(info["precio"] * COMISION_MP)
         personas     = info.get("personas", 1)
+        nombre_evento = _get_nombre_evento()
         items.append({
             "id": item["id"],
-            "nombre": f"{NOMBRE_EVENTO_PRINCIPAL} — {info['nombre']}",
+            "nombre": f"{nombre_evento} — {info['nombre']}",
             "cantidad": cantidad,
             "precioFinal": precio_final,
             "personas": personas
@@ -691,19 +711,20 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
         inline_imgs = []
         qrs_map     = {i: (codigo, qr_img) for i, (_, _, codigo, qr_img) in enumerate(qrs)} if qrs else {}
 
+        e = _html.escape
         for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
             rol    = "Comprador principal" if idx == 0 else f"Acompañante {idx}"
-            nombre = f"{asistente.get('nombre','')} {asistente.get('apellido','')}".strip()
-            email  = asistente.get("email", "—")
-            rut    = asistente.get("rut", "—")
-            tipo   = ticket.get("nombre", "—")
+            nombre = e(f"{asistente.get('nombre','')} {asistente.get('apellido','')}".strip())
+            email  = e(asistente.get("email", "—"))
+            rut    = e(asistente.get("rut", "—"))
+            tipo   = e(ticket.get("nombre", "—"))
             cid    = f"qr-resumen-{idx}"
 
             qr_cell = ""
             if idx in qrs_map:
                 codigo_t, qr_img_t = qrs_map[idx]
                 inline_imgs.append({"cid": cid, "data": qr_img_t})
-                qr_cell = f'<img src="cid:{cid}" width="80" height="80" style="border:2px solid #c9a84c;border-radius:4px;" /><br><span style="font-family:monospace;font-size:10px;color:#c9a84c;">{codigo_t}</span>'
+                qr_cell = f'<img src="cid:{cid}" width="80" height="80" style="border:2px solid #c9a84c;border-radius:4px;" /><br><span style="font-family:monospace;font-size:10px;color:#c9a84c;">{e(codigo_t)}</span>'
 
             filas_html += f"""
             <tr>
@@ -715,11 +736,12 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
               <td style="padding:8px 12px;border-bottom:1px solid #2a2820;text-align:center;">{qr_cell}</td>
             </tr>"""
 
+        nombre_comprador_e = e(nombre_comprador)
         html_resumen = f"""
         <div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
           <h2 style="color:#c9a84c;margin-bottom:4px;">🎟️ Nueva compra registrada</h2>
-          <p style="color:#7a7060;font-size:13px;margin:0 0 20px;">Pago ID: {id_pago}</p>
-          <p><strong>Comprador:</strong> {nombre_comprador} — {comprador.get('email','—')} — {comprador.get('telefono','—')}</p>
+          <p style="color:#7a7060;font-size:13px;margin:0 0 20px;">Pago ID: {e(str(id_pago))}</p>
+          <p><strong>Comprador:</strong> {nombre_comprador_e} — {e(comprador.get('email','—'))} — {e(comprador.get('telefono','—'))}</p>
           <p><strong>Total personas:</strong> {total_personas}</p>
           <table style="width:100%;border-collapse:collapse;margin-top:16px;background:#13131a;border-radius:8px;overflow:hidden;">
             <thead>
@@ -745,6 +767,7 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
             html        = html_resumen,
             inline_imgs = inline_imgs or None,
         )
+        # nombre_comprador en subject es para admin interno — no necesita escape (no es HTML)
         print(f"Resumen de compra enviado a {copia_bw}")
     except Exception as e:
         print(f"Error enviando resumen de compra: {e}")
@@ -763,12 +786,13 @@ def _generar_qr(contenido):
 
 
 def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None):
+    e = _html.escape  # shorthand para escapar datos de usuario en HTML
 
     # Bloque acompañante (si es acompañante de alguien)
     bloque_acompanante = f"""
       <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:12px 16px;margin:0 0 16px;">
-        <p style="margin:0 0 4px;font-size:0.9rem;color:#c9a84c;">👥 Acompañante de <strong>{acompanante_de}</strong></p>
-        {"<p style='margin:0;font-size:0.9rem;color:#c9a84c;'>🪑 " + f"Mesa {mesa}</p>" if mesa else ""}
+        <p style="margin:0 0 4px;font-size:0.9rem;color:#c9a84c;">👥 Acompañante de <strong>{e(acompanante_de)}</strong></p>
+        {"<p style='margin:0;font-size:0.9rem;color:#c9a84c;'>🪑 " + f"Mesa {e(str(mesa))}</p>" if mesa else ""}
       </div>
     """ if acompanante_de else ""
 
@@ -777,11 +801,11 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
     if mesa and not acompanante_de:
         companions_html = ""
         if companions:
-            items_li = "".join(f"<li style='margin:2px 0;color:#c9a84c;'>{c}</li>" for c in companions)
+            items_li = "".join(f"<li style='margin:2px 0;color:#c9a84c;'>{e(c)}</li>" for c in companions)
             companions_html = f"<ul style='margin:8px 0 0 16px;padding:0;font-size:0.85rem;'>{items_li}</ul>"
         bloque_mesa = f"""
       <div style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.4);border-radius:8px;padding:16px;margin:0 0 16px;">
-        <p style="margin:0 0 6px;font-size:1rem;color:#c9a84c;font-weight:bold;">🪑 Mesa {mesa}</p>
+        <p style="margin:0 0 6px;font-size:1rem;color:#c9a84c;font-weight:bold;">🪑 Mesa {e(str(mesa))}</p>
         <p style="margin:0 0 6px;font-size:0.9rem;color:#c9a84c;">🥃 Botella Red Label incluida</p>
         {"<p style='margin:6px 0 2px;font-size:0.85rem;color:#a08840;'>Acompañantes registrados:</p>" + companions_html if companions else ""}
       </div>
@@ -794,13 +818,13 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
         <p style="color:#7a7060;font-size:13px;margin:4px 0;">MultiEspacio · Quillón, Ñuble</p>
       </div>
       <h2 style="font-size:20px;margin-bottom:8px;">¡Tu entrada está confirmada! 🎉</h2>
-      <p>Hola <strong>{nombre}</strong>, tu entrada fue procesada exitosamente.</p>
+      <p>Hola <strong>{e(nombre)}</strong>, tu entrada fue procesada exitosamente.</p>
       {bloque_acompanante}
       {bloque_mesa}
       <div style="background:#13131a;border:1px solid #2a2820;border-radius:8px;padding:20px;margin:20px 0;">
-        <p style="margin:0 0 8px;"><strong>Evento:</strong> {evento}</p>
+        <p style="margin:0 0 8px;"><strong>Evento:</strong> {e(evento)}</p>
         <p style="margin:0 0 8px;">⏰ Acceso hasta las 01:00 hrs</p>
-        <p style="margin:0 0 8px;"><strong>Código:</strong> <span style="color:#c9a84c;font-family:monospace;font-size:16px;">{codigo}</span></p>
+        <p style="margin:0 0 8px;"><strong>Código:</strong> <span style="color:#c9a84c;font-family:monospace;font-size:16px;">{e(codigo)}</span></p>
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
       </div>
       <div style="text-align:center;margin:24px 0;">
@@ -1076,7 +1100,7 @@ def obtener_entrada_gratis():
     try:
         _emitir_ticket(
             comprador   = comprador,
-            evento      = f"{NOMBRE_EVENTO_PRINCIPAL} — Entrada Gratuita",
+            evento      = f"{_get_nombre_evento()} — Entrada Gratuita",
             cantidad    = 1,
             precio_unit = 0,
             total       = 0,
@@ -1135,6 +1159,7 @@ def enviar_recordatorios():
 
 
 def _enviar_email_recordatorio(destinatario, nombre, evento, fecha_evento, codigo):
+    e = _html.escape
 
     try:
         dt = datetime.datetime.strptime(fecha_evento, "%Y-%m-%d")
@@ -1143,7 +1168,7 @@ def _enviar_email_recordatorio(destinatario, nombre, evento, fecha_evento, codig
                  'julio','agosto','septiembre','octubre','noviembre','diciembre']
         fecha_legible = f"{dias[dt.weekday()]} {dt.day} de {meses[dt.month-1]} de {dt.year}"
     except Exception:
-        fecha_legible = fecha_evento
+        fecha_legible = _html.escape(str(fecha_evento))
 
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
@@ -1152,11 +1177,11 @@ def _enviar_email_recordatorio(destinatario, nombre, evento, fecha_evento, codig
         <p style="color:#7a7060;font-size:13px;margin:4px 0;">MultiEspacio · Quillón, Ñuble</p>
       </div>
       <h2 style="font-size:20px;margin-bottom:8px;">⏰ ¡Mañana es el evento!</h2>
-      <p>Hola <strong>{nombre}</strong>, te recordamos que mañana tienes una entrada para:</p>
+      <p>Hola <strong>{e(nombre)}</strong>, te recordamos que mañana tienes una entrada para:</p>
       <div style="background:#13131a;border:1px solid #c9a84c;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
-        <p style="margin:0 0 8px;font-size:1.2rem;color:#c9a84c;font-weight:bold;">{evento}</p>
+        <p style="margin:0 0 8px;font-size:1.2rem;color:#c9a84c;font-weight:bold;">{e(evento)}</p>
         <p style="margin:0;color:#aaa;">📅 {fecha_legible}</p>
-        <p style="margin:8px 0 0;font-family:monospace;color:#c9a84c;font-size:15px;">{codigo}</p>
+        <p style="margin:8px 0 0;font-family:monospace;color:#c9a84c;font-size:15px;">{e(codigo)}</p>
       </div>
       <p>Recuerda traer tu entrada QR (revisa el email anterior) y tu <strong>cédula de identidad</strong>.</p>
       <p style="color:#7a7060;font-size:12px;">📍 Camino Cerro Negro Km 3.5, Quillón, Ñuble</p>
@@ -1178,16 +1203,17 @@ def _enviar_email_recordatorio(destinatario, nombre, evento, fecha_evento, codig
 # RESERVAS — recibe datos del formulario y envía email
 # ══════════════════════════════════════════════════════
 @app.route("/reserva", methods=["POST"])
+@limiter.limit("5 per hour")
 def reserva():
     try:
         data     = request.get_json(force=True) or {}
-        nombre   = data.get("nombre", "")
-        telefono = data.get("telefono", "")
-        email    = data.get("email", "")
-        tipo     = data.get("tipo", "")
-        fecha    = data.get("fecha", "")
-        personas = data.get("personas", "")
-        mensaje  = data.get("mensaje", "")
+        nombre   = _html.escape(str(data.get("nombre", "")))
+        telefono = _html.escape(str(data.get("telefono", "")))
+        email    = _html.escape(str(data.get("email", "")))
+        tipo     = _html.escape(str(data.get("tipo", "")))
+        fecha    = _html.escape(str(data.get("fecha", "")))
+        personas = _html.escape(str(data.get("personas", "")))
+        mensaje  = _html.escape(str(data.get("mensaje", "")))
         copia_bw = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
 
         html_body = f"""
@@ -1318,6 +1344,19 @@ def admin_anular_ticket():
             conn.commit()
         if updated == 0:
             return jsonify({"ok": False, "error": "Ticket no encontrado o ya anulado"}), 404
+
+        def _sync_anulado(cod):
+            try:
+                ws   = get_sheet()
+                rows = ws.get_all_records()
+                for i, r in enumerate(rows, start=2):
+                    if str(r.get("codigo_ticket", "")).upper() == cod.upper():
+                        ws.update_cell(i, 14, "ANULADO")
+                        break
+            except Exception as ex:
+                print(f"[anular] Sheets sync en background falló: {ex}")
+        threading.Thread(target=_sync_anulado, args=(codigo,), daemon=True).start()
+
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -1432,15 +1471,16 @@ def _html_verificacion(titulo, mensaje, tipo, codigo, ticket=None, acompanantes=
 
     detalles = ""
     if ticket:
-        nombre       = f"{ticket.get('nombre', '')} {ticket.get('apellido', '')}".strip()
+        ev = _html.escape
+        nombre       = ev(f"{ticket.get('nombre', '')} {ticket.get('apellido', '')}".strip())
         evento_raw   = ticket.get('evento', '—')
-        tipo_entrada = evento_raw.split(' — ', 1)[-1] if ' — ' in evento_raw else evento_raw
-        acomp_de     = ticket.get("acompanante_de", "").strip()
+        tipo_entrada = ev(evento_raw.split(' — ', 1)[-1] if ' — ' in evento_raw else evento_raw)
+        acomp_de     = ev(ticket.get("acompanante_de", "").strip())
         acomp_de_html = f'<p style="margin:4px 0;color:#aaa;"><strong style="color:#c9a84c;">👥 Acompañante de:</strong> {acomp_de}</p>' if acomp_de else ""
 
         acomp_lista = ""
         if acompanantes:
-            items_html = "".join(f'<li style="margin:2px 0;color:#aaa;">{a}</li>' for a in acompanantes)
+            items_html = "".join(f'<li style="margin:2px 0;color:#aaa;">{ev(a)}</li>' for a in acompanantes)
             acomp_lista = f"""
             <div style="margin-top:10px;">
               <p style="margin:4px 0;color:#ddd;font-weight:bold;">👥 Acompañantes registrados:</p>
@@ -1450,9 +1490,9 @@ def _html_verificacion(titulo, mensaje, tipo, codigo, ticket=None, acompanantes=
         detalles = f"""
         <div style="background:#0f0f15;border:1px solid #2a2820;border-radius:8px;padding:16px;margin-top:16px;text-align:left;font-size:14px;">
           <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Nombre:</strong> {nombre}</p>
-          <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">RUT:</strong> {ticket.get('rut','—')}</p>
+          <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">RUT:</strong> {ev(ticket.get('rut','—'))}</p>
           <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Entrada:</strong> {tipo_entrada}</p>
-          <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Código:</strong> <span style="font-family:monospace;color:#c9a84c;">{codigo}</span></p>
+          <p style="margin:4px 0;color:#aaa;"><strong style="color:#ddd;">Código:</strong> <span style="font-family:monospace;color:#c9a84c;">{ev(codigo)}</span></p>
           {acomp_de_html}
           {acomp_lista}
         </div>
