@@ -182,7 +182,10 @@ async function intentarLoginHuella() {
 
 function cerrarSesion() {
   sessionStorage.removeItem('bwAdminKey');
-  localStorage.removeItem('bwAdminKey');
+  // Si hay huella registrada, mantener la clave en localStorage para el próximo login biométrico
+  if (!localStorage.getItem(HUELLA_CRED_KEY)) {
+    localStorage.removeItem('bwAdminKey');
+  }
   location.reload();
 }
 
