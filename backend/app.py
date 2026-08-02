@@ -13,6 +13,8 @@ import qrcode                        # para generar la imagen del código QR
 import io                            # para manejar la imagen QR en memoria
 import base64                        # para adjuntar imágenes inline en emails Brevo
 import psycopg2                      # para guardar tickets en PostgreSQL
+import hmac                          # para verificar firma HMAC-SHA256 del webhook de MP
+import hashlib                       # para el algoritmo SHA-256
 from dotenv import load_dotenv       # para cargar el archivo .env con claves secretas
 import gspread                       # para leer/escribir en Google Sheets
 from google.oauth2.service_account import Credentials  # autenticación con Google
@@ -109,7 +111,7 @@ def get_sheet_pendientes():
 # POSTGRESQL — CONEXIÓN Y SETUP
 # ══════════════════════════════════════════════════════
 def get_db():
-    return psycopg2.connect(os.getenv("DATABASE_URL"))
+    return psycopg2.connect(os.getenv("DATABASE_URL"), connect_timeout=5)
 
 def init_db():
     try:
@@ -140,6 +142,16 @@ def init_db():
                         clave   TEXT PRIMARY KEY,
                         valor   TEXT NOT NULL,
                         updated TIMESTAMP DEFAULT NOW()
+                    )
+                """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS pendientes (
+                        compra_id         TEXT PRIMARY KEY,
+                        comprador_json    TEXT NOT NULL,
+                        items_json        TEXT NOT NULL,
+                        preference_id     TEXT,
+                        fecha             TIMESTAMP DEFAULT NOW(),
+                        acompanantes_json TEXT DEFAULT '[]'
                     )
                 """)
             conn.commit()
@@ -174,6 +186,49 @@ def _guardar_ticket_pg(codigo, comprador, evento, acompanante_de, cantidad, prec
         print(f"Error guardando en PostgreSQL: {e}")
 
 init_db()
+
+
+def _get_config_bool(clave, default=False):
+    """Lee un valor booleano desde la tabla config. Fallback al default si falla o no existe."""
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT valor FROM config WHERE clave = %s", (clave,))
+                row = cur.fetchone()
+        if row:
+            return json.loads(row[0]) is True
+        return default
+    except Exception:
+        return default
+
+
+def _verificar_firma_webhook(req, secret):
+    """Verifica la firma HMAC-SHA256 que MercadoPago envía en x-signature.
+    Retorna True si la firma es válida (o si secret está vacío en env).
+    Formato x-signature: 'ts=<timestamp>,v1=<hmac_hex>'
+    Template firmado:    'id:<data_id>;request-id:<x-request-id>;ts:<ts>;'
+    """
+    try:
+        x_sig     = req.headers.get("x-signature", "")
+        x_req_id  = req.headers.get("x-request-id", "")
+        ts = v1 = ""
+        for part in x_sig.split(","):
+            k, _, v = part.partition("=")
+            k = k.strip()
+            if k == "ts":
+                ts = v.strip()
+            elif k == "v1":
+                v1 = v.strip()
+        if not ts or not v1:
+            return False
+        body     = req.get_json(silent=True) or {}
+        data_id  = str(body.get("data", {}).get("id", "") or req.args.get("id", ""))
+        template = f"id:{data_id};request-id:{x_req_id};ts:{ts};"
+        expected = hmac.new(secret.encode(), template.encode(), hashlib.sha256).hexdigest()
+        return hmac.compare_digest(expected, v1)
+    except Exception as e:
+        print(f"[webhook] error verificando firma: {e}")
+        return False
 
 
 def _get_entradas_config():
@@ -273,21 +328,35 @@ def crear_pago():
 
     preference = preference_response["response"]
 
-    # Guardar datos del comprador en la hoja "pendientes" mientras espera confirmación del pago.
-    # Cuando el webhook confirme el pago, se recuperan estos datos para emitir los tickets.
+    # Guardar pendiente en PostgreSQL (crítico — si falla, no entregar link de pago)
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO pendientes (compra_id, comprador_json, items_json, preference_id, fecha, acompanantes_json)
+                    VALUES (%s, %s, %s, %s, NOW(), %s)
+                    ON CONFLICT (compra_id) DO NOTHING
+                """, (compra_id, json.dumps(comprador), json.dumps(items),
+                      preference["id"], json.dumps(acompanantes)))
+            conn.commit()
+        print(f"Compra {compra_id} guardada en pendientes (PG)")
+    except Exception as e:
+        print(f"Error crítico guardando pendiente en PostgreSQL: {e}")
+        return jsonify({"error": "Error temporal al procesar la compra. Intenta nuevamente en unos segundos."}), 500
+
+    # También guardar en Sheets como respaldo (no crítico — fallo silencioso)
     try:
         ws = get_sheet_pendientes()
         ws.append_row([
             compra_id,
-            json.dumps(comprador),      # guardado como texto JSON
+            json.dumps(comprador),
             json.dumps(items),
             preference["id"],
             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            json.dumps(acompanantes)    # lista de acompañantes en JSON ([] si no hay)
+            json.dumps(acompanantes)
         ])
-        print(f"Compra {compra_id} guardada en pendientes")
     except Exception as e:
-        print(f"Error guardando pendiente en Sheets: {e}")
+        print(f"Advertencia: no se pudo guardar pendiente en Sheets (no crítico): {e}")
 
     # Retorna la URL de pago al frontend para redirigir al usuario a MercadoPago
     return jsonify({
@@ -304,6 +373,10 @@ def crear_pago():
 def webhook_mp():
     # MercadoPago llama a esta URL automáticamente cuando ocurre un pago.
     # Aquí se verifica si fue aprobado y se emiten los tickets correspondientes.
+    mp_secret = os.getenv("MP_WEBHOOK_SECRET", "")
+    if mp_secret and not _verificar_firma_webhook(request, mp_secret):
+        print("[webhook] firma inválida — solicitud rechazada")
+        return jsonify({"ok": False}), 400
     data       = request.get_json(silent=True) or {}
     topic      = data.get("type") or request.args.get("topic")
     payment_id = data.get("data", {}).get("id") or request.args.get("id")
@@ -319,28 +392,50 @@ def webhook_mp():
             print(f"Pago {payment_id} — estado: {status} — compra_id: {compra_id}")
 
             if status == "approved" and compra_id:
-                # Evitar emitir tickets duplicados si MP envía el webhook más de una vez
-                ws_t = get_sheet()
-                tickets_existentes = ws_t.get_all_records()
-                for t in tickets_existentes:
-                    if str(t.get("id_pago_mp", "")) == str(payment_id):
-                        print(f"Pago {payment_id} ya procesado anteriormente — ignorando webhook duplicado")
-                        return jsonify({"status": "ok"}), 200
+                # Evitar duplicados: verificar en PostgreSQL (rápido, sin condición de carrera)
+                try:
+                    with get_db() as conn:
+                        with conn.cursor() as cur:
+                            cur.execute("SELECT 1 FROM tickets WHERE id_pago = %s LIMIT 1", (str(payment_id),))
+                            if cur.fetchone():
+                                print(f"Pago {payment_id} ya procesado — ignorando webhook duplicado")
+                                return jsonify({"status": "ok"}), 200
+                except Exception as e:
+                    print(f"Error verificando duplicado en PG: {e}")
 
-                # Buscar los datos del comprador en la hoja "pendientes"
-                ws_p    = get_sheet_pendientes()
-                rows_p  = ws_p.get_all_records()
-                fila_p  = None
+                # Buscar pendiente: PostgreSQL primero (confiable), Sheets como fallback
                 pendiente = None
+                fila_sheets_p = None
+                ws_p_ref = None
 
-                for i, row in enumerate(rows_p, start=2):  # start=2 porque fila 1 es el encabezado
-                    if str(row.get("compra_id", "")) == compra_id:
-                        fila_p    = i
-                        pendiente = row
-                        break
+                try:
+                    with get_db() as conn:
+                        with conn.cursor() as cur:
+                            cur.execute(
+                                "SELECT comprador_json, items_json, acompanantes_json FROM pendientes WHERE compra_id = %s",
+                                (compra_id,)
+                            )
+                            row_pg = cur.fetchone()
+                    if row_pg:
+                        pendiente = {"comprador_json": row_pg[0], "items_json": row_pg[1],
+                                     "acompanantes_json": row_pg[2] or "[]"}
+                except Exception as e:
+                    print(f"Error buscando pendiente en PG: {e}")
 
                 if not pendiente:
-                    print(f"compra_id {compra_id} no encontrado en pendientes")
+                    try:
+                        ws_p_ref = get_sheet_pendientes()
+                        rows_p = ws_p_ref.get_all_records()
+                        for i, row in enumerate(rows_p, start=2):
+                            if str(row.get("compra_id", "")) == compra_id:
+                                fila_sheets_p = i
+                                pendiente = row
+                                break
+                    except Exception as e:
+                        print(f"Error buscando pendiente en Sheets: {e}")
+
+                if not pendiente:
+                    print(f"ALERTA: compra_id {compra_id} no encontrado en ninguna fuente — pago {payment_id} sin datos de comprador")
                 else:
                     comprador    = json.loads(pendiente["comprador_json"])
                     items        = json.loads(pendiente["items_json"])
@@ -371,11 +466,18 @@ def webhook_mp():
                     mesa_num = None
                     es_mesa_diamond = any("Mesa Diamond" in item.get("nombre", "") for item in items)
                     if es_mesa_diamond:
-                        mesas_vendidas = sum(
-                            1 for t in tickets_existentes
-                            if "mesa diamond" in str(t.get("evento", "")).lower()
-                            and not str(t.get("acompanante_de", "")).strip()
-                        )
+                        try:
+                            with get_db() as conn:
+                                with conn.cursor() as cur:
+                                    cur.execute("""
+                                        SELECT COUNT(*) FROM tickets
+                                        WHERE evento ILIKE %s
+                                        AND (acompanante_de IS NULL OR acompanante_de = '')
+                                        AND estado IN ('ACTIVO','USADO')
+                                    """, ('%Mesa Diamond%',))
+                                    mesas_vendidas = cur.fetchone()[0]
+                        except Exception:
+                            mesas_vendidas = 0
                         mesa_num = mesas_vendidas + 1
                         print(f"Mesa Diamond asignada: Mesa {mesa_num}")
 
@@ -410,9 +512,20 @@ def webhook_mp():
                         qrs           = qrs_emitidos
                     )
 
-                    # Una vez procesado, borrar de pendientes para no emitir de nuevo
-                    ws_p.delete_rows(fila_p)
-                    print(f"Compra {compra_id} procesada y eliminada de pendientes")
+                    # Borrar pendiente de PostgreSQL y Sheets para no emitir de nuevo
+                    try:
+                        with get_db() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("DELETE FROM pendientes WHERE compra_id = %s", (compra_id,))
+                            conn.commit()
+                    except Exception as e:
+                        print(f"Error borrando pendiente de PG: {e}")
+                    if fila_sheets_p and ws_p_ref:
+                        try:
+                            ws_p_ref.delete_rows(fila_sheets_p)
+                        except Exception as e:
+                            print(f"Error borrando pendiente de Sheets: {e}")
+                    print(f"Compra {compra_id} procesada y pendiente eliminado")
 
         except Exception as e:
             print("Error procesando webhook:", e)
@@ -711,16 +824,33 @@ def recuperar_pendiente():
         return jsonify({"ok": False, "error": "Falta compra_id"}), 400
 
     try:
-        ws_p  = get_sheet_pendientes()
-        rows  = ws_p.get_all_records()
-
-        fila_p    = None
+        # Buscar pendiente en PostgreSQL primero, Sheets como fallback
         pendiente = None
-        for i, row in enumerate(rows, start=2):
-            if str(row.get("compra_id", "")) == compra_id:
-                fila_p    = i
-                pendiente = row
-                break
+        fila_sheets_p = None
+        ws_p_ref = None
+
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT comprador_json, items_json, acompanantes_json FROM pendientes WHERE compra_id = %s",
+                    (compra_id,)
+                )
+                row_pg = cur.fetchone()
+        if row_pg:
+            pendiente = {"comprador_json": row_pg[0], "items_json": row_pg[1],
+                         "acompanantes_json": row_pg[2] or "[]"}
+
+        if not pendiente:
+            try:
+                ws_p_ref = get_sheet_pendientes()
+                rows_s = ws_p_ref.get_all_records()
+                for i, row in enumerate(rows_s, start=2):
+                    if str(row.get("compra_id", "")) == compra_id:
+                        fila_sheets_p = i
+                        pendiente = row
+                        break
+            except Exception as e:
+                print(f"Error buscando en Sheets: {e}")
 
         if not pendiente:
             return jsonify({"ok": False, "error": "compra_id no encontrado en pendientes"}), 404
@@ -759,7 +889,18 @@ def recuperar_pendiente():
             )
             emitidos.append(ticket["nombre"])
 
-        ws_p.delete_rows(fila_p)
+        try:
+            with get_db() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("DELETE FROM pendientes WHERE compra_id = %s", (compra_id,))
+                conn.commit()
+        except Exception as e:
+            print(f"Error borrando pendiente de PG: {e}")
+        if fila_sheets_p and ws_p_ref:
+            try:
+                ws_p_ref.delete_rows(fila_sheets_p)
+            except Exception as e:
+                print(f"Error borrando pendiente de Sheets: {e}")
         print(f"Pendiente {compra_id} recuperado manualmente — tickets: {emitidos}")
         return jsonify({"ok": True, "tickets_emitidos": emitidos, "email": comprador["email"]})
 
@@ -814,7 +955,7 @@ def reenviar_ticket():
         for row in rows:
             codigo  = str(row.get("codigo_ticket", "")).upper()
             id_pago = str(row.get("id_pago_mp", ""))
-            if buscar_id.upper() in codigo or buscar_id in id_pago or codigo in buscar_id.upper():
+            if codigo == buscar_id.upper() or id_pago == buscar_id:
                 ticket = row
                 break
 
@@ -847,7 +988,7 @@ def reenviar_ticket():
 # ══════════════════════════════════════════════════════
 @app.route("/obtener-entrada-gratis", methods=["POST"])
 def obtener_entrada_gratis():
-    if not ENTRADA_GRATIS_ACTIVA:
+    if not _get_config_bool('entradasGratis', ENTRADA_GRATIS_ACTIVA):
         return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
 
     data      = request.get_json()
@@ -855,19 +996,19 @@ def obtener_entrada_gratis():
     rut       = str(comprador.get("rut", "")).strip()
 
     try:
-        ws   = get_sheet()
-        rows = ws.get_all_records()
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM tickets WHERE id_pago = 'ENTRADA_LIBERADA'")
+                total_gratis = cur.fetchone()[0]
 
-        # Contar entradas gratis ya emitidas y verificar RUT duplicado
-        total_gratis = 0
-        for row in rows:
-            if str(row.get("id_pago_mp", "")) == "ENTRADA_LIBERADA":
-                total_gratis += 1
-                if rut and str(row.get("rut", "")).strip() == rut:
-                    estado_ticket = str(row.get("estado", "")).upper()
-                    if estado_ticket == "ACTIVO":
+                if rut:
+                    cur.execute("""
+                        SELECT 1 FROM tickets
+                        WHERE id_pago = 'ENTRADA_LIBERADA' AND rut = %s AND estado = 'ACTIVO'
+                        LIMIT 1
+                    """, (rut,))
+                    if cur.fetchone():
                         return jsonify({"ok": False, "error": "Ya tienes una entrada registrada para este evento. No es posible obtener una segunda entrada."}), 400
-                    # Si está USADO (asistió al evento anterior) → puede pedir nueva entrada
 
         if total_gratis >= LIMITE_ENTRADAS_GRATIS:
             return jsonify({"ok": False, "error": "Las entradas gratuitas se han agotado."}), 400
