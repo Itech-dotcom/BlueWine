@@ -539,7 +539,7 @@
 
   .entrada-row {
     display: grid;
-    grid-template-columns: 1fr 100px 90px 80px 60px 32px;
+    grid-template-columns: 1fr 100px 100px 90px 80px 60px 32px;
     gap: 12px;
     align-items: center;
     padding: 14px 0;
@@ -560,10 +560,22 @@
     color: var(--text-muted);
     padding: 18px 0 10px;
     border-bottom: 1px solid var(--border);
-    grid-template-columns: 1fr 100px 90px 80px 60px 32px;
+    grid-template-columns: 1fr 100px 100px 90px 80px 60px 32px;
   }
 
   .entrada-row-header:hover { background: none; }
+
+  .entrada-tipo-select {
+    width: 100%;
+    padding: 6px 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-high);
+    font-size: 12px;
+    font-family: var(--font);
+    cursor: pointer;
+  }
 
   .entrada-remove {
     display: flex;

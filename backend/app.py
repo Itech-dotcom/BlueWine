@@ -176,6 +176,24 @@ def _guardar_ticket_pg(codigo, comprador, evento, acompanante_de, cantidad, prec
 init_db()
 
 
+def _get_entradas_config():
+    """Lee los tipos de entrada desde el config en PostgreSQL.
+    Fallback a PRECIOS_ENTRADAS si la tabla no tiene datos aún."""
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT valor FROM config WHERE clave = 'entradas'")
+                row = cur.fetchone()
+        if not row:
+            return PRECIOS_ENTRADAS
+        entradas = json.loads(row[0])
+        for val in entradas.values():
+            val.setdefault('personas', 1)
+        return entradas
+    except Exception:
+        return PRECIOS_ENTRADAS
+
+
 # ══════════════════════════════════════════════════════
 # CREAR PREFERENCIA DE PAGO
 # ══════════════════════════════════════════════════════
@@ -190,12 +208,13 @@ def crear_pago():
     acompanantes      = data.get("acompanantes", [])    # lista de acompañantes (puede estar vacía)
     compra_id         = str(uuid.uuid4())               # ID único para identificar esta compra
 
-    # Validar cada item contra PRECIOS_ENTRADAS — nunca confiar en precio/personas/nombre
+    # Validar cada item contra la config actual — nunca confiar en precio/personas/nombre
     # que vengan del frontend, para evitar manipulación de montos o tipos de entrada.
+    entradas_config = _get_entradas_config()
     items = []
     total_personas = 0
     for item in items_recibidos:
-        info = PRECIOS_ENTRADAS.get(item.get("id"))
+        info = entradas_config.get(item.get("id"))
         if not info:
             return jsonify({"error": f"Tipo de entrada inválido: {item.get('id')}"}), 400
         try:
@@ -206,14 +225,15 @@ def crear_pago():
             return jsonify({"error": "Cantidad inválida"}), 400
 
         precio_final = info["precio"] + round(info["precio"] * COMISION_MP)
+        personas     = info.get("personas", 1)
         items.append({
             "id": item["id"],
             "nombre": f"{NOMBRE_EVENTO_PRINCIPAL} — {info['nombre']}",
             "cantidad": cantidad,
             "precioFinal": precio_final,
-            "personas": info["personas"]
+            "personas": personas
         })
-        total_personas += cantidad * info["personas"]
+        total_personas += cantidad * personas
 
     if not items:
         return jsonify({"error": "El carrito está vacío"}), 400
@@ -643,10 +663,10 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
 # ══════════════════════════════════════════════════════
 @app.route("/stock", methods=["GET"])
 def stock():
-    # El frontend llama a este endpoint cada vez que alguien abre el modal de entradas.
     # Cuenta cuántas entradas de cada tipo ya fueron vendidas y retorna los cupos restantes.
-    # Si falla, retorna los valores máximos como fallback.
+    # Lee la config actual para saber qué tipos existen y su stock máximo.
     try:
+        entradas = _get_entradas_config()
         with get_db() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
@@ -656,39 +676,23 @@ def stock():
                 """)
                 rows = cur.fetchall()
 
-        vendidos = {"general": 0, "vip": 0, "mesaGoldenVip": 0,
-                    "prevDiamond": 0, "puertaDiamond": 0, "mesaDiamond": 0, "meetAndGreet": 0}
-        for evento, cnt in rows:
-            evento   = str(evento).strip()
-            evento_l = evento.lower()
-            if evento == f"{NOMBRE_EVENTO_PRINCIPAL} — General":
-                vendidos["general"] += cnt
-            elif evento == f"{NOMBRE_EVENTO_PRINCIPAL} — VIP":
-                vendidos["vip"] += cnt
-            elif evento == f"{NOMBRE_EVENTO_PRINCIPAL} — Mesa Golden VIP":
-                vendidos["mesaGoldenVip"] += cnt
-            elif "preventa diamond" in evento_l:
-                vendidos["prevDiamond"] += cnt
-            elif "puerta diamond" in evento_l:
-                vendidos["puertaDiamond"] += cnt
-            elif "mesa diamond" in evento_l or "mesa vip" in evento_l:
-                vendidos["mesaDiamond"] += cnt
-            elif "meet" in evento_l:
-                vendidos["meetAndGreet"] += cnt
+        # Mapa: "Pre Aniversario Blue Wine — General" → cantidad vendida
+        vendidos_por_evento = {}
+        for evento_str, cnt in rows:
+            vendidos_por_evento[str(evento_str).strip()] = int(cnt)
 
-        return jsonify({
-            "general":       max(0, 100 - vendidos["general"]),
-            "vip":           max(0, 50  - vendidos["vip"]),
-            "mesaGoldenVip": max(0, 4   - vendidos["mesaGoldenVip"]),
-            "prevDiamond":   max(0, 50  - vendidos["prevDiamond"]),
-            "puertaDiamond": max(0, 50  - vendidos["puertaDiamond"]),
-            "mesaDiamond":   max(0, 13  - vendidos["mesaDiamond"]),
-            "meetAndGreet":  max(0, 10  - vendidos["meetAndGreet"])
-        })
+        result = {}
+        for key, val in entradas.items():
+            nombre_entrada = val.get("nombre", key)
+            evento_nombre  = f"{NOMBRE_EVENTO_PRINCIPAL} — {nombre_entrada}"
+            vendidos       = vendidos_por_evento.get(evento_nombre, 0)
+            limite         = val.get("limite", 0)
+            result[key]    = max(0, limite - vendidos)
+
+        return jsonify(result)
     except Exception as e:
         print(f"Error en /stock: {e}")
-        return jsonify({"general": 100, "vip": 50, "mesaGoldenVip": 4,
-                        "prevDiamond": 50, "puertaDiamond": 50, "mesaDiamond": 10, "meetAndGreet": 10})
+        return jsonify({})
 
 
 # ══════════════════════════════════════════════════════

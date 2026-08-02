@@ -86,6 +86,7 @@ async function guardar() {
     const limiteEl = row.querySelector('.entrada-limite-input');
     const activaEl = row.querySelector('.entrada-activa-toggle');
     const nombreEl = row.querySelector('.entrada-nombre-input');
+    const tipoEl   = row.querySelector('.entrada-tipo-select');
     if (!keyEl) return;
     const key = keyEl.textContent.trim();
     if (!key) return;
@@ -94,6 +95,7 @@ async function guardar() {
       precio: parseInt(precioEl?.value || '0', 10),
       limite: parseInt(limiteEl?.value || '0', 10),
       activa: activaEl?.checked ?? false,
+      tipo:   tipoEl?.value || 'general',
     };
   });
 
@@ -421,6 +423,7 @@ function agregarEntrada() {
       <input type="text" class="entrada-input entrada-nombre-input" value="" placeholder="Nombre del tipo…" oninput="actualizarKeyEntrada(this)" />
       <span class="entrada-key" style="font-size:10px;">${uid}</span>
     </div>
+    <div><select class="entrada-tipo-select"><option value="general" selected>General</option><option value="vip">VIP</option><option value="supervip">Super VIP</option></select></div>
     <div><input type="number" value="5000" min="0" class="entrada-input entrada-precio-input" /></div>
     <div><input type="number" value="100"  min="0" class="entrada-input entrada-limite-input" /></div>
     <div class="entrada-stock">0</div>
@@ -481,10 +484,12 @@ async function cargarConfigPanel() {
         const precioEl = row.querySelector('.entrada-precio-input');
         const limiteEl = row.querySelector('.entrada-limite-input');
         const activaEl = row.querySelector('.entrada-activa-toggle');
+        const tipoEl   = row.querySelector('.entrada-tipo-select');
         if (nombreEl && val.nombre) nombreEl.value = val.nombre;
         if (precioEl && 'precio' in val) precioEl.value = val.precio;
         if (limiteEl && 'limite' in val) limiteEl.value = val.limite;
         if (activaEl && 'activa' in val) activaEl.checked = !!val.activa;
+        if (tipoEl   && val.tipo)        tipoEl.value = val.tipo;
       });
     }
   } catch { /* fail silently */ }

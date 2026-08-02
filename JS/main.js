@@ -10,19 +10,19 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  general:       { nombre: 'General',         precio: 5000,   limite: 100, disponibles: 100, activa: false },
-  vip:           { nombre: 'VIP',             precio: 10000,  limite: 50,  disponibles: 50,  activa: false },
-  mesaGoldenVip: { nombre: 'Mesa Golden VIP', precio: 150000, limite: 4,   disponibles: 4,   activa: false, desc: 'Podrás compartir con DJs' },
-  generalMujeres: { nombre: 'General Mujeres',       precio: 5000,   limite: 700, disponibles: 0,   activa: false },
-  generalHombres: { nombre: 'General Hombres',       precio: 7000,   limite: 700, disponibles: 0,   activa: false },
-  preventaVip:    { nombre: 'VIP',                   precio: 10000,  limite: 150, disponibles: 0,   activa: false },
-  preventa1:      { nombre: 'General',               precio: 5000,   limite: 700, disponibles: 0,   activa: false },
-  preventa2:      { nombre: 'Preventa 2',            precio: 13000,  limite: 700, disponibles: 700, activa: false },
-  soloMujeres:    { nombre: 'Solo Mujeres 2x',       precio: 12000,  limite: 700, disponibles: 700, activa: false, personas: 2 },
-  mesaDiamond:    { nombre: 'Mesa Diamond (4 pers.)', precio: 150000, limite: 13,  disponibles: 13,  activa: false, personas: 4 },
-  meetAndGreet:   { nombre: 'Meet & Greet',           precio: 50000,  limite: 10,  disponibles: 10,  activa: false },
-  prevDiamond:    { nombre: 'Diamond',               precio: 20000,  limite: 50,  disponibles: 50,  activa: false },
-  puertaDiamond:  { nombre: 'Puerta Diamond',        precio: 30000,  limite: 50,  disponibles: 50,  activa: false },
+  general:        { nombre: 'General',              precio: 5000,   limite: 100, disponibles: 100, activa: false, tipo: 'general' },
+  vip:            { nombre: 'VIP',                  precio: 10000,  limite: 50,  disponibles: 50,  activa: false, tipo: 'vip' },
+  mesaGoldenVip:  { nombre: 'Mesa Golden VIP',      precio: 150000, limite: 4,   disponibles: 4,   activa: false, tipo: 'supervip', desc: 'Podrás compartir con DJs' },
+  generalMujeres: { nombre: 'General Mujeres',      precio: 5000,   limite: 700, disponibles: 0,   activa: false, tipo: 'general' },
+  generalHombres: { nombre: 'General Hombres',      precio: 7000,   limite: 700, disponibles: 0,   activa: false, tipo: 'general' },
+  preventaVip:    { nombre: 'VIP',                  precio: 10000,  limite: 150, disponibles: 0,   activa: false, tipo: 'vip' },
+  preventa1:      { nombre: 'General',              precio: 5000,   limite: 700, disponibles: 0,   activa: false, tipo: 'general' },
+  preventa2:      { nombre: 'Preventa 2',           precio: 13000,  limite: 700, disponibles: 700, activa: false, tipo: 'general' },
+  soloMujeres:    { nombre: 'Solo Mujeres 2x',      precio: 12000,  limite: 700, disponibles: 700, activa: false, tipo: 'general', personas: 2 },
+  mesaDiamond:    { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 13,  disponibles: 13,  activa: false, tipo: 'supervip', personas: 4 },
+  meetAndGreet:   { nombre: 'Meet & Greet',         precio: 50000,  limite: 10,  disponibles: 10,  activa: false, tipo: 'supervip' },
+  prevDiamond:    { nombre: 'Diamond',              precio: 20000,  limite: 50,  disponibles: 50,  activa: false, tipo: 'vip' },
+  puertaDiamond:  { nombre: 'Puerta Diamond',       precio: 30000,  limite: 50,  disponibles: 50,  activa: false, tipo: 'vip' },
 };
 
 // ══════════════════════════════════════════════════════
@@ -231,17 +231,12 @@ function actualizarStock() {
   fetch('https://bluewine-production.up.railway.app/stock')
     .then(r => r.json())
     .then(stock => {
-      // Actualiza los disponibles solo si el backend retornó un número válido
-      if (typeof stock.general       === 'number') ENTRADAS.general.disponibles       = stock.general;
-      if (typeof stock.vip           === 'number') ENTRADAS.vip.disponibles           = stock.vip;
-      if (typeof stock.mesaGoldenVip === 'number') ENTRADAS.mesaGoldenVip.disponibles = stock.mesaGoldenVip;
-      if (typeof stock.prevDiamond   === 'number') ENTRADAS.prevDiamond.disponibles   = stock.prevDiamond;
-      if (typeof stock.puertaDiamond === 'number') ENTRADAS.puertaDiamond.disponibles = stock.puertaDiamond;
-      if (typeof stock.mesaDiamond   === 'number') ENTRADAS.mesaDiamond.disponibles   = stock.mesaDiamond;
-      if (typeof stock.meetAndGreet  === 'number') ENTRADAS.meetAndGreet.disponibles  = stock.meetAndGreet;
-      renderizarTiposEntrada(); // vuelve a dibujar las cards con los cupos actualizados
+      Object.entries(stock).forEach(([key, val]) => {
+        if (ENTRADAS[key] && typeof val === 'number') ENTRADAS[key].disponibles = val;
+      });
+      renderizarTiposEntrada();
     })
-    .catch(() => {}); // si falla el backend, no se muestra error — se usan valores locales
+    .catch(() => {});
 }
 
 // Abre el modal de entradas. Primero muestra las cards con datos locales (instantáneo)
@@ -253,55 +248,61 @@ function abrirModal() {
   document.body.style.overflow = 'hidden'; // bloquea el scroll del fondo mientras el modal está abierto
 }
 
-// Dibuja las cards de tipos de entrada en el modal.
-// Para agregar o quitar un tipo de entrada del modal, editar el objeto "grupos" abajo.
-// Para cambiar precios, límites o activar/desactivar entradas, editar el objeto ENTRADAS arriba.
+// Dibuja las cards de tipos de entrada en el modal, agrupadas por categoría.
+// Las entradas y su categoría se configuran desde el panel de administración.
 function renderizarTiposEntrada() {
-  const grupos = {
-    '🎟️ General':    ['general'],
-    '⭐ VIP':         ['vip'],
-    '🥇 Golden VIP': ['mesaGoldenVip'],
-  };
+  const TITULOS = { general: '🎟️ General', vip: '⭐ VIP', supervip: '👑 Super VIP' };
+
+  // Si el config del servidor ya cargó, mostrar solo las entradas configuradas.
+  // Si aún no cargó (acceso muy rápido), usar las tres por defecto como fallback.
+  const keys = ENTRADAS._configKeys
+    ? [...ENTRADAS._configKeys]
+    : ['general', 'vip', 'mesaGoldenVip'];
+
+  const grupos = { general: [], vip: [], supervip: [] };
+  for (const id of keys) {
+    const e = ENTRADAS[id];
+    if (!e) continue;
+    const tipo = e.tipo || 'general';
+    if (grupos[tipo]) grupos[tipo].push(id);
+  }
 
   const container = document.getElementById('modal-tipos-container');
   container.innerHTML = '';
 
-  for (const [titulo, ids] of Object.entries(grupos)) {
+  for (const tipo of ['general', 'vip', 'supervip']) {
+    const ids = grupos[tipo];
+    if (!ids.length) continue;
+
     const grupo = document.createElement('div');
     grupo.className = 'modal-tipo-grupo';
-    grupo.innerHTML = `<div class="modal-tipo-grupo-titulo">${titulo}</div>`;
+    grupo.innerHTML = `<div class="modal-tipo-grupo-titulo">${TITULOS[tipo]}</div>`;
     const opciones = document.createElement('div');
     opciones.className = 'modal-tipo-opciones';
 
     ids.forEach(id => {
       const e = ENTRADAS[id];
+      if (!e) return;
       const card = document.createElement('div');
-      const esVip          = ['mesaDiamond','meetAndGreet','preventaVip','vip','mesaGoldenVip'].includes(id); // aplica estilo dorado/vip
-      const esDiamond      = false; // reservado para uso futuro
-      const esProximamente = e.proximamente === true;       // card apagada con badge "Próximamente"
-      const esAgotado      = (!e.activa || e.disponibles === 0) && !esProximamente;  // card apagada con badge "Agotado"
-      const esDisponible   = e.activa && e.disponibles > 0 && id !== 'soloMujeres'; // badge verde "Disponible"
-      const ultimasEntradas = e.activa && e.disponibles > 0 && e.disponibles <= 5;  // aviso ⚡ últimas 5
+      const esVip          = tipo === 'vip' || tipo === 'supervip';
+      const esProximamente = e.proximamente === true;
+      const esAgotado      = (!e.activa || e.disponibles === 0) && !esProximamente;
+      const esDisponible   = e.activa && e.disponibles > 0;
+      const ultimasEntradas = e.activa && e.disponibles > 0 && e.disponibles <= 5;
 
-      card.className = `modal-tipo-card${esVip ? ' vip' : ''}${esDiamond ? ' diamond' : ''}${esAgotado || esProximamente ? ' agotado' : ''}`;
+      card.className = `modal-tipo-card${esVip ? ' vip' : ''}${esAgotado || esProximamente ? ' agotado' : ''}`;
       card.dataset.id = id;
 
-      if (e.activa && e.disponibles > 0) {
-        card.onclick = () => agregarAlCarritoEntradas(id);
-      }
+      if (esDisponible) card.onclick = () => agregarAlCarritoEntradas(id);
 
       card.innerHTML = `
-        ${id === 'soloMujeres' ? '<div class="modal-tipo-badge badge-disponible">Promo Disponible</div>' : ''}
-        ${id === 'meetAndGreet' ? '<div class="modal-tipo-badge exclusive-badge">✦ Exclusivo</div>' : ''}
-        ${esDisponible && id !== 'meetAndGreet' ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
+        ${esDisponible   ? '<div class="modal-tipo-badge badge-disponible">Disponible</div>' : ''}
         ${esProximamente ? '<div class="modal-tipo-badge prox-badge">Próximamente</div>' : ''}
         ${esAgotado      ? '<div class="modal-tipo-badge agotado-badge">Agotado</div>' : ''}
         <div class="modal-tipo-nombre">${e.nombre}</div>
-        ${id === 'mesaDiamond' ? '<div class="modal-tipo-sub">Frente al escenario</div>' : ''}
-        ${id === 'meetAndGreet' ? '<div class="modal-tipo-sub">Diamond + Conocer al artista + foto</div>' : ''}
-        ${e.desc && id !== 'mesaDiamond' && id !== 'meetAndGreet' ? '<div class="modal-tipo-sub">' + e.desc + '</div>' : ''}
+        ${e.desc ? '<div class="modal-tipo-sub">' + e.desc + '</div>' : ''}
         <div class="modal-tipo-precio">${e.precioLabel || formatPrecio(e.precio)}</div>
-        ${e.activa && e.disponibles > 0 && e.limite ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">' + e.disponibles + ' cupos disponibles</span></div>' : ''}
+        ${esDisponible && e.limite ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">' + e.disponibles + ' cupos disponibles</span></div>' : ''}
         ${ultimasEntradas ? '<div class="modal-ultimas">⚡ Últimas entradas</div>' : ''}
       `;
 
@@ -1138,12 +1139,27 @@ async function cargarConfigRemota() {
 
     // Precios y disponibilidad de entradas
     if (cfg.entradas && typeof cfg.entradas === 'object') {
+      const configKeys = new Set(Object.keys(cfg.entradas));
       Object.entries(cfg.entradas).forEach(([key, val]) => {
-        if (!ENTRADAS[key]) return;
-        if ('activa' in val) ENTRADAS[key].activa = val.activa;
-        if ('precio' in val) ENTRADAS[key].precio = val.precio;
-        if ('limite' in val) { ENTRADAS[key].limite = val.limite; ENTRADAS[key].disponibles = val.limite; }
+        if (!ENTRADAS[key]) {
+          // Tipo nuevo creado desde el panel — agregarlo al runtime
+          ENTRADAS[key] = {
+            nombre: val.nombre || key,
+            precio: val.precio || 0,
+            limite: val.limite || 0,
+            disponibles: val.limite || 0,
+            activa: val.activa !== false,
+            tipo: val.tipo || 'general',
+          };
+        } else {
+          if ('nombre' in val) ENTRADAS[key].nombre = val.nombre;
+          if ('activa' in val) ENTRADAS[key].activa = val.activa;
+          if ('precio' in val) ENTRADAS[key].precio = val.precio;
+          if ('tipo'   in val) ENTRADAS[key].tipo   = val.tipo;
+          if ('limite' in val) { ENTRADAS[key].limite = val.limite; ENTRADAS[key].disponibles = val.limite; }
+        }
       });
+      ENTRADAS._configKeys = configKeys;
       if (typeof renderizarTiposEntrada === 'function') renderizarTiposEntrada();
     }
   } catch {
