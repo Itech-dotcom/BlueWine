@@ -16,14 +16,32 @@ import psycopg2                      # para guardar tickets en PostgreSQL
 import hmac                          # para verificar firma HMAC-SHA256 del webhook de MP
 import hashlib                       # para el algoritmo SHA-256
 import threading                     # para actualizar Sheets en background al verificar tickets
+import secrets                       # para generar IDs criptográficamente seguros
 from dotenv import load_dotenv       # para cargar el archivo .env con claves secretas
+from flask_limiter import Limiter    # para rate limiting en endpoints públicos
 import gspread                       # para leer/escribir en Google Sheets
 from google.oauth2.service_account import Credentials  # autenticación con Google
 
 load_dotenv()  # carga las variables del archivo .env (MP_ACCESS_TOKEN, etc.)
 
 app = Flask(__name__)
-CORS(app)  # permite que el frontend haga peticiones al backend sin bloqueos
+CORS(app, origins=[
+    "https://bluewine.cl",
+    "https://www.bluewine.cl",
+    "https://itech-dotcom.github.io",
+    "http://localhost",
+    "http://127.0.0.1",
+])
+
+def _get_real_ip():
+    return request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+
+limiter = Limiter(
+    key_func=_get_real_ip,
+    app=app,
+    storage_uri="memory://",
+    default_limits=[],
+)
 
 sdk = mercadopago.SDK(os.getenv("MP_ACCESS_TOKEN"))  # inicializa MercadoPago con la clave del .env
 
@@ -250,10 +268,39 @@ def _get_entradas_config():
         return PRECIOS_ENTRADAS
 
 
+def _get_stock_disponible():
+    """Retorna {key: cupos_disponibles} consultando PostgreSQL.
+    Si limite == 0, se omite la clave (sin límite). Usado para validar stock en /crear-pago."""
+    try:
+        entradas = _get_entradas_config()
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT evento, COUNT(*) FROM tickets
+                    WHERE acompanante_de = '' AND estado IN ('ACTIVO','USADO')
+                    GROUP BY evento
+                """)
+                rows = cur.fetchall()
+        vendidos = {str(ev).strip(): int(cnt) for ev, cnt in rows}
+        result = {}
+        for key, val in entradas.items():
+            limite = val.get("limite", 0)
+            if limite <= 0:
+                continue
+            nombre_entrada = val.get("nombre", key)
+            evento_key = f"{NOMBRE_EVENTO_PRINCIPAL} — {nombre_entrada}"
+            result[key] = max(0, limite - vendidos.get(evento_key, 0))
+        return result
+    except Exception as e:
+        print(f"[stock] Error calculando disponibles: {e}")
+        return {}
+
+
 # ══════════════════════════════════════════════════════
 # CREAR PREFERENCIA DE PAGO
 # ══════════════════════════════════════════════════════
 @app.route("/crear-pago", methods=["POST"])
+@limiter.limit("10 per minute")
 def crear_pago():
     # Recibe los datos del carrito y el comprador desde el frontend,
     # crea una preferencia de pago en MercadoPago y guarda los datos en "pendientes".
@@ -262,7 +309,7 @@ def crear_pago():
     items_recibidos   = data.get("items", [])          # lista de entradas del carrito (sin confiar en precios/cantidades)
     comprador         = data.get("comprador", {})       # datos del comprador principal
     acompanantes      = data.get("acompanantes", [])    # lista de acompañantes (puede estar vacía)
-    compra_id         = str(uuid.uuid4())               # ID único para identificar esta compra
+    compra_id         = secrets.token_urlsafe(16)         # ID único criptográficamente seguro
 
     # Validar cada item contra la config actual — nunca confiar en precio/personas/nombre
     # que vengan del frontend, para evitar manipulación de montos o tipos de entrada.
@@ -294,6 +341,14 @@ def crear_pago():
     if not items:
         return jsonify({"error": "El carrito está vacío"}), 400
 
+    # M10: validar stock disponible antes de crear el link de pago
+    stock_disponible = _get_stock_disponible()
+    for item in items:
+        disponible = stock_disponible.get(item["id"])
+        if disponible is not None and item["cantidad"] > disponible:
+            nombre_entrada = entradas_config[item["id"]].get("nombre", item["id"])
+            return jsonify({"error": f"Stock insuficiente para '{nombre_entrada}'. Quedan {disponible} entradas disponibles."}), 400
+
     # La cantidad de acompañantes debe coincidir exactamente con los cupos comprados
     # (total de personas - 1 por el comprador principal).
     if len(acompanantes) != total_personas - 1:
@@ -322,7 +377,6 @@ def crear_pago():
     }
 
     preference_response = sdk.preference().create(preference_data)
-    print("Respuesta MP:", preference_response)
 
     if "response" not in preference_response or "id" not in preference_response.get("response", {}):
         return jsonify({"error": "Error MercadoPago", "detalle": preference_response}), 400
@@ -457,7 +511,7 @@ def webhook_mp():
                     # Unir comprador + acompañantes en una sola lista
                     todos = [comprador] + acompanantes
                     nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
-                    print(f"DEBUG — acompañantes: {len(acompanantes)}, tickets_lista: {len(tickets_lista)}, todos: {len(todos)}")
+                    print(f"Procesando compra: {len(todos)} personas, {len(tickets_lista)} tickets")
 
                     # Safety net: si aún faltan slots, extender repitiendo el último
                     while len(tickets_lista) < len(todos):
@@ -619,7 +673,8 @@ def _smtp_send(to_list, subject, html, inline_imgs=None):
         timeout=30,
     )
     resp.raise_for_status()
-    print(f"Email enviado via Brevo API a {', '.join(to_list)}")
+    dominios = [e.split("@")[-1] for e in to_list]
+    print(f"Email enviado via Brevo API — destinatarios: {len(to_list)} ({', '.join(dominios)})")
 
 
 def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
@@ -710,7 +765,6 @@ def _generar_qr(contenido):
 def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None):
 
     # Bloque acompañante (si es acompañante de alguien)
-    mesa_acomp = f" · Mesa {mesa}" if mesa else ""
     bloque_acompanante = f"""
       <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:12px 16px;margin:0 0 16px;">
         <p style="margin:0 0 4px;font-size:0.9rem;color:#c9a84c;">👥 Acompañante de <strong>{acompanante_de}</strong></p>
@@ -776,34 +830,12 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
 # STOCK DIAMOND — entradas vendidas para mostrar disponibles en tiempo real
 # ══════════════════════════════════════════════════════
 @app.route("/stock", methods=["GET"])
+@limiter.limit("60 per minute")
 def stock():
-    # Cuenta cuántas entradas de cada tipo ya fueron vendidas y retorna los cupos restantes.
-    # Lee la config actual para saber qué tipos existen y su stock máximo.
+    # Retorna cupos disponibles por tipo de entrada usando _get_stock_disponible().
+    # Entradas sin límite (limite=0) no aparecen en la respuesta.
     try:
-        entradas = _get_entradas_config()
-        with get_db() as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    SELECT evento, COUNT(*) FROM tickets
-                    WHERE estado IN ('ACTIVO','USADO')
-                    GROUP BY evento
-                """)
-                rows = cur.fetchall()
-
-        # Mapa: "Pre Aniversario Blue Wine — General" → cantidad vendida
-        vendidos_por_evento = {}
-        for evento_str, cnt in rows:
-            vendidos_por_evento[str(evento_str).strip()] = int(cnt)
-
-        result = {}
-        for key, val in entradas.items():
-            nombre_entrada = val.get("nombre", key)
-            evento_nombre  = f"{NOMBRE_EVENTO_PRINCIPAL} — {nombre_entrada}"
-            vendidos       = vendidos_por_evento.get(evento_nombre, 0)
-            limite         = val.get("limite", 0)
-            result[key]    = max(0, limite - vendidos)
-
-        return jsonify(result)
+        return jsonify(_get_stock_disponible())
     except Exception as e:
         print(f"Error en /stock: {e}")
         return jsonify({})
@@ -988,6 +1020,7 @@ def reenviar_ticket():
 # ENTRADA LIBERADA — sin pago, genera ticket directo
 # ══════════════════════════════════════════════════════
 @app.route("/obtener-entrada-gratis", methods=["POST"])
+@limiter.limit("5 per hour")
 def obtener_entrada_gratis():
     if not _get_config_bool('entradasGratis', ENTRADA_GRATIS_ACTIVA):
         return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
@@ -1019,7 +1052,7 @@ def obtener_entrada_gratis():
         return jsonify({"ok": False, "error": "Error al verificar disponibilidad. Intenta nuevamente."}), 500
 
     try:
-        codigo, qr_img = _emitir_ticket(
+        _emitir_ticket(
             comprador   = comprador,
             evento      = f"{NOMBRE_EVENTO_PRINCIPAL} — Entrada Gratuita",
             cantidad    = 1,
@@ -1027,7 +1060,7 @@ def obtener_entrada_gratis():
             total       = 0,
             id_pago     = "ENTRADA_LIBERADA"
         )
-        print(f"Entrada gratuita emitida: {rut} — total emitidas: {total_gratis + 1}/{LIMITE_ENTRADAS_GRATIS}")
+        print(f"Entrada gratuita emitida — total: {total_gratis + 1}/{LIMITE_ENTRADAS_GRATIS}")
         # Resumen a Blue Wine desactivado para entradas gratis (límite Resend 100/día)
         return jsonify({"ok": True})
     except Exception as e:
@@ -1218,14 +1251,19 @@ def admin_tickets():
     if request.headers.get("X-Admin-Key") != ADMIN_KEY:
         return jsonify({"ok": False, "error": "No autorizado"}), 401
     try:
+        limit  = min(int(request.args.get("limit",  500)), 1000)
+        offset = max(int(request.args.get("offset", 0)),   0)
         with get_db() as conn:
             with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM tickets")
+                total = cur.fetchone()[0]
                 cur.execute("""
                     SELECT codigo, nombre, apellido, rut, evento, acompanante_de,
                            email, telefono, precio_unit, fecha_compra, id_pago, estado
                     FROM tickets
                     ORDER BY fecha_compra DESC NULLS LAST
-                """)
+                    LIMIT %s OFFSET %s
+                """, (limit, offset))
                 cols = [d[0] for d in cur.description]
                 rows = cur.fetchall()
         tickets_list = []
@@ -1234,7 +1272,7 @@ def admin_tickets():
             if t.get("fecha_compra"):
                 t["fecha_compra"] = t["fecha_compra"].strftime("%Y-%m-%d %H:%M")
             tickets_list.append(t)
-        return jsonify({"ok": True, "tickets": tickets_list, "total": len(tickets_list)})
+        return jsonify({"ok": True, "tickets": tickets_list, "total": total, "limit": limit, "offset": offset})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
