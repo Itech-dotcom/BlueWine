@@ -135,6 +135,13 @@ def init_db():
                         url_verificacion TEXT
                     )
                 """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS config (
+                        clave   TEXT PRIMARY KEY,
+                        valor   TEXT NOT NULL,
+                        updated TIMESTAMP DEFAULT NOW()
+                    )
+                """)
             conn.commit()
         print("PostgreSQL inicializado")
     except Exception as e:
@@ -1013,6 +1020,100 @@ def reserva():
 
     except Exception as e:
         print(f"Error enviando email reserva: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════
+# CONFIG — lectura pública y escritura admin
+# ══════════════════════════════════════════════════════
+@app.route("/config", methods=["GET"])
+def get_config():
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT clave, valor FROM config")
+                rows = cur.fetchall()
+        result = {}
+        for k, v in rows:
+            try:
+                result[k] = json.loads(v)
+            except Exception:
+                result[k] = v
+        return jsonify({"ok": True, **result})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/admin/config", methods=["POST"])
+def set_config():
+    if request.headers.get("X-Admin-Key") != ADMIN_KEY:
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+    try:
+        data = request.get_json(force=True) or {}
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                for clave, valor in data.items():
+                    cur.execute("""
+                        INSERT INTO config (clave, valor, updated)
+                        VALUES (%s, %s, NOW())
+                        ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, updated = NOW()
+                    """, (clave, json.dumps(valor)))
+            conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════
+# ADMIN — tickets y anulación
+# ══════════════════════════════════════════════════════
+@app.route("/admin/tickets", methods=["GET"])
+def admin_tickets():
+    if request.headers.get("X-Admin-Key") != ADMIN_KEY:
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT codigo, nombre, apellido, rut, evento, acompanante_de,
+                           email, telefono, precio_unit, fecha_compra, id_pago, estado
+                    FROM tickets
+                    ORDER BY fecha_compra DESC NULLS LAST
+                """)
+                cols = [d[0] for d in cur.description]
+                rows = cur.fetchall()
+        tickets_list = []
+        for row in rows:
+            t = dict(zip(cols, row))
+            if t.get("fecha_compra"):
+                t["fecha_compra"] = t["fecha_compra"].strftime("%Y-%m-%d %H:%M")
+            tickets_list.append(t)
+        return jsonify({"ok": True, "tickets": tickets_list, "total": len(tickets_list)})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/admin/anular-ticket", methods=["POST"])
+def admin_anular_ticket():
+    if request.headers.get("X-Admin-Key") != ADMIN_KEY:
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+    try:
+        data   = request.get_json(force=True) or {}
+        codigo = str(data.get("codigo", "")).strip().upper()
+        if not codigo:
+            return jsonify({"ok": False, "error": "Falta codigo"}), 400
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE tickets SET estado = 'ANULADO'
+                    WHERE codigo = %s AND estado != 'ANULADO'
+                """, (codigo,))
+                updated = cur.rowcount
+            conn.commit()
+        if updated == 0:
+            return jsonify({"ok": False, "error": "Ticket no encontrado o ya anulado"}), 404
+        return jsonify({"ok": True})
+    except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
 

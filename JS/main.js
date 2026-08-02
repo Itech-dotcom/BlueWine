@@ -1096,4 +1096,57 @@ document.addEventListener('DOMContentLoaded', () => {
   actualizarBadgeCarrito();
   renderBadgesGratis();
   mostrarAnuncioEvento();
+  cargarConfigRemota();
 });
+
+// ── CONFIG REMOTA — aplica ajustes guardados desde el panel sin redeployar
+async function cargarConfigRemota() {
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 3000);
+    const res = await fetch('https://bluewine-production.up.railway.app/config', { signal: ctrl.signal });
+    if (!res.ok) return;
+    const cfg = await res.json();
+    if (!cfg.ok) return;
+
+    const show = sel => document.querySelectorAll(sel).forEach(el => el.style.removeProperty('display'));
+    const hide = sel => document.querySelectorAll(sel).forEach(el => { el.style.display = 'none'; });
+
+    // Visibilidad evento
+    if ('eventoActivo' in cfg) {
+      if (cfg.eventoActivo) show('.hero-evento-destacado');
+      else hide('.hero-evento-destacado');
+    }
+
+    // Visibilidad carrito y modal de compra
+    if ('carrito' in cfg) {
+      if (cfg.carrito) { show('.nav-carrito-btn'); show('#modal-principal'); show('#carrito-entradas'); }
+      else { hide('.nav-carrito-btn'); hide('#modal-principal'); hide('#carrito-entradas'); }
+    }
+
+    // Entradas gratis
+    if ('entradasGratis' in cfg) {
+      CONFIG_VIERNES.esGratis = cfg.entradasGratis;
+      renderBadgesGratis();
+    }
+
+    // Anuncio emergente
+    if ('anuncio' in cfg) {
+      CONFIG_ANUNCIO.activo = cfg.anuncio;
+      if (!cfg.anuncio) hide('#modal-anuncio');
+    }
+
+    // Precios y disponibilidad de entradas
+    if (cfg.entradas && typeof cfg.entradas === 'object') {
+      Object.entries(cfg.entradas).forEach(([key, val]) => {
+        if (!ENTRADAS[key]) return;
+        if ('activa' in val) ENTRADAS[key].activa = val.activa;
+        if ('precio' in val) ENTRADAS[key].precio = val.precio;
+        if ('limite' in val) { ENTRADAS[key].limite = val.limite; ENTRADAS[key].disponibles = val.limite; }
+      });
+      if (typeof renderizarTiposEntrada === 'function') renderizarTiposEntrada();
+    }
+  } catch {
+    // Sin conexión o timeout — usa valores hardcodeados
+  }
+}
