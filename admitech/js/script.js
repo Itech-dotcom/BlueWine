@@ -383,4 +383,5 @@ function exportarCSV() {
 // ── INIT ──
 function onPanelListo() {
   cargarTickets();
+  if (typeof initHuellaBtn === 'function') initHuellaBtn();
 }

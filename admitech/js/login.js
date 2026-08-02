@@ -70,7 +70,6 @@ async function intentarLogin(event) {
         localStorage.setItem('bwAdminKey', clave);
       }
       error.hidden = true;
-      await ofrecerActivarHuella();
       mostrarApp();
     } else {
       error.hidden = false;
@@ -181,6 +180,62 @@ async function initLogin() {
     document.getElementById('btn-huella').hidden = false;
     document.getElementById('btn-usar-clave').hidden = false;
     document.getElementById('login-form-wrap').hidden = true;
+  }
+}
+
+// ── GESTIÓN DE HUELLA DESDE EL PANEL ──
+async function initHuellaBtn() {
+  const btn = document.getElementById('btn-huella-panel');
+  if (!btn) return;
+  const soportada = await huellaListaParaUsar();
+  if (!soportada) return;
+  const registrada = !!localStorage.getItem(HUELLA_CRED_KEY);
+  const txt = document.getElementById('btn-huella-panel-txt');
+  if (txt) txt.textContent = registrada ? 'Quitar huella' : 'Activar huella';
+  btn.hidden = false;
+}
+
+async function gestionarHuella() {
+  const registrada = !!localStorage.getItem(HUELLA_CRED_KEY);
+  if (registrada) {
+    if (!confirm('¿Quitar el acceso con huella en este dispositivo?')) return;
+    localStorage.removeItem(HUELLA_CRED_KEY);
+    const txt = document.getElementById('btn-huella-panel-txt');
+    if (txt) txt.textContent = 'Activar huella';
+    if (typeof mostrarToast === 'function') mostrarToast('Huella eliminada');
+    return;
+  }
+  try {
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp: { name: 'Blue Wine · Panel' },
+        user: {
+          id: crypto.getRandomValues(new Uint8Array(16)),
+          name: 'admin-panel',
+          displayName: 'Blue Wine Admin'
+        },
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7 },
+          { type: 'public-key', alg: -257 }
+        ],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          userVerification: 'required',
+          residentKey: 'preferred'
+        },
+        timeout: 60000,
+        attestation: 'none'
+      }
+    });
+    localStorage.setItem(HUELLA_CRED_KEY, bufferAB64url(cred.rawId));
+    const clave = getKey();
+    if (clave) localStorage.setItem('bwAdminKey', clave);
+    const txt = document.getElementById('btn-huella-panel-txt');
+    if (txt) txt.textContent = 'Quitar huella';
+    if (typeof mostrarToast === 'function') mostrarToast('Huella activada en este dispositivo');
+  } catch {
+    if (typeof mostrarToast === 'function') mostrarToast('No se pudo activar la huella', 'error');
   }
 }
 
