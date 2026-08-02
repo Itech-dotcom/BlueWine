@@ -406,7 +406,7 @@ def _smtp_send(to_list, subject, html, inline_imgs=None):
             mime_img.add_header("Content-Disposition", "inline")
             msg.attach(mime_img)
 
-    with smtplib.SMTP("smtp-relay.brevo.com", 587) as s:
+    with smtplib.SMTP("smtp-relay.brevo.com", 587, timeout=30) as s:
         s.starttls()
         s.login(smtp_login, smtp_key)
         s.sendmail("tickets@bluewine.cl", to_list, msg.as_string())
@@ -897,16 +897,15 @@ def _enviar_email_recordatorio(destinatario, nombre, evento, fecha_evento, codig
 # ══════════════════════════════════════════════════════
 @app.route("/reserva", methods=["POST"])
 def reserva():
-    data     = request.get_json()
-    nombre   = data.get("nombre", "")
-    telefono = data.get("telefono", "")
-    email    = data.get("email", "")
-    tipo     = data.get("tipo", "")
-    fecha    = data.get("fecha", "")
-    personas = data.get("personas", "")
-    mensaje  = data.get("mensaje", "")
-
     try:
+        data     = request.get_json(force=True) or {}
+        nombre   = data.get("nombre", "")
+        telefono = data.get("telefono", "")
+        email    = data.get("email", "")
+        tipo     = data.get("tipo", "")
+        fecha    = data.get("fecha", "")
+        personas = data.get("personas", "")
+        mensaje  = data.get("mensaje", "")
         copia_bw = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
 
         html_body = f"""
