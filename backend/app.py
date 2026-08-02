@@ -10,11 +10,7 @@ import uuid                          # para generar códigos únicos de ticket
 import datetime                      # para registrar fecha y hora de compra
 import qrcode                        # para generar la imagen del código QR
 import io                            # para manejar la imagen QR en memoria
-import smtplib                        # para enviar emails via Brevo SMTP
-import base64                        # para convertir la imagen QR a texto (adjunto email)
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
+import base64                        # para adjuntar imágenes inline en emails Brevo
 from dotenv import load_dotenv       # para cargar el archivo .env con claves secretas
 import gspread                       # para leer/escribir en Google Sheets
 from google.oauth2.service_account import Credentials  # autenticación con Google
@@ -385,31 +381,35 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
 
 
 def _smtp_send(to_list, subject, html, inline_imgs=None):
-    # Envía un email HTML via Brevo SMTP. inline_imgs: lista de {"cid": str, "data": bytes}
-    # para imágenes referenciadas como <img src="cid:..."> en el HTML.
-    smtp_login = os.getenv("BREVO_SMTP_LOGIN")
-    smtp_key   = os.getenv("BREVO_SMTP_KEY")
+    # Envía email via Brevo API HTTP (evita bloqueos de puertos SMTP en Railway).
+    # inline_imgs: lista de {"cid": str, "data": bytes} — se adjuntan con contentId.
+    api_key = os.getenv("BREVO_API_KEY")
 
-    msg = MIMEMultipart("related")
-    msg["From"]    = "Blue Wine <tickets@bluewine.cl>"
-    msg["To"]      = ", ".join(to_list)
-    msg["Subject"] = subject
-
-    alt = MIMEMultipart("alternative")
-    msg.attach(alt)
-    alt.attach(MIMEText(html, "html", "utf-8"))
+    payload = {
+        "sender":      {"name": "Blue Wine", "email": "tickets@bluewine.cl"},
+        "to":          [{"email": addr} for addr in to_list],
+        "subject":     subject,
+        "htmlContent": html,
+    }
 
     if inline_imgs:
-        for img in inline_imgs:
-            mime_img = MIMEImage(img["data"])
-            mime_img.add_header("Content-ID", f'<{img["cid"]}>')
-            mime_img.add_header("Content-Disposition", "inline")
-            msg.attach(mime_img)
+        payload["attachment"] = [
+            {
+                "content":   base64.b64encode(img["data"]).decode(),
+                "name":      f'{img["cid"]}.png',
+                "contentId": img["cid"],
+            }
+            for img in inline_imgs
+        ]
 
-    with smtplib.SMTP_SSL("smtp-relay.brevo.com", 465, timeout=30) as s:
-        s.login(smtp_login, smtp_key)
-        s.sendmail("tickets@bluewine.cl", to_list, msg.as_string())
-    print(f"Email enviado via Brevo a {', '.join(to_list)}")
+    resp = requests.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={"api-key": api_key, "Content-Type": "application/json"},
+        json=payload,
+        timeout=30,
+    )
+    resp.raise_for_status()
+    print(f"Email enviado via Brevo API a {', '.join(to_list)}")
 
 
 def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
