@@ -18,7 +18,7 @@ function bufferAB64url(buffer) {
 }
 
 function getKey() {
-  return sessionStorage.getItem('bwAdminKey') || '';
+  return sessionStorage.getItem('bwAdminKey') || localStorage.getItem('bwAdminKey') || '';
 }
 
 function huellaSoportadaEnNavegador() {
@@ -65,6 +65,10 @@ async function intentarLogin(event) {
     });
     if (res.ok) {
       sessionStorage.setItem('bwAdminKey', clave);
+      // Si ya hay huella registrada, persistir clave en localStorage para próximas sesiones
+      if (localStorage.getItem(HUELLA_CRED_KEY)) {
+        localStorage.setItem('bwAdminKey', clave);
+      }
       error.hidden = true;
       await ofrecerActivarHuella();
       mostrarApp();
@@ -114,6 +118,9 @@ async function registrarHuella() {
       }
     });
     localStorage.setItem(HUELLA_CRED_KEY, bufferAB64url(cred.rawId));
+    // Persistir clave para que la huella funcione en sesiones futuras
+    const claveActual = sessionStorage.getItem('bwAdminKey');
+    if (claveActual) localStorage.setItem('bwAdminKey', claveActual);
     document.getElementById('btn-activar-huella').hidden = true;
     mostrarMsgHuella('Huella activada para este dispositivo.');
   } catch {
@@ -124,9 +131,9 @@ async function registrarHuella() {
 async function intentarLoginHuella() {
   const credId = localStorage.getItem(HUELLA_CRED_KEY);
   if (!credId) return;
-  const key = getKey();
-  if (!key) {
-    mostrarMsgHuella('Sesión expirada. Usa tu clave de acceso.');
+  // Si no hay clave guardada en localStorage, pedir contraseña
+  if (!getKey()) {
+    mostrarMsgHuella('Es necesario ingresar la clave una vez más para vincularla.');
     mostrarFormularioClave();
     return;
   }
@@ -139,7 +146,12 @@ async function intentarLoginHuella() {
         timeout: 60000
       }
     });
-    if (assertion) mostrarApp();
+    if (assertion) {
+      // Asegurar que la clave esté en sessionStorage para esta sesión
+      const key = getKey();
+      if (key) sessionStorage.setItem('bwAdminKey', key);
+      mostrarApp();
+    }
   } catch {
     mostrarMsgHuella('No se reconoció la huella. Usa tu clave.');
     mostrarFormularioClave();
