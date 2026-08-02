@@ -15,6 +15,7 @@ import base64                        # para adjuntar imágenes inline en emails 
 import psycopg2                      # para guardar tickets en PostgreSQL
 import hmac                          # para verificar firma HMAC-SHA256 del webhook de MP
 import hashlib                       # para el algoritmo SHA-256
+import threading                     # para actualizar Sheets en background al verificar tickets
 from dotenv import load_dotenv       # para cargar el archivo .env con claves secretas
 import gspread                       # para leer/escribir en Google Sheets
 from google.oauth2.service_account import Credentials  # autenticación con Google
@@ -1267,6 +1268,61 @@ def admin_anular_ticket():
 # ══════════════════════════════════════════════════════
 @app.route("/verificar/<codigo>", methods=["GET"])
 def verificar_ticket(codigo):
+    # I5: buscar en PostgreSQL primero (rápido) — fallback a Sheets si no se encuentra
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT codigo, nombre, apellido, rut, evento, acompanante_de,
+                           email, telefono, precio_unit, id_pago, estado
+                    FROM tickets WHERE UPPER(codigo) = UPPER(%s)
+                """, (codigo,))
+                row = cur.fetchone()
+                ticket_pg = None
+                if row:
+                    cols = ['codigo', 'nombre', 'apellido', 'rut', 'evento', 'acompanante_de',
+                            'email', 'telefono', 'precio_unit', 'id_pago', 'estado']
+                    ticket_pg = dict(zip(cols, row))
+                    nombre_completo_pg = f"{ticket_pg.get('nombre','')} {ticket_pg.get('apellido','')}".strip()
+                    cur.execute("""
+                        SELECT nombre, apellido FROM tickets
+                        WHERE acompanante_de = %s AND acompanante_de != ''
+                    """, (nombre_completo_pg,))
+                    acompanantes_pg = [f"{r[0]} {r[1]}".strip() for r in cur.fetchall()]
+
+        if ticket_pg:
+            estado = ticket_pg.get('estado', '').upper()
+            if estado == "USADO":
+                return _html_verificacion("⚠️ Entrada ya utilizada", "Esta entrada fue escaneada previamente. No se permite el reingreso.", "usado", codigo, ticket_pg, acompanantes_pg)
+            if estado != "ACTIVO":
+                return _html_verificacion("❌ Entrada inválida", f"Estado: {estado}", "invalido", codigo)
+
+            # Marcar USADO en PostgreSQL
+            with get_db() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("UPDATE tickets SET estado = 'USADO' WHERE UPPER(codigo) = UPPER(%s)", (codigo,))
+                conn.commit()
+
+            # Actualizar Sheets en background (no bloquea la respuesta)
+            def _sync_sheets_usado(cod):
+                try:
+                    ws   = get_sheet()
+                    rows = ws.get_all_records()
+                    for i, r in enumerate(rows, start=2):
+                        if str(r.get("codigo_ticket", "")).upper() == cod.upper():
+                            ws.update_cell(i, 14, "USADO")
+                            break
+                except Exception as ex:
+                    print(f"[verificar] Sheets sync en background falló: {ex}")
+            threading.Thread(target=_sync_sheets_usado, args=(codigo,), daemon=True).start()
+
+            print(f"Ticket {codigo} marcado como USADO (PostgreSQL)")
+            return _html_verificacion("✅ Entrada válida — ¡Bienvenido!", "La entrada fue marcada como utilizada. Puedes dejar pasar al asistente.", "valido", codigo, ticket_pg, acompanantes_pg)
+
+    except Exception as e:
+        print(f"[verificar] PostgreSQL falló, usando Sheets como fallback: {e}")
+
+    # Fallback: Sheets (lento pero siempre disponible)
     try:
         ws   = get_sheet()
         rows = ws.get_all_records()
@@ -1284,8 +1340,6 @@ def verificar_ticket(codigo):
 
         estado = ticket.get("estado", "").upper()
         nombre_completo = f"{ticket.get('nombre','')} {ticket.get('apellido','')}".strip()
-
-        # Buscar acompañantes de este ticket (si es comprador principal)
         acompanantes = [
             f"{r.get('nombre','')} {r.get('apellido','')}".strip()
             for r in rows
@@ -1294,18 +1348,15 @@ def verificar_ticket(codigo):
 
         if estado == "USADO":
             return _html_verificacion("⚠️ Entrada ya utilizada", "Esta entrada fue escaneada previamente. No se permite el reingreso.", "usado", codigo, ticket, acompanantes)
-
         if estado != "ACTIVO":
             return _html_verificacion("❌ Entrada inválida", f"Estado: {estado}", "invalido", codigo)
 
-        # Marcar como USADO — columna 14 (estado)
         ws.update_cell(fila_num, 14, "USADO")
-        print(f"Ticket {codigo} marcado como USADO")
-
+        print(f"Ticket {codigo} marcado como USADO (Sheets fallback)")
         return _html_verificacion("✅ Entrada válida — ¡Bienvenido!", "La entrada fue marcada como utilizada. Puedes dejar pasar al asistente.", "valido", codigo, ticket, acompanantes)
 
     except Exception as e:
-        print(f"Error verificando ticket: {e}")
+        print(f"Error verificando ticket (Sheets): {e}")
         return _html_verificacion("⚠️ Error del sistema", str(e), "error", codigo)
     
 

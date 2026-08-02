@@ -99,7 +99,23 @@ async function guardar() {
     };
   });
 
-  const config = { eventoActivo, entradasGratis, carrito, anuncio, entradas };
+  const config = {
+    eventoActivo, entradasGratis, carrito, anuncio, entradas,
+    eventoViernes: {
+      nombre: document.getElementById('ev-nombre-viernes')?.value?.trim() || '',
+      fecha:  document.getElementById('ev-fecha-viernes')?.value?.trim()  || '',
+      imagen: document.getElementById('ev-imagen-viernes')?.value?.trim() || '',
+      lineup: document.getElementById('ev-lineup-viernes')?.value?.trim() || '',
+    },
+    eventoSabado: {
+      activo:  document.getElementById('toggle-evento-activo-sabado')?.checked ?? false,
+      carrito: document.getElementById('toggle-carrito-sabado')?.checked       ?? false,
+      nombre:  document.getElementById('ev-nombre-sabado')?.value?.trim()      || '',
+      fecha:   document.getElementById('ev-fecha-sabado')?.value?.trim()       || '',
+      imagen:  document.getElementById('ev-imagen-sabado')?.value?.trim()      || '',
+      lineup:  document.getElementById('ev-lineup-sabado')?.value?.trim()      || '',
+    },
+  };
 
   try {
     const res = await fetch(`${API_BASE}/admin/config`, {
@@ -491,6 +507,47 @@ async function cargarConfigPanel() {
         if (activaEl && 'activa' in val) activaEl.checked = !!val.activa;
         if (tipoEl   && val.tipo)        tipoEl.value = val.tipo;
       });
+    }
+
+    // Datos del evento Viernes
+    if (cfg.eventoViernes) {
+      const ev = cfg.eventoViernes;
+      const setVal = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+      setVal('ev-nombre-viernes', ev.nombre);
+      setVal('ev-lineup-viernes', ev.lineup);
+      if (ev.fecha) { setVal('ev-fecha-viernes', ev.fecha); actualizarPreviewSlide('viernes'); }
+      if (ev.imagen) {
+        setVal('ev-imagen-viernes', ev.imagen);
+        const preview = document.getElementById('ev-imagen-preview-img-viernes');
+        if (preview) { preview.src = `../Imagenes/${ev.imagen}`; document.getElementById('ev-imagen-wrap-viernes')?.classList.add('has-image'); document.getElementById('ev-imagen-remove-viernes') && (document.getElementById('ev-imagen-remove-viernes').hidden = false); }
+      }
+      const sub = document.getElementById('stat-fecha-viernes');
+      if (sub && ev.fecha) sub.textContent = ev.fecha;
+      const nombre = document.getElementById('stat-nombre-viernes');
+      if (nombre && ev.nombre) nombre.textContent = ev.nombre;
+    }
+
+    // Datos del evento Sábado
+    if (cfg.eventoSabado) {
+      const ev = cfg.eventoSabado;
+      const setVal = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.value = v; };
+      setToggle('toggle-evento-activo-sabado', ev.activo);
+      setToggle('toggle-carrito-sabado', ev.carrito);
+      setVal('ev-nombre-sabado', ev.nombre);
+      setVal('ev-lineup-sabado', ev.lineup);
+      if (ev.fecha) { setVal('ev-fecha-sabado', ev.fecha); actualizarPreviewSlide('sabado'); }
+      if (ev.imagen) {
+        setVal('ev-imagen-sabado', ev.imagen);
+        const preview = document.getElementById('ev-imagen-preview-img-sabado');
+        if (preview) { preview.src = `../Imagenes/${ev.imagen}`; document.getElementById('ev-imagen-wrap-sabado')?.classList.add('has-image'); document.getElementById('ev-imagen-remove-sabado') && (document.getElementById('ev-imagen-remove-sabado').hidden = false); }
+      }
+      const badge = document.getElementById('estado-evento-badge-sabado');
+      if (badge) { badge.textContent = ev.activo ? 'Activo' : 'Inactivo'; badge.className = 'badge ' + (ev.activo ? 'badge-green' : 'badge-muted'); badge.style.cssText = 'font-size:13px;padding:4px 12px;'; }
+      actualizarDayDot('sabado', ev.activo);
+      const sub = document.getElementById('stat-fecha-sabado');
+      if (sub && ev.fecha) sub.textContent = ev.fecha;
+      const nombre = document.getElementById('stat-nombre-sabado');
+      if (nombre && ev.nombre) nombre.textContent = ev.nombre;
     }
   } catch { /* fail silently */ }
 }

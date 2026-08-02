@@ -1137,6 +1137,56 @@ async function cargarConfigRemota() {
       if (!cfg.anuncio) hide('#modal-anuncio');
     }
 
+    // Datos del evento en slides y hero (I2)
+    const slides = document.querySelectorAll('.evento-slide');
+    function _aplicarEvento(slide, ev) {
+      if (!slide || !ev?.nombre) return;
+      const tag   = slide.querySelector('.evento-tag');
+      const title = slide.querySelector('.evento-title');
+      const desc  = slide.querySelector('.evento-desc');
+      const footer = slide.querySelector('.evento-footer');
+      if (tag)   { tag.removeAttribute('style');   tag.textContent = '🎉 Evento'; }
+      if (title) { title.removeAttribute('style'); title.textContent = ev.nombre; }
+      if (desc && ev.lineup) desc.textContent = ev.lineup;
+      if (footer) footer.innerHTML = `<button class="hero-evento-btn" onclick="abrirModal()"><span class="hero-evento-dot"></span>Ver entradas disponibles</button>`;
+    }
+    function _aplicarFechaSlide(slide, dia, fecha) {
+      if (!slide) return;
+      const el = slide.querySelector('.evento-slide-nombre-dia');
+      if (el && fecha) el.textContent = fecha;
+    }
+
+    if (cfg.eventoViernes) {
+      _aplicarFechaSlide(slides[0], 'viernes', cfg.eventoViernes.fecha);
+      if (cfg.eventoActivo) {
+        _aplicarEvento(slides[0], cfg.eventoViernes);
+        const heroImg = document.querySelector('.hero-carrusel-slide');
+        if (heroImg && cfg.eventoViernes.imagen) heroImg.src = 'Imagenes/' + cfg.eventoViernes.imagen;
+        const heroFecha = document.querySelector('.hero-evento-fecha-txt');
+        if (heroFecha && cfg.eventoViernes.fecha) heroFecha.textContent = cfg.eventoViernes.fecha;
+      }
+    }
+
+    if (cfg.eventoSabado) {
+      _aplicarFechaSlide(slides[1], 'sabado', cfg.eventoSabado.fecha);
+      if (cfg.eventoSabado.activo) {
+        _aplicarEvento(slides[1], cfg.eventoSabado);
+        // Si solo sábado está activo: hero muestra sábado y avanzar slider (I1)
+        if (!cfg.eventoActivo) {
+          const heroImg = document.querySelector('.hero-carrusel-slide');
+          if (heroImg && cfg.eventoSabado.imagen) heroImg.src = 'Imagenes/' + cfg.eventoSabado.imagen;
+          const heroFecha = document.querySelector('.hero-evento-fecha-txt');
+          if (heroFecha && cfg.eventoSabado.fecha) heroFecha.textContent = cfg.eventoSabado.fecha;
+          // Mostrar hero y carrito si sábado tiene carrito activo
+          if (cfg.eventoSabado.carrito) {
+            show('.hero-evento-destacado');
+            show('.nav-carrito-btn'); show('#modal-principal'); show('#carrito-entradas');
+          }
+          irASlide(1); // I1: avanzar slider al sábado automáticamente
+        }
+      }
+    }
+
     // Precios y disponibilidad de entradas
     if (cfg.entradas && typeof cfg.entradas === 'object') {
       const configKeys = new Set(Object.keys(cfg.entradas));
