@@ -130,12 +130,12 @@ async function registrarHuella() {
 async function intentarLoginHuella() {
   const credId = localStorage.getItem(HUELLA_CRED_KEY);
   if (!credId) return;
-  // Si no hay clave guardada en localStorage, pedir contraseña
   if (!getKey()) {
-    mostrarMsgHuella('Es necesario ingresar la clave una vez más para vincularla.');
+    mostrarMsgHuella('Ingresa tu clave una vez para re-vincularla con la huella.');
     mostrarFormularioClave();
     return;
   }
+  // Intento 1: con el credential ID guardado
   try {
     const assertion = await navigator.credentials.get({
       publicKey: {
@@ -146,13 +146,36 @@ async function intentarLoginHuella() {
       }
     });
     if (assertion) {
-      // Asegurar que la clave esté en sessionStorage para esta sesión
-      const key = getKey();
-      if (key) sessionStorage.setItem('bwAdminKey', key);
+      sessionStorage.setItem('bwAdminKey', getKey());
       mostrarApp();
+      return;
     }
-  } catch {
-    mostrarMsgHuella('No se reconoció la huella. Usa tu clave.');
+  } catch (err1) {
+    // Si el credential no se encuentra, intentar sin allowCredentials (passkey discovery)
+    if (err1?.name === 'NotAllowedError' || err1?.name === 'InvalidStateError') {
+      try {
+        const assertion2 = await navigator.credentials.get({
+          publicKey: {
+            challenge: crypto.getRandomValues(new Uint8Array(32)),
+            userVerification: 'required',
+            timeout: 60000
+          }
+        });
+        if (assertion2) {
+          // Actualizar el ID guardado con el que realmente se usó
+          localStorage.setItem(HUELLA_CRED_KEY, bufferAB64url(assertion2.rawId));
+          sessionStorage.setItem('bwAdminKey', getKey());
+          mostrarApp();
+          return;
+        }
+      } catch { /* fallthrough al mensaje de error */ }
+    }
+    const detalle = err1?.name === 'NotAllowedError'
+      ? 'Huella no reconocida o cancelada.'
+      : err1?.name === 'InvalidStateError'
+      ? 'Credencial no encontrada en este dispositivo. Vuelve a registrarla desde el panel.'
+      : 'Error (' + (err1?.name || 'desconocido') + ').';
+    mostrarMsgHuella(detalle + ' Usa tu clave para entrar.');
     mostrarFormularioClave();
   }
 }
@@ -229,7 +252,13 @@ async function gestionarHuella() {
     });
     localStorage.setItem(HUELLA_CRED_KEY, bufferAB64url(cred.rawId));
     const clave = getKey();
-    if (clave) localStorage.setItem('bwAdminKey', clave);
+    if (!clave) {
+      localStorage.removeItem(HUELLA_CRED_KEY);
+      if (typeof mostrarToast === 'function') mostrarToast('Sesión expirada. Cierra sesión y vuelve a registrar la huella.', 'error');
+      else alert('Sesión expirada. Cierra sesión y vuelve a registrar la huella.');
+      return;
+    }
+    localStorage.setItem('bwAdminKey', clave);
     const txt = document.getElementById('btn-huella-panel-txt');
     if (txt) txt.textContent = 'Quitar huella';
     if (typeof mostrarToast === 'function') mostrarToast('Huella activada en este dispositivo');
