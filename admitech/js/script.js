@@ -3,7 +3,7 @@ function switchTab(name, el) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
-  if (el) el.classList.add('active');
+  (el || document.querySelector(`.tab[onclick*="'${name}'"]`))?.classList.add('active');
   document.getElementById('day-bar').style.display = (name === 'tickets') ? 'none' : 'flex';
 }
 
@@ -44,6 +44,30 @@ function escapeHtml(texto) {
 }
 
 // ── GUARDAR CONFIG ──
+async function guardarEvento() {
+  const eventoActivoEl = document.getElementById('toggle-evento-activo-' + diaActual);
+  if (eventoActivoEl?.checked) {
+    // Auto-activar carrito
+    const carritoToggle = document.getElementById('toggle-carrito-' + diaActual);
+    if (carritoToggle) carritoToggle.checked = true;
+    // Verificar entradas desactivadas
+    const inactivas = [];
+    document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
+      const activaEl  = row.querySelector('.entrada-activa-toggle');
+      const nombreEl  = row.querySelector('.entrada-nombre-input');
+      const keyEl     = row.querySelector('.entrada-key');
+      if (activaEl && !activaEl.checked) inactivas.push(nombreEl?.value?.trim() || keyEl?.textContent?.trim() || '—');
+    });
+    if (inactivas.length) {
+      const ok = confirm(
+        `Las siguientes entradas están desactivadas y no se mostrarán:\n\n• ${inactivas.join('\n• ')}\n\n¿Publicar igual? (puedes ir al tab Entradas para activarlas primero)`
+      );
+      if (!ok) { switchTab('entradas'); return; }
+    }
+  }
+  await guardar();
+}
+
 async function guardar() {
   const adminKey = getKey();
   if (!adminKey) { mostrarToast('No autenticado', 'error'); return; }
@@ -61,10 +85,12 @@ async function guardar() {
     const precioEl = row.querySelector('.entrada-precio-input');
     const limiteEl = row.querySelector('.entrada-limite-input');
     const activaEl = row.querySelector('.entrada-activa-toggle');
+    const nombreEl = row.querySelector('.entrada-nombre-input');
     if (!keyEl) return;
     const key = keyEl.textContent.trim();
     if (!key) return;
     entradas[key] = {
+      nombre: nombreEl?.value?.trim() || key,
       precio: parseInt(precioEl?.value || '0', 10),
       limite: parseInt(limiteEl?.value || '0', 10),
       activa: activaEl?.checked ?? false,
@@ -161,6 +187,10 @@ function onToggleEventoActivo(checkbox, dia) {
   if (!checkbox.checked) {
     const ok = confirm('¿Seguro que quieres desactivar el evento? Dejará de mostrarse en la página principal.');
     if (!ok) { checkbox.checked = true; return; }
+  } else {
+    // Auto-activar carrito al activar el evento
+    const carritoToggle = document.getElementById('toggle-carrito-' + dia);
+    if (carritoToggle && !carritoToggle.checked) carritoToggle.checked = true;
   }
   const badge = document.getElementById('estado-evento-badge-' + dia);
   badge.textContent = checkbox.checked ? 'Activo' : 'Inactivo';
@@ -380,8 +410,89 @@ function exportarCSV() {
   mostrarToast('CSV exportado');
 }
 
+// ── ENTRADAS: AGREGAR / ELIMINAR ──
+function agregarEntrada() {
+  const list = document.getElementById('entradas-list');
+  const uid = 'entrada' + Date.now();
+  const row = document.createElement('div');
+  row.className = 'entrada-row';
+  row.innerHTML = `
+    <div class="entrada-nombre">
+      <input type="text" class="entrada-input entrada-nombre-input" value="" placeholder="Nombre del tipo…" oninput="actualizarKeyEntrada(this)" />
+      <span class="entrada-key" style="font-size:10px;">${uid}</span>
+    </div>
+    <div><input type="number" value="5000" min="0" class="entrada-input entrada-precio-input" /></div>
+    <div><input type="number" value="100"  min="0" class="entrada-input entrada-limite-input" /></div>
+    <div class="entrada-stock">0</div>
+    <div><label class="toggle"><input type="checkbox" class="entrada-activa-toggle" checked /><span class="toggle-slider"></span></label></div>
+    <button type="button" class="entrada-remove" onclick="this.closest('.entrada-row').remove()" title="Eliminar tipo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>`;
+  list.appendChild(row);
+  row.querySelector('.entrada-nombre-input')?.focus();
+}
+
+function actualizarKeyEntrada(input) {
+  const keyEl = input.closest('.entrada-row')?.querySelector('.entrada-key');
+  if (!keyEl) return;
+  const key = input.value.trim()
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(/\s+/).filter(Boolean)
+    .map((w, i) => i === 0 ? w : w[0].toUpperCase() + w.slice(1))
+    .join('');
+  if (key) keyEl.textContent = key;
+}
+
+// ── CARGAR CONFIG DEL SERVIDOR AL PANEL ──
+async function cargarConfigPanel() {
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 5000);
+    const res = await fetch(`${API_BASE}/config`, { signal: ctrl.signal });
+    if (!res.ok) return;
+    const cfg = await res.json();
+    if (!cfg.ok) return;
+
+    const setToggle = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+
+    if ('eventoActivo' in cfg) {
+      setToggle('toggle-evento-activo-viernes', cfg.eventoActivo);
+      const badge = document.getElementById('estado-evento-badge-viernes');
+      if (badge) {
+        badge.textContent = cfg.eventoActivo ? 'Activo' : 'Inactivo';
+        badge.className = 'badge ' + (cfg.eventoActivo ? 'badge-green' : 'badge-muted');
+        badge.style.cssText = 'font-size:13px;padding:4px 12px;';
+      }
+      actualizarDayDot('viernes', cfg.eventoActivo);
+    }
+    if ('entradasGratis' in cfg) setToggle('toggle-entradas-gratis-viernes', cfg.entradasGratis);
+    if ('carrito'        in cfg) setToggle('toggle-carrito-viernes',          cfg.carrito);
+    if ('anuncio'        in cfg) setToggle('toggle-anuncio-viernes',           cfg.anuncio);
+
+    if (cfg.entradas && typeof cfg.entradas === 'object') {
+      document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
+        const keyEl = row.querySelector('.entrada-key');
+        if (!keyEl) return;
+        const val = cfg.entradas[keyEl.textContent.trim()];
+        if (!val) return;
+        const nombreEl = row.querySelector('.entrada-nombre-input');
+        const precioEl = row.querySelector('.entrada-precio-input');
+        const limiteEl = row.querySelector('.entrada-limite-input');
+        const activaEl = row.querySelector('.entrada-activa-toggle');
+        if (nombreEl && val.nombre) nombreEl.value = val.nombre;
+        if (precioEl && 'precio' in val) precioEl.value = val.precio;
+        if (limiteEl && 'limite' in val) limiteEl.value = val.limite;
+        if (activaEl && 'activa' in val) activaEl.checked = !!val.activa;
+      });
+    }
+  } catch { /* fail silently */ }
+}
+
 // ── INIT ──
 function onPanelListo() {
   cargarTickets();
   if (typeof initHuellaBtn === 'function') initHuellaBtn();
+  cargarConfigPanel();
 }

@@ -198,12 +198,11 @@ async function initHuellaBtn() {
 async function gestionarHuella() {
   const registrada = !!localStorage.getItem(HUELLA_CRED_KEY);
   if (registrada) {
-    if (!confirm('¿Quitar el acceso con huella en este dispositivo?')) return;
+    if (!confirm('Ya tienes huella registrada.\n¿Deseas eliminarla y registrar de nuevo?')) return;
     localStorage.removeItem(HUELLA_CRED_KEY);
     const txt = document.getElementById('btn-huella-panel-txt');
     if (txt) txt.textContent = 'Activar huella';
-    if (typeof mostrarToast === 'function') mostrarToast('Huella eliminada');
-    return;
+    // Continúa al bloque de registro abajo
   }
   try {
     const cred = await navigator.credentials.create({
@@ -234,8 +233,14 @@ async function gestionarHuella() {
     const txt = document.getElementById('btn-huella-panel-txt');
     if (txt) txt.textContent = 'Quitar huella';
     if (typeof mostrarToast === 'function') mostrarToast('Huella activada en este dispositivo');
-  } catch {
-    if (typeof mostrarToast === 'function') mostrarToast('No se pudo activar la huella', 'error');
+    else alert('¡Huella activada correctamente!');
+  } catch (err) {
+    const detalle = err?.name === 'NotAllowedError'
+      ? 'Permiso denegado o tiempo agotado.'
+      : (err?.message || err?.name || 'error desconocido');
+    const msg = 'No se pudo activar la huella: ' + detalle;
+    if (typeof mostrarToast === 'function') mostrarToast(msg, 'error');
+    else alert(msg);
   }
 }
 
