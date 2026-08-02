@@ -4,6 +4,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS          # permite peticiones desde el frontend (bluewine.cl)
 import mercadopago                   # SDK oficial de MercadoPago
+import requests                      # para llamadas HTTP (Brevo API)
 import os                            # para leer variables de entorno (.env)
 import json                          # para convertir datos a texto y viceversa
 import uuid                          # para generar códigos únicos de ticket
