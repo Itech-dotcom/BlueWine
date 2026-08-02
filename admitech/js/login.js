@@ -184,4 +184,4 @@ async function initLogin() {
   }
 }
 
-initLogin();
+// initLogin() se llama desde index.html después de cargar todos los scripts

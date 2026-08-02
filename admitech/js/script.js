@@ -1,9 +1,9 @@
 // ── TABS ──
-function switchTab(name) {
+function switchTab(name, el) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if (el) el.classList.add('active');
   document.getElementById('day-bar').style.display = (name === 'tickets') ? 'none' : 'flex';
 }
 
