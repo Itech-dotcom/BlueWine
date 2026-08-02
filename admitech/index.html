@@ -417,6 +417,14 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
           Reenviar correo
         </button>
+        <button class="btn btn-ghost" onclick="abrirModalPendiente()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10"/><path d="M12 6v6l4 2"/><path d="m16 19 2 2 4-4"/></svg>
+          Recuperar pago
+        </button>
+        <button class="btn btn-ghost" onclick="abrirModalEmitirManual()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Generar ticket
+        </button>
         <button class="btn btn-ghost" onclick="exportarCSV()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M12 15V3"/><path d="m7 10 5 5 5-5"/><path d="M20 21H4"/></svg>
           Exportar CSV
@@ -501,6 +509,86 @@
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" onclick="cerrarModalReenvio()">Cancelar</button>
         <button type="submit" class="btn btn-primary">Reenviar correo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── MODAL RECUPERAR PAGO PENDIENTE ── -->
+<div class="modal-overlay" id="modal-pendiente" onclick="if(event.target===this) cerrarModalPendiente()">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <span class="modal-title">Recuperar pago pendiente</span>
+      <button type="button" class="modal-close" onclick="cerrarModalPendiente()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0 0 16px;">Usa esto cuando alguien pagó pero no recibió su ticket. El ID de compra aparece como <strong>Referencia externa</strong> en el detalle del pago en MercadoPago.</p>
+    <form id="form-pendiente" onsubmit="return enviarRecuperarPendiente(event)">
+      <div class="field">
+        <label for="pendiente-compra-id">ID de compra (referencia externa)</label>
+        <input type="text" id="pendiente-compra-id" placeholder="Ej: abc123xyz..." required />
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="pendiente-email">Correo alternativo <span style="color:var(--text-muted);font-weight:400;">(opcional — solo si el original era incorrecto)</span></label>
+        <input type="email" id="pendiente-email" placeholder="nombre@ejemplo.com" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModalPendiente()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Emitir ticket</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── MODAL GENERAR TICKET MANUAL ── -->
+<div class="modal-overlay" id="modal-emitir-manual" onclick="if(event.target===this) cerrarModalEmitirManual()">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <span class="modal-title">Generar ticket manual</span>
+      <button type="button" class="modal-close" onclick="cerrarModalEmitirManual()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0 0 16px;">Para casos extremos: genera y envía un ticket directamente sin pasar por MercadoPago. Queda registrado con estado ACTIVO.</p>
+    <form id="form-emitir-manual" onsubmit="return enviarEmitirManual(event)">
+      <div class="grid-2">
+        <div class="field">
+          <label for="manual-nombre">Nombre</label>
+          <input type="text" id="manual-nombre" placeholder="Juan" required />
+        </div>
+        <div class="field">
+          <label for="manual-apellido">Apellido</label>
+          <input type="text" id="manual-apellido" placeholder="Pérez" required />
+        </div>
+      </div>
+      <div class="field">
+        <label for="manual-email">Correo</label>
+        <input type="email" id="manual-email" placeholder="juan@ejemplo.com" required />
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="manual-telefono">Teléfono</label>
+          <input type="text" id="manual-telefono" placeholder="+56 9 1234 5678" />
+        </div>
+        <div class="field">
+          <label for="manual-rut">RUT</label>
+          <input type="text" id="manual-rut" placeholder="12.345.678-9" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="manual-entrada">Tipo de entrada</label>
+        <select id="manual-entrada-select" onchange="actualizarManualEntrada()">
+          <option value="">— Elige una entrada —</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="manual-precio">Precio registrado <span style="color:var(--text-muted);font-weight:400;">(0 = gratis)</span></label>
+        <input type="number" id="manual-precio" value="0" min="0" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModalEmitirManual()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Generar y enviar ticket</button>
       </div>
     </form>
   </div>

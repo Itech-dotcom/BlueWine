@@ -552,6 +552,138 @@ async function cargarConfigPanel() {
   } catch { /* fail silently */ }
 }
 
+// ── RECUPERAR PAGO PENDIENTE ──
+function abrirModalPendiente() {
+  document.getElementById('form-pendiente').reset();
+  document.getElementById('modal-pendiente').classList.add('show');
+  document.addEventListener('keydown', _cerrarPendienteEsc);
+  document.getElementById('pendiente-compra-id').focus();
+}
+function cerrarModalPendiente() {
+  document.getElementById('modal-pendiente').classList.remove('show');
+  document.removeEventListener('keydown', _cerrarPendienteEsc);
+}
+function _cerrarPendienteEsc(e) { if (e.key === 'Escape') cerrarModalPendiente(); }
+
+async function enviarRecuperarPendiente(event) {
+  event.preventDefault();
+  const adminKey  = getKey();
+  const compra_id = document.getElementById('pendiente-compra-id').value.trim();
+  const email     = document.getElementById('pendiente-email').value.trim();
+  const btn       = document.querySelector('#form-pendiente button[type="submit"]');
+  btn.disabled = true; btn.textContent = 'Emitiendo…';
+  try {
+    const body = { compra_id };
+    if (email) body.email = email;
+    const res  = await fetch(`${API_BASE}/recuperar-pendiente`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    cerrarModalPendiente();
+    if (res.ok) {
+      mostrarToast(`Ticket emitido y enviado correctamente`);
+      actualizarResumenTickets();
+    } else {
+      mostrarToast(data.error || 'Error al recuperar pago', 'error');
+    }
+  } catch {
+    cerrarModalPendiente();
+    mostrarToast('Sin conexión', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Emitir ticket';
+  }
+  return false;
+}
+
+// ── GENERAR TICKET MANUAL ──
+let _entradasManual = {};
+
+function abrirModalEmitirManual() {
+  document.getElementById('form-emitir-manual').reset();
+  // Poblar select con entradas actuales del panel
+  const sel = document.getElementById('manual-entrada-select');
+  sel.innerHTML = '<option value="">— Elige una entrada —</option>';
+  _entradasManual = {};
+  document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
+    const keyEl    = row.querySelector('.entrada-key');
+    const nombreEl = row.querySelector('.entrada-nombre-input');
+    const precioEl = row.querySelector('.entrada-precio-input');
+    if (!keyEl) return;
+    const key    = keyEl.textContent.trim();
+    const nombre = nombreEl?.value?.trim() || key;
+    const precio = parseInt(precioEl?.value || '0', 10);
+    if (!key) return;
+    _entradasManual[key] = { nombre, precio };
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = nombre;
+    sel.appendChild(opt);
+  });
+  document.getElementById('modal-emitir-manual').classList.add('show');
+  document.addEventListener('keydown', _cerrarManualEsc);
+  document.getElementById('manual-nombre').focus();
+}
+function cerrarModalEmitirManual() {
+  document.getElementById('modal-emitir-manual').classList.remove('show');
+  document.removeEventListener('keydown', _cerrarManualEsc);
+}
+function _cerrarManualEsc(e) { if (e.key === 'Escape') cerrarModalEmitirManual(); }
+
+function actualizarManualEntrada() {
+  const key    = document.getElementById('manual-entrada-select').value;
+  const info   = _entradasManual[key];
+  if (info) document.getElementById('manual-precio').value = info.precio;
+}
+
+async function enviarEmitirManual(event) {
+  event.preventDefault();
+  const adminKey = getKey();
+  const key      = document.getElementById('manual-entrada-select').value;
+  if (!key) { mostrarToast('Elige un tipo de entrada', 'error'); return false; }
+  const info     = _entradasManual[key] || {};
+  // Construir nombre de evento igual que el backend: "NOMBRE_EVENTO — Tipo"
+  const eventoNombre = document.querySelector('#ev-nombre-viernes')?.value?.trim()
+    || document.querySelector('#ev-nombre-sabado')?.value?.trim()
+    || 'Blue Wine';
+  const comprador = {
+    nombre:   document.getElementById('manual-nombre').value.trim(),
+    apellido: document.getElementById('manual-apellido').value.trim(),
+    email:    document.getElementById('manual-email').value.trim(),
+    telefono: document.getElementById('manual-telefono').value.trim(),
+    rut:      document.getElementById('manual-rut').value.trim(),
+  };
+  const precio = parseInt(document.getElementById('manual-precio').value || '0', 10);
+  const btn    = document.querySelector('#form-emitir-manual button[type="submit"]');
+  btn.disabled = true; btn.textContent = 'Generando…';
+  try {
+    const res  = await fetch(`${API_BASE}/emitir-manual`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+      body: JSON.stringify({
+        comprador,
+        evento: `${eventoNombre} — ${info.nombre || key}`,
+        precio,
+      }),
+    });
+    const data = await res.json();
+    cerrarModalEmitirManual();
+    if (res.ok) {
+      mostrarToast(`Ticket generado y enviado a ${comprador.email}`);
+      actualizarResumenTickets();
+    } else {
+      mostrarToast(data.error || 'Error al generar ticket', 'error');
+    }
+  } catch {
+    cerrarModalEmitirManual();
+    mostrarToast('Sin conexión', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Generar y enviar ticket';
+  }
+  return false;
+}
+
 // ── INIT ──
 function onPanelListo() {
   cargarTickets();
