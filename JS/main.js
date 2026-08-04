@@ -389,6 +389,18 @@ function agregarGeneralAlCarrito() {
 // Contexto temporal para entrada gratis
 let _pendienteEntradaGratis = null;
 
+// Abre el formulario de checkout directamente en modo gratis (sin pasar por modal intermedio).
+// Se usa cuando entradasGratis está activo y el usuario presiona el botón del slide o hero.
+function abrirCheckoutGratis(nombre) {
+  _pendienteEntradaGratis = { nombre, cantidad: 1 };
+  cerrarTodosModales();
+  const btn = document.getElementById('checkout-btn-pagar');
+  if (btn) { btn.textContent = 'Obtener entrada gratis →'; btn.dataset.modo = 'gratis'; }
+  document.getElementById('modal-checkout').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('checkout-error').style.display = 'none';
+}
+
 // ══════════════════════════════════════════════════════
 // BADGE ENTRADA LIBERADA — sección eventos
 // ══════════════════════════════════════════════════════
@@ -1139,7 +1151,7 @@ async function cargarConfigRemota() {
 
     // Datos del evento en slides y hero (I2)
     const slides = document.querySelectorAll('.evento-slide');
-    function _aplicarEvento(slide, ev) {
+    function _aplicarEvento(slide, ev, esGratis) {
       if (!slide || !ev?.nombre) return;
       const tag   = slide.querySelector('.evento-tag');
       const title = slide.querySelector('.evento-title');
@@ -1148,7 +1160,12 @@ async function cargarConfigRemota() {
       if (tag)   { tag.removeAttribute('style');   tag.textContent = '🎉 Evento'; }
       if (title) { title.removeAttribute('style'); title.textContent = ev.nombre; }
       if (desc && ev.lineup) desc.textContent = ev.lineup;
-      if (footer) footer.innerHTML = `<button class="hero-evento-btn" onclick="abrirModal()"><span class="hero-evento-dot"></span>Ver entradas disponibles</button>`;
+      if (footer) {
+        const nombreEsc = ev.nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const onclick = esGratis ? `abrirCheckoutGratis('${nombreEsc}')` : 'abrirModal()';
+        const label   = esGratis ? 'Obtener entrada gratis' : 'Ver entradas disponibles';
+        footer.innerHTML = `<button class="hero-evento-btn" onclick="${onclick}"><span class="hero-evento-dot"></span>${label}</button>`;
+      }
     }
     function _aplicarFechaSlide(slide, dia, fecha) {
       if (!slide) return;
@@ -1160,18 +1177,27 @@ async function cargarConfigRemota() {
       if (cfg.eventoViernes.nombre) NOMBRE_EVENTO_PRINCIPAL = cfg.eventoViernes.nombre;
       _aplicarFechaSlide(slides[0], 'viernes', cfg.eventoViernes.fecha);
       if (cfg.eventoActivo) {
-        _aplicarEvento(slides[0], cfg.eventoViernes);
+        _aplicarEvento(slides[0], cfg.eventoViernes, cfg.entradasGratis);
         const heroImg = document.querySelector('.hero-carrusel-slide');
         if (heroImg && cfg.eventoViernes.imagen) heroImg.src = 'Imagenes/' + cfg.eventoViernes.imagen;
         const heroFecha = document.querySelector('.hero-evento-fecha-txt');
         if (heroFecha && cfg.eventoViernes.fecha) heroFecha.textContent = cfg.eventoViernes.fecha;
+        // Si gratis activo: el botón del hero también va directo al formulario
+        if (cfg.entradasGratis) {
+          const heroBtn = document.querySelector('.hero-evento-btn');
+          if (heroBtn) {
+            const nombreEsc = cfg.eventoViernes.nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            heroBtn.setAttribute('onclick', `abrirCheckoutGratis('${nombreEsc}')`);
+            heroBtn.innerHTML = '<span class="hero-evento-dot"></span>Obtener entrada gratis';
+          }
+        }
       }
     }
 
     if (cfg.eventoSabado) {
       _aplicarFechaSlide(slides[1], 'sabado', cfg.eventoSabado.fecha);
       if (cfg.eventoSabado.activo) {
-        _aplicarEvento(slides[1], cfg.eventoSabado);
+        _aplicarEvento(slides[1], cfg.eventoSabado, cfg.entradasGratis);
         // Si solo sábado está activo: hero muestra sábado y avanzar slider (I1)
         if (!cfg.eventoActivo) {
           const heroImg = document.querySelector('.hero-carrusel-slide');
