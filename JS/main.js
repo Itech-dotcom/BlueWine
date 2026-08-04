@@ -1145,15 +1145,17 @@ async function cargarConfigRemota() {
     const show = sel => document.querySelectorAll(sel).forEach(el => el.style.removeProperty('display'));
     const hide = sel => document.querySelectorAll(sel).forEach(el => { el.style.display = 'none'; });
 
-    // Visibilidad evento
-    if ('eventoActivo' in cfg) {
-      if (cfg.eventoActivo) show('.hero-evento-destacado');
+    // Visibilidad evento y carrito — evaluada de una vez para evitar flash viernes→sábado
+    const sabadoActivo  = cfg.eventoSabado?.activo  && cfg.eventoSabado?.carrito;
+    const heroVisible   = cfg.eventoActivo || sabadoActivo;
+    const carritoVisible = cfg.carrito     || sabadoActivo;
+
+    if ('eventoActivo' in cfg || cfg.eventoSabado) {
+      if (heroVisible) show('.hero-evento-destacado');
       else hide('.hero-evento-destacado');
     }
-
-    // Visibilidad carrito y modal de compra
-    if ('carrito' in cfg) {
-      if (cfg.carrito) { show('.nav-carrito-btn'); show('#modal-principal'); show('#carrito-entradas'); }
+    if ('carrito' in cfg || cfg.eventoSabado) {
+      if (carritoVisible) { show('.nav-carrito-btn'); show('#modal-principal'); show('#carrito-entradas'); }
       else { hide('.nav-carrito-btn'); hide('#modal-principal'); hide('#carrito-entradas'); }
     }
 
@@ -1224,18 +1226,13 @@ async function cargarConfigRemota() {
       }
       if (cfg.eventoSabado.activo) {
         _aplicarEvento(slides[1], cfg.eventoSabado, cfg.eventoSabado.entradasGratis, 'sabado');
-        // Si solo sábado está activo: hero muestra sábado y avanzar slider (I1)
+        // Si solo sábado está activo: hero muestra imagen/fecha de sábado y avanza el slider
         if (!cfg.eventoActivo) {
           const heroImg = document.querySelector('.hero-carrusel-slide');
           if (heroImg && cfg.eventoSabado.imagen) heroImg.src = 'Imagenes/' + cfg.eventoSabado.imagen;
           const heroFecha = document.querySelector('.hero-evento-fecha-txt');
           if (heroFecha && cfg.eventoSabado.fecha) heroFecha.textContent = cfg.eventoSabado.fecha;
-          // Mostrar hero y carrito si sábado tiene carrito activo
-          if (cfg.eventoSabado.carrito) {
-            show('.hero-evento-destacado');
-            show('.nav-carrito-btn'); show('#modal-principal'); show('#carrito-entradas');
-          }
-          irASlide(1); // I1: avanzar slider al sábado automáticamente
+          irASlide(1);
         }
       }
     }
