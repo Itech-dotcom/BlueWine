@@ -10,19 +10,19 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
-  general:        { nombre: 'General',              precio: 5000,   limite: 100, disponibles: 100, activa: false, tipo: 'general' },
-  vip:            { nombre: 'VIP',                  precio: 10000,  limite: 50,  disponibles: 50,  activa: false, tipo: 'vip' },
-  mesaGoldenVip:  { nombre: 'Mesa Golden VIP',      precio: 150000, limite: 4,   disponibles: 4,   activa: false, tipo: 'supervip', desc: 'Podrás compartir con DJs' },
-  generalMujeres: { nombre: 'General Mujeres',      precio: 5000,   limite: 700, disponibles: 0,   activa: false, tipo: 'general' },
-  generalHombres: { nombre: 'General Hombres',      precio: 7000,   limite: 700, disponibles: 0,   activa: false, tipo: 'general' },
-  preventaVip:    { nombre: 'VIP',                  precio: 10000,  limite: 150, disponibles: 0,   activa: false, tipo: 'vip' },
-  preventa1:      { nombre: 'General',              precio: 5000,   limite: 700, disponibles: 0,   activa: false, tipo: 'general' },
-  preventa2:      { nombre: 'Preventa 2',           precio: 13000,  limite: 700, disponibles: 700, activa: false, tipo: 'general' },
-  soloMujeres:    { nombre: 'Solo Mujeres 2x',      precio: 12000,  limite: 700, disponibles: 700, activa: false, tipo: 'general', personas: 2 },
-  mesaDiamond:    { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 13,  disponibles: 13,  activa: false, tipo: 'supervip', personas: 4 },
-  meetAndGreet:   { nombre: 'Meet & Greet',         precio: 50000,  limite: 10,  disponibles: 10,  activa: false, tipo: 'supervip' },
-  prevDiamond:    { nombre: 'Diamond',              precio: 20000,  limite: 50,  disponibles: 50,  activa: false, tipo: 'vip' },
-  puertaDiamond:  { nombre: 'Puerta Diamond',       precio: 30000,  limite: 50,  disponibles: 50,  activa: false, tipo: 'vip' },
+  general:        { nombre: 'General',              precio: 5000,   limite: 100, disponibles: 100, activa: false,                    tipo: 'general' },
+  vip:            { nombre: 'VIP',                  precio: 10000,  limite: 50,  disponibles: 50,  activa: false, proximamente: true, tipo: 'vip' },
+  mesaGoldenVip:  { nombre: 'Mesa Golden VIP',      precio: 150000, limite: 4,   disponibles: 4,   activa: false,                    tipo: 'supervip', desc: 'Podrás compartir con DJs' },
+  generalMujeres: { nombre: 'General Mujeres',      precio: 5000,   limite: 100, disponibles: 100, activa: false, proximamente: true, tipo: 'general' },
+  generalHombres: { nombre: 'General Hombres',      precio: 7000,   limite: 100, disponibles: 100, activa: false, proximamente: true, tipo: 'general' },
+  preventaVip:    { nombre: 'VIP',                  precio: 10000,  limite: 150, disponibles: 0,   activa: false,                    tipo: 'vip' },
+  preventa1:      { nombre: 'General',              precio: 5000,   limite: 700, disponibles: 0,   activa: false,                    tipo: 'general' },
+  preventa2:      { nombre: 'Preventa 2',           precio: 13000,  limite: 700, disponibles: 700, activa: false,                    tipo: 'general' },
+  soloMujeres:    { nombre: 'Solo Mujeres 2x',      precio: 12000,  limite: 700, disponibles: 700, activa: false,                    tipo: 'general', personas: 2 },
+  mesaDiamond:    { nombre: 'Mesa Diamond (4 pers.)',precio: 150000, limite: 13,  disponibles: 13,  activa: false,                    tipo: 'supervip', personas: 4 },
+  meetAndGreet:   { nombre: 'Meet & Greet',         precio: 50000,  limite: 10,  disponibles: 10,  activa: false,                    tipo: 'supervip' },
+  prevDiamond:    { nombre: 'Diamond',              precio: 20000,  limite: 50,  disponibles: 50,  activa: false,                    tipo: 'vip' },
+  puertaDiamond:  { nombre: 'Puerta Diamond',       precio: 30000,  limite: 50,  disponibles: 50,  activa: false,                    tipo: 'vip' },
 };
 
 // ══════════════════════════════════════════════════════
@@ -36,8 +36,8 @@ const CONFIG_VIERNES = {
 };
 
 const CONFIG_SABADO = {
-  esGratis:  false,       // ← cambiar a true para mostrar entrada liberada
-  horaCorte: '23:00',     // ← hora límite entrada liberada
+  esGratis:  true,        // ← entradas gratis activas: Aniversario
+  horaCorte: '23:00',
 };
 
 // ══════════════════════════════════════════════════════
@@ -48,18 +48,18 @@ const CONFIG_SABADO = {
 // ══════════════════════════════════════════════════════
 const CONFIG_ANUNCIO = {
   activo:   false,
-  titulo:   'Pre Aniversario Blue Wine — Fiesta de la Guaracha',
-  fecha:    'Viernes 31 de Julio',
-  desc:     '¡100 entradas GRATIS disponibles en la página! DJ Chepe El Frenix · Laura Vélez · Hamilton Morales · XCAR',
-  esGratis: true,
+  titulo:   'Aniversario Blue Wine',
+  fecha:    'Sábado 8 de agosto',
+  desc:     '¡Entradas disponibles próximamente!',
+  esGratis: false,
   precio:   0,
-  imagen:   'Imagenes/preaniversariofiestaguaracha.jpg',
+  imagen:   'Imagenes/aniversario.PNG',
 };
 
 // ── Nombre del evento principal — se antepone al tipo de entrada en el ticket
-// Ej: "Loyaltty — Preventa 1"
+// Ej: "Aniversario Blue Wine — General Hombres"
 // ← EDITAR AQUÍ cuando cambie el evento
-let NOMBRE_EVENTO_PRINCIPAL = 'Pre Aniversario Blue Wine';
+let NOMBRE_EVENTO_PRINCIPAL = 'Aniversario Blue Wine';
 
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN IVA Y COMISIÓN
@@ -257,7 +257,7 @@ function renderizarTiposEntrada() {
   // Si aún no cargó (acceso muy rápido), usar las tres por defecto como fallback.
   const keys = ENTRADAS._configKeys
     ? [...ENTRADAS._configKeys]
-    : ['general', 'vip', 'mesaGoldenVip'];
+    : ['generalHombres', 'generalMujeres', 'vip'];
 
   const grupos = { general: [], vip: [], supervip: [] };
   for (const id of keys) {
@@ -269,6 +269,26 @@ function renderizarTiposEntrada() {
 
   const container = document.getElementById('modal-tipos-container');
   container.innerHTML = '';
+
+  // Tarjeta gratis al tope si hay entradas liberadas activas
+  const esGratisViernes = CONFIG_VIERNES.esGratis;
+  const esGratisSabado  = CONFIG_SABADO.esGratis;
+  if (esGratisViernes || esGratisSabado) {
+    const dia = esGratisSabado ? 'sabado' : 'viernes';
+    const nombreEsc = NOMBRE_EVENTO_PRINCIPAL.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const gratisGrupo = document.createElement('div');
+    gratisGrupo.className = 'modal-tipo-grupo';
+    gratisGrupo.innerHTML = `
+      <div class="modal-tipo-grupo-titulo">🎉 Entrada Liberada</div>
+      <div class="modal-tipo-opciones">
+        <div class="modal-tipo-card" style="cursor:pointer;" onclick="abrirCheckoutGratis('${nombreEsc}','${dia}')">
+          <div class="modal-tipo-badge badge-disponible">Gratis</div>
+          <div class="modal-tipo-nombre">Entrada Gratuita</div>
+          <div class="modal-tipo-precio">GRATIS</div>
+        </div>
+      </div>`;
+    container.appendChild(gratisGrupo);
+  }
 
   for (const tipo of ['general', 'vip', 'supervip']) {
     const ids = grupos[tipo];
@@ -1198,6 +1218,10 @@ async function cargarConfigRemota() {
 
     if (cfg.eventoSabado) {
       _aplicarFechaSlide(slides[1], 'sabado', cfg.eventoSabado.fecha);
+      if ('entradasGratis' in cfg.eventoSabado) {
+        CONFIG_SABADO.esGratis = !!cfg.eventoSabado.entradasGratis;
+        renderBadgesGratis();
+      }
       if (cfg.eventoSabado.activo) {
         _aplicarEvento(slides[1], cfg.eventoSabado, cfg.eventoSabado.entradasGratis, 'sabado');
         // Si solo sábado está activo: hero muestra sábado y avanzar slider (I1)

@@ -55,7 +55,7 @@ ADMIN_KEY = os.getenv("ADMIN_KEY", "bw-admin-2026")
 # Debe reflejar el objeto ENTRADAS de JS/main.js. Cuando cambie el evento
 # (ver CLAUDE.md → "nuevo evento"), actualizar también esta tabla.
 # ══════════════════════════════════════════════════════
-NOMBRE_EVENTO_PRINCIPAL = "Pre Aniversario Blue Wine"
+NOMBRE_EVENTO_PRINCIPAL = "Aniversario Blue Wine"
 COMISION_MP = 0.15  # 15% MercadoPago, igual que en main.js
 
 PRECIOS_ENTRADAS = {
@@ -76,7 +76,7 @@ PRECIOS_ENTRADAS = {
 
 # Bandera para activar la entrada liberada (/obtener-entrada-gratis).
 # Mantener en False salvo que el evento actual regale entradas.
-ENTRADA_GRATIS_ACTIVA = False
+ENTRADA_GRATIS_ACTIVA = True
 LIMITE_ENTRADAS_GRATIS = 100
 
 # ══════════════════════════════════════════════════════
@@ -1085,13 +1085,28 @@ def reenviar_ticket():
 @app.route("/obtener-entrada-gratis", methods=["POST"])
 @limiter.limit("5 per hour")
 def obtener_entrada_gratis():
-    if not _get_config_bool('entradasGratis', ENTRADA_GRATIS_ACTIVA):
-        return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
-
     data      = request.get_json()
     comprador = data.get("comprador", {})
     rut       = str(comprador.get("rut", "")).strip()
     dia       = str(data.get("dia", "viernes")).strip()  # "viernes" o "sabado"
+
+    # Verificar que gratis esté activo para el día solicitado
+    if dia == 'sabado':
+        gratis_activa = False
+        try:
+            with get_db() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT valor FROM config WHERE clave = 'eventoSabado'")
+                    row = cur.fetchone()
+                    if row:
+                        gratis_activa = bool(json.loads(row[0]).get('entradasGratis', False))
+        except Exception:
+            pass
+        if not gratis_activa and not ENTRADA_GRATIS_ACTIVA:
+            return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
+    else:
+        if not _get_config_bool('entradasGratis', ENTRADA_GRATIS_ACTIVA):
+            return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
     limite    = _get_limite_entradas_gratis(dia)
 
     try:
