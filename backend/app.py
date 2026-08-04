@@ -269,6 +269,23 @@ def _get_entradas_config():
         return PRECIOS_ENTRADAS
 
 
+def _get_limite_entradas_gratis(dia='viernes'):
+    """Lee el límite de entradas gratis desde PG config. Fallback a LIMITE_ENTRADAS_GRATIS."""
+    clave = 'limiteEntradasGratisViernes' if dia == 'viernes' else 'limiteEntradasGratisSabado'
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT valor FROM config WHERE clave = %s", (clave,))
+                row = cur.fetchone()
+        if row:
+            val = int(json.loads(row[0]))
+            if val > 0:
+                return val
+    except Exception:
+        pass
+    return LIMITE_ENTRADAS_GRATIS
+
+
 def _get_nombre_evento():
     """Lee NOMBRE_EVENTO_PRINCIPAL desde el config en PostgreSQL (eventoViernes.nombre).
     Fallback a la constante hardcodeada si no existe o está vacío."""
@@ -1074,6 +1091,8 @@ def obtener_entrada_gratis():
     data      = request.get_json()
     comprador = data.get("comprador", {})
     rut       = str(comprador.get("rut", "")).strip()
+    dia       = str(data.get("dia", "viernes")).strip()  # "viernes" o "sabado"
+    limite    = _get_limite_entradas_gratis(dia)
 
     try:
         with get_db() as conn:
@@ -1090,7 +1109,7 @@ def obtener_entrada_gratis():
                     if cur.fetchone():
                         return jsonify({"ok": False, "error": "Ya tienes una entrada registrada para este evento. No es posible obtener una segunda entrada."}), 400
 
-        if total_gratis >= LIMITE_ENTRADAS_GRATIS:
+        if total_gratis >= limite:
             return jsonify({"ok": False, "error": "Las entradas gratuitas se han agotado."}), 400
 
     except Exception as e:
@@ -1106,7 +1125,7 @@ def obtener_entrada_gratis():
             total       = 0,
             id_pago     = "ENTRADA_LIBERADA"
         )
-        print(f"Entrada gratuita emitida — total: {total_gratis + 1}/{LIMITE_ENTRADAS_GRATIS}")
+        print(f"Entrada gratuita emitida — total: {total_gratis + 1}/{limite}")
         # Resumen a Blue Wine desactivado para entradas gratis (límite Resend 100/día)
         return jsonify({"ok": True})
     except Exception as e:

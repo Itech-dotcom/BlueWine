@@ -81,26 +81,33 @@ async function guardar() {
   // Leer entradas del tab entradas
   const entradas = {};
   document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
-    const keyEl    = row.querySelector('.entrada-key');
-    const precioEl = row.querySelector('.entrada-precio-input');
-    const limiteEl = row.querySelector('.entrada-limite-input');
-    const activaEl = row.querySelector('.entrada-activa-toggle');
-    const nombreEl = row.querySelector('.entrada-nombre-input');
-    const tipoEl   = row.querySelector('.entrada-tipo-select');
+    const keyEl     = row.querySelector('.entrada-key');
+    const precioEl  = row.querySelector('.entrada-precio-input');
+    const limiteEl  = row.querySelector('.entrada-limite-input');
+    const nombreEl  = row.querySelector('.entrada-nombre-input');
+    const tipoEl    = row.querySelector('.entrada-tipo-select');
+    const estadoEl  = row.querySelector('.entrada-estado-select');
     if (!keyEl) return;
     const key = keyEl.textContent.trim();
     if (!key) return;
+    const estado = estadoEl?.value || 'activa';
     entradas[key] = {
-      nombre: nombreEl?.value?.trim() || key,
-      precio: parseInt(precioEl?.value || '0', 10),
-      limite: parseInt(limiteEl?.value || '0', 10),
-      activa: activaEl?.checked ?? false,
-      tipo:   tipoEl?.value || 'general',
+      nombre:       nombreEl?.value?.trim() || key,
+      precio:       parseInt(precioEl?.value || '0', 10),
+      limite:       parseInt(limiteEl?.value || '0', 10),
+      activa:       estado === 'activa',
+      proximamente: estado === 'proximamente',
+      tipo:         tipoEl?.value || 'general',
     };
   });
 
+  const limiteGratisViernes = parseInt(document.getElementById('limite-gratis-viernes')?.value || '100', 10);
+  const limiteGratisSabado  = parseInt(document.getElementById('limite-gratis-sabado')?.value  || '100', 10);
+
   const config = {
     eventoActivo, entradasGratis, carrito, anuncio, entradas,
+    limiteEntradasGratisViernes: limiteGratisViernes,
+    limiteEntradasGratisSabado:  limiteGratisSabado,
     eventoViernes: {
       nombre: document.getElementById('ev-nombre-viernes')?.value?.trim() || '',
       fecha:  document.getElementById('ev-fecha-viernes')?.value?.trim()  || '',
@@ -445,7 +452,7 @@ function agregarEntrada() {
     <div><input type="number" value="5000" min="0" class="entrada-input entrada-precio-input" /></div>
     <div><input type="number" value="100"  min="0" class="entrada-input entrada-limite-input" /></div>
     <div class="entrada-stock">0</div>
-    <div><label class="toggle"><input type="checkbox" class="entrada-activa-toggle" checked /><span class="toggle-slider"></span></label></div>
+    <div><select class="entrada-estado-select"><option value="activa" selected>Activa</option><option value="agotada">Agotada</option><option value="proximamente">Próximamente</option></select></div>
     <button type="button" class="entrada-remove" onclick="this.closest('.entrada-row').remove()" title="Eliminar tipo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
     </button>`;
@@ -492,22 +499,35 @@ async function cargarConfigPanel() {
     if ('carrito'        in cfg) setToggle('toggle-carrito-viernes',          cfg.carrito);
     if ('anuncio'        in cfg) setToggle('toggle-anuncio-viernes',           cfg.anuncio);
 
+    if ('limiteEntradasGratisViernes' in cfg) {
+      const el = document.getElementById('limite-gratis-viernes');
+      if (el) el.value = cfg.limiteEntradasGratisViernes;
+    }
+    if ('limiteEntradasGratisSabado' in cfg) {
+      const el = document.getElementById('limite-gratis-sabado');
+      if (el) el.value = cfg.limiteEntradasGratisSabado;
+    }
+
     if (cfg.entradas && typeof cfg.entradas === 'object') {
       document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
         const keyEl = row.querySelector('.entrada-key');
         if (!keyEl) return;
         const val = cfg.entradas[keyEl.textContent.trim()];
         if (!val) return;
-        const nombreEl = row.querySelector('.entrada-nombre-input');
-        const precioEl = row.querySelector('.entrada-precio-input');
-        const limiteEl = row.querySelector('.entrada-limite-input');
-        const activaEl = row.querySelector('.entrada-activa-toggle');
-        const tipoEl   = row.querySelector('.entrada-tipo-select');
+        const nombreEl  = row.querySelector('.entrada-nombre-input');
+        const precioEl  = row.querySelector('.entrada-precio-input');
+        const limiteEl  = row.querySelector('.entrada-limite-input');
+        const tipoEl    = row.querySelector('.entrada-tipo-select');
+        const estadoEl  = row.querySelector('.entrada-estado-select');
         if (nombreEl && val.nombre) nombreEl.value = val.nombre;
         if (precioEl && 'precio' in val) precioEl.value = val.precio;
         if (limiteEl && 'limite' in val) limiteEl.value = val.limite;
-        if (activaEl && 'activa' in val) activaEl.checked = !!val.activa;
-        if (tipoEl   && val.tipo)        tipoEl.value = val.tipo;
+        if (tipoEl   && val.tipo) tipoEl.value = val.tipo;
+        if (estadoEl) {
+          if (val.proximamente) estadoEl.value = 'proximamente';
+          else if (!val.activa) estadoEl.value = 'agotada';
+          else estadoEl.value = 'activa';
+        }
       });
     }
 

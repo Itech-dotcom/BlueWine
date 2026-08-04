@@ -391,8 +391,8 @@ let _pendienteEntradaGratis = null;
 
 // Abre el formulario de checkout directamente en modo gratis (sin pasar por modal intermedio).
 // Se usa cuando entradasGratis está activo y el usuario presiona el botón del slide o hero.
-function abrirCheckoutGratis(nombre) {
-  _pendienteEntradaGratis = { nombre, cantidad: 1 };
+function abrirCheckoutGratis(nombre, dia) {
+  _pendienteEntradaGratis = { nombre, cantidad: 1, dia: dia || 'viernes' };
   cerrarTodosModales();
   const btn = document.getElementById('checkout-btn-pagar');
   if (btn) { btn.textContent = 'Obtener entrada gratis →'; btn.dataset.modo = 'gratis'; }
@@ -781,7 +781,7 @@ function procederPagoEntradas() {
     fetch('https://bluewine-production.up.railway.app/obtener-entrada-gratis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ comprador, nombreEvento, cantidad })
+      body: JSON.stringify({ comprador, nombreEvento, cantidad, dia: _pendienteEntradaGratis.dia || 'viernes' })
     })
     .then(res => res.json())
     .then(data => {
@@ -1152,7 +1152,7 @@ async function cargarConfigRemota() {
 
     // Datos del evento en slides y hero (I2)
     const slides = document.querySelectorAll('.evento-slide');
-    function _aplicarEvento(slide, ev, esGratis) {
+    function _aplicarEvento(slide, ev, esGratis, dia) {
       if (!slide || !ev?.nombre) return;
       const tag   = slide.querySelector('.evento-tag');
       const title = slide.querySelector('.evento-title');
@@ -1163,7 +1163,8 @@ async function cargarConfigRemota() {
       if (desc && ev.lineup) desc.textContent = ev.lineup;
       if (footer) {
         const nombreEsc = ev.nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        const onclick = esGratis ? `abrirCheckoutGratis('${nombreEsc}')` : 'abrirModal()';
+        const diaEsc    = (dia || 'viernes');
+        const onclick = esGratis ? `abrirCheckoutGratis('${nombreEsc}','${diaEsc}')` : 'abrirModal()';
         const label   = esGratis ? 'Obtener entrada gratis' : 'Ver entradas disponibles';
         footer.innerHTML = `<button class="hero-evento-btn" onclick="${onclick}"><span class="hero-evento-dot"></span>${label}</button>`;
       }
@@ -1178,7 +1179,7 @@ async function cargarConfigRemota() {
       if (cfg.eventoViernes.nombre) NOMBRE_EVENTO_PRINCIPAL = cfg.eventoViernes.nombre;
       _aplicarFechaSlide(slides[0], 'viernes', cfg.eventoViernes.fecha);
       if (cfg.eventoActivo) {
-        _aplicarEvento(slides[0], cfg.eventoViernes, cfg.entradasGratis);
+        _aplicarEvento(slides[0], cfg.eventoViernes, cfg.entradasGratis, 'viernes');
         const heroImg = document.querySelector('.hero-carrusel-slide');
         if (heroImg && cfg.eventoViernes.imagen) heroImg.src = 'Imagenes/' + cfg.eventoViernes.imagen;
         const heroFecha = document.querySelector('.hero-evento-fecha-txt');
@@ -1188,7 +1189,7 @@ async function cargarConfigRemota() {
           const heroBtn = document.querySelector('.hero-evento-btn');
           if (heroBtn) {
             const nombreEsc = cfg.eventoViernes.nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-            heroBtn.setAttribute('onclick', `abrirCheckoutGratis('${nombreEsc}')`);
+            heroBtn.setAttribute('onclick', `abrirCheckoutGratis('${nombreEsc}','viernes')`);
             heroBtn.innerHTML = '<span class="hero-evento-dot"></span>Obtener entrada gratis';
           }
         }
@@ -1198,7 +1199,7 @@ async function cargarConfigRemota() {
     if (cfg.eventoSabado) {
       _aplicarFechaSlide(slides[1], 'sabado', cfg.eventoSabado.fecha);
       if (cfg.eventoSabado.activo) {
-        _aplicarEvento(slides[1], cfg.eventoSabado, cfg.eventoSabado.entradasGratis);
+        _aplicarEvento(slides[1], cfg.eventoSabado, cfg.eventoSabado.entradasGratis, 'sabado');
         // Si solo sábado está activo: hero muestra sábado y avanzar slider (I1)
         if (!cfg.eventoActivo) {
           const heroImg = document.querySelector('.hero-carrusel-slide');
@@ -1230,11 +1231,12 @@ async function cargarConfigRemota() {
             tipo: val.tipo || 'general',
           };
         } else {
-          if ('nombre' in val) ENTRADAS[key].nombre = val.nombre;
-          if ('activa' in val) ENTRADAS[key].activa = val.activa;
-          if ('precio' in val) ENTRADAS[key].precio = val.precio;
-          if ('tipo'   in val) ENTRADAS[key].tipo   = val.tipo;
-          if ('limite' in val) { ENTRADAS[key].limite = val.limite; ENTRADAS[key].disponibles = val.limite; }
+          if ('nombre'       in val) ENTRADAS[key].nombre       = val.nombre;
+          if ('activa'       in val) ENTRADAS[key].activa       = val.activa;
+          if ('proximamente' in val) ENTRADAS[key].proximamente = val.proximamente;
+          if ('precio'       in val) ENTRADAS[key].precio       = val.precio;
+          if ('tipo'         in val) ENTRADAS[key].tipo         = val.tipo;
+          if ('limite'       in val) { ENTRADAS[key].limite = val.limite; ENTRADAS[key].disponibles = val.limite; }
         }
       });
       ENTRADAS._configKeys = configKeys;

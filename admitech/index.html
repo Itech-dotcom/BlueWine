@@ -360,6 +360,21 @@
       <button class="btn btn-primary" onclick="guardar()">Guardar cambios</button>
     </div>
 
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-label">Entradas gratis</div>
+      <div class="grid-2">
+        <div class="field" style="margin-bottom:0;">
+          <label for="limite-gratis-viernes">Cantidad disponibles — Viernes</label>
+          <input type="number" id="limite-gratis-viernes" value="100" min="0" class="entrada-input" placeholder="100" />
+          <div class="field-hint">Se activa con el toggle "Entradas gratis" del tab Evento.</div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="limite-gratis-sabado">Cantidad disponibles — Sábado</label>
+          <input type="number" id="limite-gratis-sabado" value="100" min="0" class="entrada-input" placeholder="100" />
+        </div>
+      </div>
+    </div>
+
     <div class="day-content active" data-day="viernes">
       <div class="card" style="padding:0 20px;">
         <div class="entradas-scroll">
@@ -369,7 +384,7 @@
             <span>Precio</span>
             <span>Stock</span>
             <span>Vendidas</span>
-            <span>Activa</span>
+            <span>Estado</span>
             <span></span>
           </div>
           <div id="entradas-list">
@@ -382,7 +397,7 @@
               <div><input type="number" value="5000"   min="0" class="entrada-input entrada-precio-input" /></div>
               <div><input type="number" value="100"    min="0" class="entrada-input entrada-limite-input" /></div>
               <div class="entrada-stock">0</div>
-              <div><label class="toggle"><input type="checkbox" class="entrada-activa-toggle" /><span class="toggle-slider"></span></label></div>
+              <div><select class="entrada-estado-select"><option value="activa">Activa</option><option value="agotada" selected>Agotada</option><option value="proximamente">Próximamente</option></select></div>
               <button type="button" class="entrada-remove" onclick="this.closest('.entrada-row').remove()" title="Eliminar tipo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
@@ -396,7 +411,7 @@
               <div><input type="number" value="10000"  min="0" class="entrada-input entrada-precio-input" /></div>
               <div><input type="number" value="50"     min="0" class="entrada-input entrada-limite-input" /></div>
               <div class="entrada-stock">0</div>
-              <div><label class="toggle"><input type="checkbox" class="entrada-activa-toggle" /><span class="toggle-slider"></span></label></div>
+              <div><select class="entrada-estado-select"><option value="activa">Activa</option><option value="agotada" selected>Agotada</option><option value="proximamente">Próximamente</option></select></div>
               <button type="button" class="entrada-remove" onclick="this.closest('.entrada-row').remove()" title="Eliminar tipo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
@@ -410,7 +425,7 @@
               <div><input type="number" value="150000" min="0" class="entrada-input entrada-precio-input" /></div>
               <div><input type="number" value="4"      min="0" class="entrada-input entrada-limite-input" /></div>
               <div class="entrada-stock">0</div>
-              <div><label class="toggle"><input type="checkbox" class="entrada-activa-toggle" /><span class="toggle-slider"></span></label></div>
+              <div><select class="entrada-estado-select"><option value="activa">Activa</option><option value="agotada" selected>Agotada</option><option value="proximamente">Próximamente</option></select></div>
               <button type="button" class="entrada-remove" onclick="this.closest('.entrada-row').remove()" title="Eliminar tipo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
