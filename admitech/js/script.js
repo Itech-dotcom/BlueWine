@@ -108,8 +108,10 @@ async function guardar() {
       lineup: document.getElementById('ev-lineup-viernes')?.value?.trim() || '',
     },
     eventoSabado: {
-      activo:  document.getElementById('toggle-evento-activo-sabado')?.checked ?? false,
-      carrito: document.getElementById('toggle-carrito-sabado')?.checked       ?? false,
+      activo:        document.getElementById('toggle-evento-activo-sabado')?.checked       ?? false,
+      entradasGratis:document.getElementById('toggle-entradas-gratis-sabado')?.checked     ?? false,
+      carrito:       document.getElementById('toggle-carrito-sabado')?.checked             ?? false,
+      anuncio:       document.getElementById('toggle-anuncio-sabado')?.checked             ?? false,
       nombre:  document.getElementById('ev-nombre-sabado')?.value?.trim()      || '',
       fecha:   document.getElementById('ev-fecha-sabado')?.value?.trim()       || '',
       imagen:  document.getElementById('ev-imagen-sabado')?.value?.trim()      || '',
@@ -531,8 +533,10 @@ async function cargarConfigPanel() {
     if (cfg.eventoSabado) {
       const ev = cfg.eventoSabado;
       const setVal = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.value = v; };
-      setToggle('toggle-evento-activo-sabado', ev.activo);
-      setToggle('toggle-carrito-sabado', ev.carrito);
+      setToggle('toggle-evento-activo-sabado',    ev.activo);
+      setToggle('toggle-entradas-gratis-sabado',  ev.entradasGratis);
+      setToggle('toggle-carrito-sabado',          ev.carrito);
+      setToggle('toggle-anuncio-sabado',          ev.anuncio);
       setVal('ev-nombre-sabado', ev.nombre);
       setVal('ev-lineup-sabado', ev.lineup);
       if (ev.fecha) { setVal('ev-fecha-sabado', ev.fecha); actualizarPreviewSlide('sabado'); }

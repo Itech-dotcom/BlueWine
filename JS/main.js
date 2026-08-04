@@ -1143,10 +1143,11 @@ async function cargarConfigRemota() {
       renderBadgesGratis();
     }
 
-    // Anuncio emergente
-    if ('anuncio' in cfg) {
-      CONFIG_ANUNCIO.activo = cfg.anuncio;
-      if (!cfg.anuncio) hide('#modal-anuncio');
+    // Anuncio emergente (viernes tiene su propio toggle; sábado hereda si su toggle está ON)
+    const anuncioActivo = cfg.anuncio || cfg.eventoSabado?.anuncio;
+    if ('anuncio' in cfg || cfg.eventoSabado) {
+      CONFIG_ANUNCIO.activo = !!anuncioActivo;
+      if (!anuncioActivo) hide('#modal-anuncio');
     }
 
     // Datos del evento en slides y hero (I2)
@@ -1197,7 +1198,7 @@ async function cargarConfigRemota() {
     if (cfg.eventoSabado) {
       _aplicarFechaSlide(slides[1], 'sabado', cfg.eventoSabado.fecha);
       if (cfg.eventoSabado.activo) {
-        _aplicarEvento(slides[1], cfg.eventoSabado, cfg.entradasGratis);
+        _aplicarEvento(slides[1], cfg.eventoSabado, cfg.eventoSabado.entradasGratis);
         // Si solo sábado está activo: hero muestra sábado y avanzar slider (I1)
         if (!cfg.eventoActivo) {
           const heroImg = document.querySelector('.hero-carrusel-slide');

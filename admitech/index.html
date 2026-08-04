@@ -93,7 +93,7 @@
   <span class="day-bar-label">Editando</span>
   <div class="day-selector">
     <button type="button" class="day-pill active" data-day="viernes" onclick="switchDay('viernes')">
-      Viernes <span class="day-dot on" id="day-dot-viernes"></span>
+      Viernes <span class="day-dot" id="day-dot-viernes"></span>
     </button>
     <button type="button" class="day-pill" data-day="sabado" onclick="switchDay('sabado')">
       Sábado <span class="day-dot" id="day-dot-sabado"></span>
@@ -314,11 +314,33 @@
 
         <div class="toggle-row">
           <div class="toggle-info">
+            <strong>Entradas gratis habilitadas</strong>
+            <span>Permite que los usuarios obtengan entrada gratis (sin pago)</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-entradas-gratis-sabado" onchange="onToggleEntradasGratis(this,'sabado')" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
             <strong>Botón carrito (entradas de pago)</strong>
             <span>Muestra el carrito y el flujo de compra con MercadoPago</span>
           </div>
           <label class="toggle">
             <input type="checkbox" id="toggle-carrito-sabado" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Modal de anuncio</strong>
+            <span>Popup que aparece al entrar a la página</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-anuncio-sabado" />
             <span class="toggle-slider"></span>
           </label>
         </div>
