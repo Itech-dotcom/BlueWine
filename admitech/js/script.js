@@ -395,7 +395,7 @@ function actualizarResumenTickets() {
   if (el) el.textContent = texto || (todosTickets.length ? 'Sin resultados para el filtro' : 'Sin tickets registrados');
 }
 
-// ── EXPORTAR CSV ──
+// ── EXPORTAR EXCEL ──
 function exportarCSV() {
   if (!todosTickets.length) { mostrarToast('No hay tickets para exportar', 'error'); return; }
 
@@ -414,27 +414,20 @@ function exportarCSV() {
     ['estado',        'Estado'],
   ];
 
-  const escapeCsv = v => {
-    const s = String(v == null ? '' : v);
-    return s.includes(',') || s.includes('"') || s.includes('\n')
-      ? `"${s.replace(/"/g, '""')}"` : s;
-  };
+  const headers = COLS.map(([, label]) => label);
+  const rows    = todosTickets.map(t => COLS.map(([key]) => t[key] ?? ''));
 
-  const header = COLS.map(([, label]) => escapeCsv(label)).join(',');
-  const rows   = todosTickets.map(t =>
-    COLS.map(([key]) => escapeCsv(t[key] ?? '')).join(',')
-  );
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
 
-  const bom     = '﻿';
-  const content = bom + [header, ...rows].join('\n');
-  const blob    = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-  const url     = URL.createObjectURL(blob);
-  const a       = document.createElement('a');
-  a.href        = url;
-  a.download    = `tickets-bluewine-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-  mostrarToast('CSV exportado');
+  ws['!cols'] = COLS.map(([key, label]) => {
+    const maxLen = Math.max(label.length, ...todosTickets.map(t => String(t[key] ?? '').length));
+    return { wch: Math.min(maxLen + 2, 45) };
+  });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Tickets');
+  XLSX.writeFile(wb, `tickets-bluewine-${new Date().toISOString().slice(0,10)}.xlsx`);
+  mostrarToast('Excel exportado');
 }
 
 // ── ENTRADAS: AGREGAR / ELIMINAR ──
