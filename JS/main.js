@@ -1244,12 +1244,13 @@ async function cargarConfigRemota() {
         if (!ENTRADAS[key]) {
           // Tipo nuevo creado desde el panel — agregarlo al runtime
           ENTRADAS[key] = {
-            nombre: val.nombre || key,
-            precio: val.precio || 0,
-            limite: val.limite || 0,
-            disponibles: val.limite || 0,
-            activa: val.activa !== false,
-            tipo: val.tipo || 'general',
+            nombre:       val.nombre || key,
+            precio:       val.precio || 0,
+            limite:       val.limite || 0,
+            disponibles:  val.limite || 0,
+            activa:       val.activa === true,
+            proximamente: val.proximamente === true,
+            tipo:         val.tipo || 'general',
           };
         } else {
           if ('nombre'       in val) ENTRADAS[key].nombre       = val.nombre;
