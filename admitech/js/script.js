@@ -53,10 +53,10 @@ async function guardarEvento() {
     // Verificar entradas desactivadas
     const inactivas = [];
     document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
-      const activaEl  = row.querySelector('.entrada-activa-toggle');
+      const estadoEl  = row.querySelector('.entrada-estado-select');
       const nombreEl  = row.querySelector('.entrada-nombre-input');
       const keyEl     = row.querySelector('.entrada-key');
-      if (activaEl && !activaEl.checked) inactivas.push(nombreEl?.value?.trim() || keyEl?.textContent?.trim() || '—');
+      if (estadoEl && estadoEl.value === 'agotada') inactivas.push(nombreEl?.value?.trim() || keyEl?.textContent?.trim() || '—');
     });
     if (inactivas.length) {
       const ok = confirm(
@@ -509,26 +509,37 @@ async function cargarConfigPanel() {
     }
 
     if (cfg.entradas && typeof cfg.entradas === 'object') {
-      document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
-        const keyEl = row.querySelector('.entrada-key');
-        if (!keyEl) return;
-        const val = cfg.entradas[keyEl.textContent.trim()];
-        if (!val) return;
-        const nombreEl  = row.querySelector('.entrada-nombre-input');
-        const precioEl  = row.querySelector('.entrada-precio-input');
-        const limiteEl  = row.querySelector('.entrada-limite-input');
-        const tipoEl    = row.querySelector('.entrada-tipo-select');
-        const estadoEl  = row.querySelector('.entrada-estado-select');
-        if (nombreEl && val.nombre) nombreEl.value = val.nombre;
-        if (precioEl && 'precio' in val) precioEl.value = val.precio;
-        if (limiteEl && 'limite' in val) limiteEl.value = val.limite;
-        if (tipoEl   && val.tipo) tipoEl.value = val.tipo;
-        if (estadoEl) {
-          if (val.proximamente) estadoEl.value = 'proximamente';
-          else if (!val.activa) estadoEl.value = 'agotada';
-          else estadoEl.value = 'activa';
-        }
-      });
+      const list = document.getElementById('entradas-list');
+      if (list) {
+        list.innerHTML = '';
+        Object.entries(cfg.entradas).forEach(([key, val]) => {
+          const estado = val.proximamente ? 'proximamente' : (val.activa ? 'activa' : 'agotada');
+          const row = document.createElement('div');
+          row.className = 'entrada-row';
+          row.innerHTML = `
+            <div class="entrada-nombre">
+              <input type="text" class="entrada-input entrada-nombre-input" value="${escapeHtml(val.nombre || key)}" placeholder="Nombre…" />
+              <span class="entrada-key">${key}</span>
+            </div>
+            <div><select class="entrada-tipo-select">
+              <option value="general"${val.tipo === 'general' ? ' selected' : ''}>General</option>
+              <option value="vip"${val.tipo === 'vip' ? ' selected' : ''}>VIP</option>
+              <option value="supervip"${val.tipo === 'supervip' ? ' selected' : ''}>Super VIP</option>
+            </select></div>
+            <div><input type="number" value="${val.precio || 0}" min="0" class="entrada-input entrada-precio-input" /></div>
+            <div><input type="number" value="${val.limite || 0}" min="0" class="entrada-input entrada-limite-input" /></div>
+            <div class="entrada-stock">0</div>
+            <div><select class="entrada-estado-select">
+              <option value="activa"${estado === 'activa' ? ' selected' : ''}>Activa</option>
+              <option value="agotada"${estado === 'agotada' ? ' selected' : ''}>Agotada</option>
+              <option value="proximamente"${estado === 'proximamente' ? ' selected' : ''}>Próximamente</option>
+            </select></div>
+            <button type="button" class="entrada-remove" onclick="this.closest('.entrada-row').remove()" title="Eliminar tipo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>`;
+          list.appendChild(row);
+        });
+      }
     }
 
     // Datos del evento Viernes
