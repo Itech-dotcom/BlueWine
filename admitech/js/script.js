@@ -396,7 +396,7 @@ function actualizarResumenTickets() {
 }
 
 // ── EXPORTAR EXCEL ──
-function exportarCSV() {
+async function exportarCSV() {
   if (!todosTickets.length) { mostrarToast('No hay tickets para exportar', 'error'); return; }
 
   const COLS = [
@@ -404,29 +404,54 @@ function exportarCSV() {
     ['nombre',        'Nombre'],
     ['apellido',      'Apellido'],
     ['rut',           'RUT'],
-    ['email',         'Email'],
-    ['telefono',      'Teléfono'],
     ['evento',        'Evento / Tipo'],
     ['acompanante_de','Acompañante de'],
+    ['email',         'Email'],
+    ['telefono',      'Teléfono'],
     ['precio_unit',   'Precio'],
     ['fecha_compra',  'Fecha compra'],
     ['id_pago',       'ID pago MP'],
     ['estado',        'Estado'],
   ];
 
-  const headers = COLS.map(([, label]) => label);
-  const rows    = todosTickets.map(t => COLS.map(([key]) => t[key] ?? ''));
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Tickets');
 
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-  ws['!cols'] = COLS.map(([key, label]) => {
+  ws.columns = COLS.map(([key, label]) => {
     const maxLen = Math.max(label.length, ...todosTickets.map(t => String(t[key] ?? '').length));
-    return { wch: Math.min(maxLen + 2, 45) };
+    return { header: label, key, width: Math.min(maxLen + 4, 48) };
   });
 
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Tickets');
-  XLSX.writeFile(wb, `tickets-bluewine-${new Date().toISOString().slice(0,10)}.xlsx`);
+  // Cabecera dorada
+  const headerRow = ws.getRow(1);
+  headerRow.height = 22;
+  headerRow.eachCell(cell => {
+    cell.font      = { bold: true, color: { argb: 'FF111111' }, size: 11, name: 'Calibri' };
+    cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC9A84C' } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border    = { bottom: { style: 'medium', color: { argb: 'FF8B6B14' } } };
+  });
+
+  // Filas de datos con alternancia
+  todosTickets.forEach((t, i) => {
+    const row = ws.addRow(COLS.map(([key]) => t[key] ?? ''));
+    row.height = 18;
+    const bg = i % 2 === 0 ? 'FFFFFFFF' : 'FFF5EDD5';
+    row.eachCell(cell => {
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+      cell.font      = { size: 10, name: 'Calibri' };
+    });
+  });
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob   = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url    = URL.createObjectURL(blob);
+  const a      = document.createElement('a');
+  a.href       = url;
+  a.download   = `tickets-bluewine-${new Date().toISOString().slice(0,10)}.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
   mostrarToast('Excel exportado');
 }
 
