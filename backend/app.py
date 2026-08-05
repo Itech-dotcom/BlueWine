@@ -714,7 +714,7 @@ def _smtp_send(to_list, subject, html, inline_imgs=None):
     print(f"Email enviado via Brevo API — destinatarios: {len(to_list)} ({', '.join(dominios)})")
 
 
-def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
+def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None, subject=None):
     # Manda UN solo email resumen a Blue Wine con todos los tickets de la compra.
     # Así en vez de recibir N copias individuales, recibe 1 resumen por compra.
     try:
@@ -724,9 +724,8 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
         total_personas   = len(todos)
 
         # Construir filas de la tabla e imágenes inline
-        filas_html  = ""
-        inline_imgs = []
-        qrs_map     = {i: (codigo, qr_img) for i, (_, _, codigo, qr_img) in enumerate(qrs)} if qrs else {}
+        filas_html = ""
+        qrs_map    = {i: (codigo, qr_img) for i, (_, _, codigo, qr_img) in enumerate(qrs)} if qrs else {}
 
         e = _html.escape
         for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
@@ -735,13 +734,12 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
             email  = e(asistente.get("email", "—"))
             rut    = e(asistente.get("rut", "—"))
             tipo   = e(ticket.get("nombre", "—"))
-            cid    = f"qr-resumen-{idx}"
 
             qr_cell = ""
             if idx in qrs_map:
                 codigo_t, qr_img_t = qrs_map[idx]
-                inline_imgs.append({"cid": cid, "data": qr_img_t})
-                qr_cell = f'<img src="cid:{cid}" width="80" height="80" style="border:2px solid #c9a84c;border-radius:4px;" /><br><span style="font-family:monospace;font-size:10px;color:#c9a84c;">{e(codigo_t)}</span>'
+                qr_b64 = base64.b64encode(qr_img_t).decode()
+                qr_cell = f'<img src="data:image/png;base64,{qr_b64}" width="80" height="80" style="border:2px solid #c9a84c;border-radius:4px;" /><br><span style="font-family:monospace;font-size:10px;color:#c9a84c;">{e(codigo_t)}</span>'
 
             filas_html += f"""
             <tr>
@@ -779,10 +777,9 @@ def _enviar_resumen_compra(comprador, todos, tickets_lista, id_pago, qrs=None):
         """
 
         _smtp_send(
-            to_list     = [copia_bw],
-            subject     = f"🎟️ Nueva compra — {nombre_comprador} ({total_personas} persona{'s' if total_personas > 1 else ''})",
-            html        = html_resumen,
-            inline_imgs = inline_imgs or None,
+            to_list = [copia_bw],
+            subject = subject or f"🎟️ Nueva compra — {nombre_comprador} ({total_personas} persona{'s' if total_personas > 1 else ''})",
+            html    = html_resumen,
         )
         # nombre_comprador en subject es para admin interno — no necesita escape (no es HTML)
         print(f"Resumen de compra enviado a {copia_bw}")
@@ -845,7 +842,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
       </div>
       <div style="text-align:center;margin:24px 0;">
-        <img src="cid:qr-ticket" alt="QR Ticket" style="width:200px;height:200px;border:4px solid #c9a84c;border-radius:8px;" />
+        <img src="data:image/png;base64,{base64.b64encode(qr_img).decode()}" alt="QR Ticket" style="width:200px;height:200px;border:4px solid #c9a84c;border-radius:8px;" />
       </div>
       <div style="background:rgba(224,82,82,0.1);border:1px solid rgba(224,82,82,0.35);border-radius:8px;padding:14px 16px;margin-bottom:16px;">
         <p style="margin:0;font-size:0.82rem;color:#e88;line-height:1.5;">
@@ -859,10 +856,9 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
     """
 
     _smtp_send(
-        to_list     = [destinatario],
-        subject     = f"🎟️ Tu entrada para {evento} — Blue Wine",
-        html        = html_body,
-        inline_imgs = [{"cid": "qr-ticket", "data": qr_img}],
+        to_list = [destinatario],
+        subject = f"🎟️ Tu entrada para {evento} — Blue Wine",
+        html    = html_body,
     )
     print(f"Email ticket enviado a {destinatario} via Brevo")
 
@@ -1132,31 +1128,26 @@ def obtener_entrada_gratis():
         return jsonify({"ok": False, "error": "Error al verificar disponibilidad. Intenta nuevamente."}), 500
 
     try:
-        _emitir_ticket(
+        nombre_evento_g = f"{_get_nombre_evento()} — Entrada Gratuita"
+        codigo, qr_img = _emitir_ticket(
             comprador   = comprador,
-            evento      = f"{_get_nombre_evento()} — Entrada Gratuita",
+            evento      = nombre_evento_g,
             cantidad    = 1,
             precio_unit = 0,
             total       = 0,
             id_pago     = "ENTRADA_LIBERADA"
         )
-        print(f"Entrada gratuita emitida — total: {total_gratis + 1}/{limite}")
-        # Notificar a Blue Wine
+        nuevo_total = total_gratis + 1
+        print(f"Entrada gratuita emitida — total: {nuevo_total}/{limite}")
         try:
-            copia_bw = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
-            e = _html.escape
-            nombre_c = e(f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip())
-            _smtp_send(
-                to_list = [copia_bw],
-                subject = f"🎟️ Entrada gratis emitida — {nombre_c} ({total_gratis + 1}/{limite})",
-                html    = f"""<div style="font-family:Arial,sans-serif;max-width:500px;background:#0a0a0f;color:#e8e0d0;padding:24px;border-radius:12px;">
-                  <h3 style="color:#c9a84c;">🎟️ Entrada gratuita emitida</h3>
-                  <p><strong>Nombre:</strong> {nombre_c}</p>
-                  <p><strong>RUT:</strong> {e(comprador.get('rut','—'))}</p>
-                  <p><strong>Email:</strong> {e(comprador.get('email','—'))}</p>
-                  <p><strong>Teléfono:</strong> {e(comprador.get('telefono','—'))}</p>
-                  <p><strong>Total emitidas:</strong> {total_gratis + 1}/{limite}</p>
-                </div>"""
+            nombre_c = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
+            _enviar_resumen_compra(
+                comprador     = comprador,
+                todos         = [comprador],
+                tickets_lista = [{"nombre": nombre_evento_g}],
+                id_pago       = "ENTRADA_LIBERADA",
+                qrs           = [(None, None, codigo, qr_img)],
+                subject       = f"🎟️ Entrada gratis — {nombre_c} ({nuevo_total}/{limite})",
             )
         except Exception as ex:
             print(f"Error enviando copia gratis a BW: {ex}")
