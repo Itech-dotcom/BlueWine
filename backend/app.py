@@ -1141,7 +1141,25 @@ def obtener_entrada_gratis():
             id_pago     = "ENTRADA_LIBERADA"
         )
         print(f"Entrada gratuita emitida — total: {total_gratis + 1}/{limite}")
-        # Resumen a Blue Wine desactivado para entradas gratis (límite Resend 100/día)
+        # Notificar a Blue Wine
+        try:
+            copia_bw = os.getenv("EMAIL_COPIA", "bluewine.contacto@gmail.com")
+            e = _html.escape
+            nombre_c = e(f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip())
+            _smtp_send(
+                to_list = [copia_bw],
+                subject = f"🎟️ Entrada gratis emitida — {nombre_c} ({total_gratis + 1}/{limite})",
+                html    = f"""<div style="font-family:Arial,sans-serif;max-width:500px;background:#0a0a0f;color:#e8e0d0;padding:24px;border-radius:12px;">
+                  <h3 style="color:#c9a84c;">🎟️ Entrada gratuita emitida</h3>
+                  <p><strong>Nombre:</strong> {nombre_c}</p>
+                  <p><strong>RUT:</strong> {e(comprador.get('rut','—'))}</p>
+                  <p><strong>Email:</strong> {e(comprador.get('email','—'))}</p>
+                  <p><strong>Teléfono:</strong> {e(comprador.get('telefono','—'))}</p>
+                  <p><strong>Total emitidas:</strong> {total_gratis + 1}/{limite}</p>
+                </div>"""
+            )
+        except Exception as ex:
+            print(f"Error enviando copia gratis a BW: {ex}")
         return jsonify({"ok": True})
     except Exception as e:
         print(f"Error generando entrada gratis: {e}")
