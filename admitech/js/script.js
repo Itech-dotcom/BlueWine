@@ -585,7 +585,7 @@ async function cargarConfigPanel() {
       const setVal = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.value = v; };
       setToggle('toggle-evento-activo-sabado',      ev.activo);
       setToggle('toggle-entradas-gratis-sabado',    ev.entradasGratis);
-      setToggle('toggle-gratis-agotada-sabado',     ev.entradasGratisAgotada);
+      if ('entradasGratisAgotada' in ev) setToggle('toggle-gratis-agotada-sabado', ev.entradasGratisAgotada);
       setToggle('toggle-carrito-sabado',            ev.carrito);
       setToggle('toggle-anuncio-sabado',            ev.anuncio);
       setVal('ev-nombre-sabado', ev.nombre);
