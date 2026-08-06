@@ -1088,16 +1088,21 @@ def obtener_entrada_gratis():
 
     # Verificar que gratis esté activo para el día solicitado
     if dia == 'sabado':
-        gratis_activa = False
+        gratis_activa  = False
+        gratis_agotada = False
         try:
             with get_db() as conn:
                 with conn.cursor() as cur:
                     cur.execute("SELECT valor FROM config WHERE clave = 'eventoSabado'")
                     row = cur.fetchone()
                     if row:
-                        gratis_activa = bool(json.loads(row[0]).get('entradasGratis', False))
+                        cfg_s = json.loads(row[0])
+                        gratis_activa  = bool(cfg_s.get('entradasGratis', False))
+                        gratis_agotada = bool(cfg_s.get('entradasGratisAgotada', False))
         except Exception:
             pass
+        if gratis_agotada:
+            return jsonify({"ok": False, "error": "Las entradas gratuitas están agotadas"}), 403
         if not gratis_activa and not ENTRADA_GRATIS_ACTIVA:
             return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
     else:

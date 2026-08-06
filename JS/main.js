@@ -36,8 +36,9 @@ const CONFIG_VIERNES = {
 };
 
 const CONFIG_SABADO = {
-  esGratis:  true,        // ← entradas gratis activas: Aniversario
-  horaCorte: '23:00',
+  esGratis:      true,   // ← entradas gratis activas: Aniversario
+  gratisAgotada: false,  // ← true = muestra tarjeta pero bloqueada
+  horaCorte:     '23:00',
 };
 
 // ══════════════════════════════════════════════════════
@@ -270,23 +271,36 @@ function renderizarTiposEntrada() {
   const container = document.getElementById('modal-tipos-container');
   container.innerHTML = '';
 
-  // Tarjeta gratis al tope si hay entradas liberadas activas
+  // Tarjeta gratis al tope si hay entradas liberadas activas o agotadas
   const esGratisViernes = CONFIG_VIERNES.esGratis;
   const esGratisSabado  = CONFIG_SABADO.esGratis;
-  if (esGratisViernes || esGratisSabado) {
-    const dia = esGratisSabado ? 'sabado' : 'viernes';
+  const gratisAgotada   = CONFIG_SABADO.gratisAgotada || CONFIG_VIERNES.gratisAgotada;
+  if (esGratisViernes || esGratisSabado || gratisAgotada) {
+    const dia       = esGratisSabado ? 'sabado' : 'viernes';
     const nombreEsc = NOMBRE_EVENTO_PRINCIPAL.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const gratisGrupo = document.createElement('div');
     gratisGrupo.className = 'modal-tipo-grupo';
-    gratisGrupo.innerHTML = `
-      <div class="modal-tipo-grupo-titulo">🎉 Entrada Liberada</div>
-      <div class="modal-tipo-opciones">
-        <div class="modal-tipo-card" style="cursor:pointer;" onclick="abrirCheckoutGratis('${nombreEsc}','${dia}')">
-          <div class="modal-tipo-badge badge-disponible">Gratis</div>
-          <div class="modal-tipo-nombre">Entrada Gratuita</div>
-          <div class="modal-tipo-precio">GRATIS</div>
-        </div>
-      </div>`;
+    if (gratisAgotada) {
+      gratisGrupo.innerHTML = `
+        <div class="modal-tipo-grupo-titulo">🎉 Entrada Liberada</div>
+        <div class="modal-tipo-opciones">
+          <div class="modal-tipo-card agotado" style="cursor:default;">
+            <div class="modal-tipo-badge badge-agotado">Agotada</div>
+            <div class="modal-tipo-nombre">Entrada Gratuita</div>
+            <div class="modal-tipo-precio">GRATIS</div>
+          </div>
+        </div>`;
+    } else {
+      gratisGrupo.innerHTML = `
+        <div class="modal-tipo-grupo-titulo">🎉 Entrada Liberada</div>
+        <div class="modal-tipo-opciones">
+          <div class="modal-tipo-card" style="cursor:pointer;" onclick="abrirCheckoutGratis('${nombreEsc}','${dia}')">
+            <div class="modal-tipo-badge badge-disponible">Gratis</div>
+            <div class="modal-tipo-nombre">Entrada Gratuita</div>
+            <div class="modal-tipo-precio">GRATIS</div>
+          </div>
+        </div>`;
+    }
     container.appendChild(gratisGrupo);
   }
 
@@ -1223,6 +1237,9 @@ async function cargarConfigRemota() {
       if ('entradasGratis' in cfg.eventoSabado) {
         CONFIG_SABADO.esGratis = !!cfg.eventoSabado.entradasGratis;
         renderBadgesGratis();
+      }
+      if ('entradasGratisAgotada' in cfg.eventoSabado) {
+        CONFIG_SABADO.gratisAgotada = !!cfg.eventoSabado.entradasGratisAgotada;
       }
       if (cfg.eventoSabado.activo) {
         _aplicarEvento(slides[1], cfg.eventoSabado, cfg.eventoSabado.entradasGratis, 'sabado');
