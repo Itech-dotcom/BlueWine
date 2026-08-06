@@ -285,7 +285,7 @@ function renderizarTiposEntrada() {
         <div class="modal-tipo-grupo-titulo">🎉 Entrada Liberada</div>
         <div class="modal-tipo-opciones">
           <div class="modal-tipo-card agotado" style="cursor:default;">
-            <div class="modal-tipo-badge badge-agotado">Agotada</div>
+            <div class="modal-tipo-badge agotado-badge">Agotada</div>
             <div class="modal-tipo-nombre">Entrada Gratuita</div>
             <div class="modal-tipo-precio">GRATIS</div>
           </div>
