@@ -336,8 +336,7 @@ function renderizarTiposEntrada() {
         <div class="modal-tipo-nombre">${e.nombre}</div>
         ${e.desc ? '<div class="modal-tipo-sub">' + e.desc + '</div>' : ''}
         <div class="modal-tipo-precio">${e.precioLabel || formatPrecio(e.precio)}</div>
-        ${esDisponible && e.limite ? '<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:' + colorCupos(e.disponibles, e.limite) + ';flex-shrink:0;box-shadow:0 0 5px ' + colorCupos(e.disponibles, e.limite) + '88;"></span><span style="font-size:0.72rem;color:' + colorCupos(e.disponibles, e.limite) + ';font-weight:500;letter-spacing:0.02em;">' + e.disponibles + ' cupos disponibles</span></div>' : ''}
-        ${ultimasEntradas ? '<div class="modal-ultimas">⚡ Últimas entradas</div>' : ''}
+        ${esDisponible && e.limite ? (() => { const c = colorCupos(e.disponibles, e.limite); const pct = e.disponibles / e.limite; const lbl = pct > 0.5 ? 'Disponible' : pct > 0.2 ? 'Pocas entradas' : 'Últimas entradas'; return `<div style="display:flex;align-items:center;gap:5px;margin-top:5px;"><span style="width:7px;height:7px;border-radius:50%;background:${c};flex-shrink:0;box-shadow:0 0 5px ${c}88;"></span><span style="font-size:0.72rem;color:${c};font-weight:500;">${lbl}</span></div>`; })() : ''}
       `;
 
       opciones.appendChild(card);
