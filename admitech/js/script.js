@@ -192,13 +192,21 @@ async function enviarReenvio(event) {
 }
 
 // ── IMAGEN DEL EVENTO ──
+function normalizarNombreArchivoEvento(fileName, dia) {
+  const extension = (fileName.match(/\.([a-z0-9]+)$/i)?.[1] || 'jpg').toLowerCase();
+  const extValida = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension) ? extension : 'jpg';
+  const diaKey = dia === 'sabado' ? 'sabado' : 'viernes';
+  return `evento-${diaKey}.${extValida}`;
+}
+
 function handleImagenSeleccionada(event, dia) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
   const url = URL.createObjectURL(file);
+  const nombreArchivo = normalizarNombreArchivoEvento(file.name, dia);
   document.getElementById('ev-imagen-preview-img-' + dia).src = url;
   document.getElementById('ev-imagen-wrap-' + dia).classList.add('has-image');
-  document.getElementById('ev-imagen-' + dia).value = file.name;
+  document.getElementById('ev-imagen-' + dia).value = nombreArchivo;
   document.getElementById('ev-imagen-remove-' + dia).hidden = false;
 }
 
