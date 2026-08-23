@@ -1199,7 +1199,7 @@ async function cargarConfigRemota() {
       if (footer) {
         const nombreEsc = ev.nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         const diaEsc    = (dia || 'viernes');
-        const onclick = esGratis ? `abrirCheckoutGratis('${nombreEsc}','${diaEsc}')` : 'abrirModal()';
+        const onclick = 'abrirModal()';
         const label   = esGratis ? 'Obtener entrada gratis' : 'Ver entradas disponibles';
         footer.innerHTML = `<button class="hero-evento-btn" onclick="${onclick}"><span class="hero-evento-dot"></span>${label}</button>`;
       }
@@ -1220,14 +1220,14 @@ async function cargarConfigRemota() {
         const heroFecha = document.querySelector('.hero-evento-fecha-txt');
         if (heroFecha && cfg.eventoViernes.fecha) heroFecha.textContent = cfg.eventoViernes.fecha;
         // Si gratis activo: el botón del hero también va directo al formulario
-        if (cfg.entradasGratis) {
-          const heroBtn = document.querySelector('.hero-evento-btn');
-          if (heroBtn) {
-            const nombreEsc = cfg.eventoViernes.nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-            heroBtn.setAttribute('onclick', `abrirCheckoutGratis('${nombreEsc}','viernes')`);
-            heroBtn.innerHTML = '<span class="hero-evento-dot"></span>Obtener entrada gratis';
-          }
-        }
+      //if (cfg.entradasGratis) {
+      //  const heroBtn = document.querySelector('.hero-evento-btn');
+      //  if (heroBtn) {
+      //    const nombreEsc = cfg.eventoViernes.nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      //    heroBtn.setAttribute('onclick', `abrirCheckoutGratis('${nombreEsc}','viernes')`);
+      //    heroBtn.innerHTML = '<span class="hero-evento-dot"></span>Obtener entrada gratis';
+      //  }
+      //}
       }
     }
 
