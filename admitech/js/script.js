@@ -532,7 +532,16 @@ async function cargarConfigPanel() {
       const list = document.getElementById('entradas-list');
       if (list) {
         list.innerHTML = '';
-        Object.entries(cfg.entradas).forEach(([key, val]) => {
+        // Asegurar que gratis siempre esté primero aunque PG no lo tenga
+        const entradas = { ...cfg.entradas };
+        if (!('gratis' in entradas)) {
+          entradas.gratis = { nombre: 'Exclusivo solo para ellas', precio: 0, limite: 100, activa: false, proximamente: false, tipo: 'gratis' };
+        }
+        const sortedEntries = [
+          ['gratis', entradas.gratis],
+          ...Object.entries(entradas).filter(([k]) => k !== 'gratis'),
+        ];
+        sortedEntries.forEach(([key, val]) => {
           const estado = val.proximamente ? 'proximamente' : (val.activa ? 'activa' : 'agotada');
           const row = document.createElement('div');
           row.className = 'entrada-row';

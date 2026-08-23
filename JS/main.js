@@ -263,11 +263,12 @@ function renderizarTiposEntrada() {
     : ['gratis', 'generalHombres', 'generalMujeres', 'vip'];
 
   const grupos = { general: [], vip: [], supervip: [] };
-  let gratisKey = null;
+  // Buscar gratis en las keys cargadas de PG; si no está, usar ENTRADAS.gratis directamente
+  let gratisKey = keys.find(k => ENTRADAS[k]?.tipo === 'gratis') || (ENTRADAS.gratis ? 'gratis' : null);
   for (const id of keys) {
     const e = ENTRADAS[id];
     if (!e) continue;
-    if (e.tipo === 'gratis') { gratisKey = id; continue; }
+    if (e.tipo === 'gratis') continue; // ya capturado arriba
     const tipo = e.tipo || 'general';
     if (grupos[tipo]) grupos[tipo].push(id);
   }
@@ -1180,6 +1181,8 @@ async function cargarConfigRemota() {
     // Entradas gratis
     if ('entradasGratis' in cfg) {
       CONFIG_VIERNES.esGratis = cfg.entradasGratis;
+    
+    
     
     
       if ('entradasGratisAgotada' in cfg) CONFIG_VIERNES.gratisAgotada = !!cfg.entradasGratisAgotada;
