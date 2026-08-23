@@ -75,6 +75,7 @@ async function guardar() {
   // Leer toggles del tab evento (viernes activo)
   const eventoActivo    = document.getElementById('toggle-evento-activo-viernes')?.checked    ?? false;
   const entradasGratis  = document.getElementById('toggle-entradas-gratis-viernes')?.checked  ?? false;
+  const entradasGratisAgotada = document.getElementById('toggle-gratis-agotada-viernes')?.checked ?? false;
   const carrito         = document.getElementById('toggle-carrito-viernes')?.checked           ?? false;
   const anuncio         = document.getElementById('toggle-anuncio-viernes')?.checked           ?? false;
 
@@ -105,7 +106,7 @@ async function guardar() {
   const limiteGratisSabado  = parseInt(document.getElementById('limite-gratis-sabado')?.value  || '100', 10);
 
   const config = {
-    eventoActivo, entradasGratis, carrito, anuncio, entradas,
+    eventoActivo, entradasGratis,entradasGratisAgotada, carrito, anuncio, entradas,
     limiteEntradasGratisViernes: limiteGratisViernes,
     limiteEntradasGratisSabado:  limiteGratisSabado,
     eventoViernes: {
@@ -523,6 +524,7 @@ async function cargarConfigPanel() {
       actualizarDayDot('viernes', cfg.eventoActivo);
     }
     if ('entradasGratis' in cfg) setToggle('toggle-entradas-gratis-viernes', cfg.entradasGratis);
+    if ('entradasGratisAgotada' in cfg) setToggle('toggle-gratis-agotada-viernes', cfg.entradasGratisAgotada);
     if ('carrito'        in cfg) setToggle('toggle-carrito-viernes',          cfg.carrito);
     if ('anuncio'        in cfg) setToggle('toggle-anuncio-viernes',           cfg.anuncio);
 

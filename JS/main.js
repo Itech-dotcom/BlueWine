@@ -1175,6 +1175,7 @@ async function cargarConfigRemota() {
     // Entradas gratis
     if ('entradasGratis' in cfg) {
       CONFIG_VIERNES.esGratis = cfg.entradasGratis;
+      if ('entradasGratisAgotada' in cfg) CONFIG_VIERNES.gratisAgotada = !!cfg.entradasGratisAgotada;
       renderBadgesGratis();
     }
 
