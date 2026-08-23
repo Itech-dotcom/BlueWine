@@ -296,7 +296,7 @@ function renderizarTiposEntrada() {
         <div class="modal-tipo-opciones">
           <div class="modal-tipo-card" style="cursor:pointer;" onclick="abrirCheckoutGratis('${nombreEsc}','${dia}')">
             <div class="modal-tipo-badge badge-disponible">Gratis</div>
-            <div class="modal-tipo-nombre">Entrada Gratuita</div>
+            <div class="modal-tipo-nombre">Entrada Gratuita - Solo para ellas</div>
             <div class="modal-tipo-precio">GRATIS</div>
           </div>
         </div>`;
