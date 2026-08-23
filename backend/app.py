@@ -63,7 +63,7 @@ ADMIN_KEY = os.getenv("ADMIN_KEY", "bw-admin-2026")
 # Debe reflejar el objeto ENTRADAS de JS/main.js. Cuando cambie el evento
 # (ver CLAUDE.md → "nuevo evento"), actualizar también esta tabla.
 # ══════════════════════════════════════════════════════
-NOMBRE_EVENTO_PRINCIPAL = "DJ Nemj"
+NOMBRE_EVENTO_PRINCIPAL = "Dj Nemj Viernes 04 Septiembre"
 COMISION_MP = 0.15  # 15% MercadoPago, igual que en main.js
 
 PRECIOS_ENTRADAS = {
@@ -84,7 +84,7 @@ PRECIOS_ENTRADAS = {
 
 # Bandera para activar la entrada liberada (/obtener-entrada-gratis).
 # Mantener en False salvo que el evento actual regale entradas.
-ENTRADA_GRATIS_ACTIVA = True
+ENTRADA_GRATIS_ACTIVA = False
 LIMITE_ENTRADAS_GRATIS = 100
 
 # ══════════════════════════════════════════════════════
