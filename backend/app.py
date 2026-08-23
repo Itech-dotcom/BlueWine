@@ -34,6 +34,14 @@ CORS(app, origins=[
     "http://127.0.0.1",
 ])
 
+@app.after_request
+def _no_cache_datos_evento(response):
+    if request.path in ("/config", "/stock"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 def _get_real_ip():
     return request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
 

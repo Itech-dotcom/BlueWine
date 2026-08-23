@@ -229,7 +229,7 @@ function colorCupos(disponibles, limite) {
 // Consulta al backend cuántos cupos reales quedan (contando tickets ya vendidos en Sheets).
 // Se llama sin bloquear — si falla, los valores por defecto del ENTRADAS se mantienen.
 function actualizarStock() {
-  fetch('https://bluewine-production.up.railway.app/stock')
+  fetch('https://bluewine-production.up.railway.app/stock', { cache: 'no-store' })
     .then(r => r.json())
     .then(stock => {
       Object.entries(stock).forEach(([key, val]) => {
@@ -1150,7 +1150,7 @@ async function cargarConfigRemota() {
   try {
     const ctrl = new AbortController();
     setTimeout(() => ctrl.abort(), 3000);
-    const res = await fetch('https://bluewine-production.up.railway.app/config', { signal: ctrl.signal });
+    const res = await fetch('https://bluewine-production.up.railway.app/config', { signal: ctrl.signal, cache: 'no-store'});
     if (!res.ok) return;
     const cfg = await res.json();
     if (!cfg.ok) return;
