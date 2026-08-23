@@ -31,13 +31,14 @@ const ENTRADAS = {
 // horaCorte: hora límite de entrada liberada (solo se muestra si esGratis: true)
 // ══════════════════════════════════════════════════════
 const CONFIG_VIERNES = {
-  esGratis:  false,
-  horaCorte: '23:59',
+  esGratis:      false,
+  gratisAgotada: false,
+  horaCorte:     '23:59',
 };
 
 const CONFIG_SABADO = {
-  esGratis:      true,   // ← entradas gratis activas: Aniversario
-  gratisAgotada: false,  // ← true = muestra tarjeta pero bloqueada
+  esGratis:      false,
+  gratisAgotada: true,   // ← mostrar como agotada por defecto
   horaCorte:     '23:00',
 };
 
@@ -274,9 +275,11 @@ function renderizarTiposEntrada() {
   // Tarjeta gratis al tope si hay entradas liberadas activas o agotadas
   const esGratisViernes = CONFIG_VIERNES.esGratis;
   const esGratisSabado  = CONFIG_SABADO.esGratis;
-  const gratisAgotada   = CONFIG_SABADO.gratisAgotada || CONFIG_VIERNES.gratisAgotada;
-  if (esGratisViernes || esGratisSabado || gratisAgotada) {
-    const dia       = esGratisSabado ? 'sabado' : 'viernes';
+  const usaSabado       = esGratisSabado || CONFIG_SABADO.gratisAgotada;
+  const dia             = usaSabado ? 'sabado' : 'viernes';
+  const gratisAgotada   = usaSabado ? CONFIG_SABADO.gratisAgotada : CONFIG_VIERNES.gratisAgotada;
+  const mostrarGratis   = esGratisViernes || esGratisSabado || CONFIG_SABADO.gratisAgotada || CONFIG_VIERNES.gratisAgotada;
+  if (mostrarGratis) {
     const nombreEsc = NOMBRE_EVENTO_PRINCIPAL.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const gratisGrupo = document.createElement('div');
     gratisGrupo.className = 'modal-tipo-grupo';
@@ -286,7 +289,7 @@ function renderizarTiposEntrada() {
         <div class="modal-tipo-opciones">
           <div class="modal-tipo-card agotado" style="cursor:default;">
             <div class="modal-tipo-badge agotado-badge">Agotada</div>
-            <div class="modal-tipo-nombre">Entrada Gratuita</div>
+            <div class="modal-tipo-nombre">Exclusivo solo para ellas</div>
             <div class="modal-tipo-precio">GRATIS</div>
           </div>
         </div>`;
@@ -296,7 +299,7 @@ function renderizarTiposEntrada() {
         <div class="modal-tipo-opciones">
           <div class="modal-tipo-card" style="cursor:pointer;" onclick="abrirCheckoutGratis('${nombreEsc}','${dia}')">
             <div class="modal-tipo-badge badge-disponible">Gratis</div>
-            <div class="modal-tipo-nombre">Entrada Gratuita - Solo para ellas</div>
+            <div class="modal-tipo-nombre">Exclusivo solo para ellas</div>
             <div class="modal-tipo-precio">GRATIS</div>
           </div>
         </div>`;
@@ -1175,6 +1178,7 @@ async function cargarConfigRemota() {
     // Entradas gratis
     if ('entradasGratis' in cfg) {
       CONFIG_VIERNES.esGratis = cfg.entradasGratis;
+    
       if ('entradasGratisAgotada' in cfg) CONFIG_VIERNES.gratisAgotada = !!cfg.entradasGratisAgotada;
       renderBadgesGratis();
     }

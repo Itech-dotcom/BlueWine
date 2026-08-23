@@ -1115,6 +1115,8 @@ def obtener_entrada_gratis():
         if not gratis_activa and not ENTRADA_GRATIS_ACTIVA:
             return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
     else:
+        if _get_config_bool('entradasGratisAgotada', False):
+            return jsonify({"ok": False, "error": "Las entradas gratuitas están agotadas"}), 403
         if not _get_config_bool('entradasGratis', ENTRADA_GRATIS_ACTIVA):
             return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
     limite    = _get_limite_entradas_gratis(dia)
