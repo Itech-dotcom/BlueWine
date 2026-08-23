@@ -201,28 +201,6 @@
 
         <div class="toggle-row">
           <div class="toggle-info">
-            <strong>Entradas gratis habilitadas</strong>
-            <span>Permite que los usuarios obtengan entrada gratis</span>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="toggle-entradas-gratis-viernes" onchange="onToggleEntradasGratis(this,'viernes')" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <div class="toggle-info">
-            <strong>Mostrar gratis como agotada</strong>
-            <span>Muestra la tarjeta gratis pero bloqueada — sin permitir nuevas inscripciones</span>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="toggle-gratis-agotada-viernes" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <div class="toggle-info">
             <strong>Botón carrito (entradas de pago)</strong>
             <span>Muestra el carrito y el flujo de compra con MercadoPago</span>
           </div>
@@ -325,28 +303,6 @@
 
         <div class="toggle-row">
           <div class="toggle-info">
-            <strong>Entradas gratis habilitadas</strong>
-            <span>Permite que los usuarios obtengan entrada gratis (sin pago)</span>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="toggle-entradas-gratis-sabado" onchange="onToggleEntradasGratis(this,'sabado')" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <div class="toggle-info">
-            <strong>Mostrar gratis como agotada</strong>
-            <span>Muestra la tarjeta gratis pero bloqueada — sin permitir nuevas inscripciones</span>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="toggle-gratis-agotada-sabado" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <div class="toggle-info">
             <strong>Botón carrito (entradas de pago)</strong>
             <span>Muestra el carrito y el flujo de compra con MercadoPago</span>
           </div>
@@ -382,21 +338,6 @@
       <button class="btn btn-primary" onclick="guardar()">Guardar cambios</button>
     </div>
 
-    <div class="card" style="margin-bottom:16px;">
-      <div class="card-label">Entradas gratis</div>
-      <div class="grid-2">
-        <div class="field" style="margin-bottom:0;">
-          <label for="limite-gratis-viernes">Cantidad disponibles — Viernes</label>
-          <input type="number" id="limite-gratis-viernes" value="100" min="0" class="entrada-input" placeholder="100" />
-          <div class="field-hint">Se activa con el toggle "Entradas gratis" del tab Evento.</div>
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label for="limite-gratis-sabado">Cantidad disponibles — Sábado</label>
-          <input type="number" id="limite-gratis-sabado" value="100" min="0" class="entrada-input" placeholder="100" />
-        </div>
-      </div>
-    </div>
-
     <div>
       <div class="card" style="padding:0 20px;">
         <div class="entradas-scroll">
@@ -415,7 +356,7 @@
                 <input type="text" class="entrada-input entrada-nombre-input" value="General" placeholder="Nombre…" />
                 <span class="entrada-key">general</span>
               </div>
-              <div><select class="entrada-tipo-select"><option value="general" selected>General</option><option value="vip">VIP</option><option value="supervip">Super VIP</option></select></div>
+              <div><select class="entrada-tipo-select"><option value="general" selected>General</option><option value="vip">VIP</option><option value="supervip">Super VIP</option><option value="gratis">Gratis</option></select></div>
               <div><input type="number" value="5000"   min="0" class="entrada-input entrada-precio-input" /></div>
               <div><input type="number" value="100"    min="0" class="entrada-input entrada-limite-input" /></div>
               <div class="entrada-stock">0</div>

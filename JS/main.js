@@ -10,6 +10,7 @@
 // Para cambiar precio: editar el campo precio
 // ══════════════════════════════════════════════════════
 const ENTRADAS = {
+  gratis:         { nombre: 'Exclusivo solo para ellas', precio: 0,      limite: 100, disponibles: 100, activa: false, proximamente: false, tipo: 'gratis' },
   general:        { nombre: 'General',              precio: 5000,   limite: 100, disponibles: 100, activa: false,                    tipo: 'general' },
   vip:            { nombre: 'VIP',                  precio: 10000,  limite: 50,  disponibles: 50,  activa: false, proximamente: true, tipo: 'vip' },
   mesaGoldenVip:  { nombre: 'Mesa Golden VIP',      precio: 150000, limite: 4,   disponibles: 4,   activa: false,                    tipo: 'supervip', desc: 'Podrás compartir con DJs' },
@@ -259,12 +260,14 @@ function renderizarTiposEntrada() {
   // Si aún no cargó (acceso muy rápido), usar las tres por defecto como fallback.
   const keys = ENTRADAS._configKeys
     ? [...ENTRADAS._configKeys]
-    : ['generalHombres', 'generalMujeres', 'vip'];
+    : ['gratis', 'generalHombres', 'generalMujeres', 'vip'];
 
   const grupos = { general: [], vip: [], supervip: [] };
+  let gratisKey = null;
   for (const id of keys) {
     const e = ENTRADAS[id];
     if (!e) continue;
+    if (e.tipo === 'gratis') { gratisKey = id; continue; }
     const tipo = e.tipo || 'general';
     if (grupos[tipo]) grupos[tipo].push(id);
   }
@@ -272,38 +275,37 @@ function renderizarTiposEntrada() {
   const container = document.getElementById('modal-tipos-container');
   container.innerHTML = '';
 
-  // Tarjeta gratis al tope si hay entradas liberadas activas o agotadas
-  const esGratisViernes = CONFIG_VIERNES.esGratis;
-  const esGratisSabado  = CONFIG_SABADO.esGratis;
-  const usaSabado       = esGratisSabado || CONFIG_SABADO.gratisAgotada;
-  const dia             = usaSabado ? 'sabado' : 'viernes';
-  const gratisAgotada   = usaSabado ? CONFIG_SABADO.gratisAgotada : CONFIG_VIERNES.gratisAgotada;
-  const mostrarGratis   = esGratisViernes || esGratisSabado || CONFIG_SABADO.gratisAgotada || CONFIG_VIERNES.gratisAgotada;
-  if (mostrarGratis) {
-    const nombreEsc = NOMBRE_EVENTO_PRINCIPAL.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    const gratisGrupo = document.createElement('div');
+  // Tarjeta gratis al tope — controlada desde ENTRADAS[gratisKey]
+  if (gratisKey) {
+    const eg = ENTRADAS[gratisKey];
+    const esProximamente = eg.proximamente === true;
+    const esAgotado      = !eg.activa && !esProximamente;
+    const esActiva       = eg.activa && eg.disponibles > 0;
+    const diaG           = CONFIG_VIERNES.esGratis ? 'viernes' : 'sabado';
+    const nombreEsc      = NOMBRE_EVENTO_PRINCIPAL.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const gratisGrupo    = document.createElement('div');
     gratisGrupo.className = 'modal-tipo-grupo';
-    if (gratisAgotada) {
-      gratisGrupo.innerHTML = `
-        <div class="modal-tipo-grupo-titulo">🎉 Entrada Liberada</div>
-        <div class="modal-tipo-opciones">
-          <div class="modal-tipo-card agotado" style="cursor:default;">
-            <div class="modal-tipo-badge agotado-badge">Agotada</div>
-            <div class="modal-tipo-nombre">Exclusivo solo para ellas</div>
-            <div class="modal-tipo-precio">GRATIS</div>
-          </div>
-        </div>`;
+    let badgeHtml, cardCls, clickAttr;
+    if (esActiva) {
+      badgeHtml = '<div class="modal-tipo-badge badge-disponible">Gratis</div>';
+      cardCls   = 'modal-tipo-card';
+      clickAttr = `onclick="abrirCheckoutGratis('${nombreEsc}','${diaG}')"`;
+    } else if (esProximamente) {
+      badgeHtml = '<div class="modal-tipo-badge prox-badge">Próximamente</div>';
+      cardCls   = 'modal-tipo-card agotado'; clickAttr = '';
     } else {
-      gratisGrupo.innerHTML = `
-        <div class="modal-tipo-grupo-titulo">🎉 Entrada Liberada</div>
-        <div class="modal-tipo-opciones">
-          <div class="modal-tipo-card" style="cursor:pointer;" onclick="abrirCheckoutGratis('${nombreEsc}','${dia}')">
-            <div class="modal-tipo-badge badge-disponible">Gratis</div>
-            <div class="modal-tipo-nombre">Exclusivo solo para ellas</div>
-            <div class="modal-tipo-precio">GRATIS</div>
-          </div>
-        </div>`;
+      badgeHtml = '<div class="modal-tipo-badge agotado-badge">Agotada</div>';
+      cardCls   = 'modal-tipo-card agotado'; clickAttr = '';
     }
+    gratisGrupo.innerHTML = `
+      <div class="modal-tipo-grupo-titulo">🎉 Entrada Liberada</div>
+      <div class="modal-tipo-opciones">
+        <div class="${cardCls}" style="cursor:${esActiva ? 'pointer' : 'default'};" ${clickAttr}>
+          ${badgeHtml}
+          <div class="modal-tipo-nombre">${eg.nombre}</div>
+          <div class="modal-tipo-precio">GRATIS</div>
+        </div>
+      </div>`;
     container.appendChild(gratisGrupo);
   }
 
@@ -1179,6 +1181,7 @@ async function cargarConfigRemota() {
     if ('entradasGratis' in cfg) {
       CONFIG_VIERNES.esGratis = cfg.entradasGratis;
     
+    
       if ('entradasGratisAgotada' in cfg) CONFIG_VIERNES.gratisAgotada = !!cfg.entradasGratisAgotada;
       renderBadgesGratis();
     }
@@ -1283,6 +1286,13 @@ async function cargarConfigRemota() {
         }
       });
       ENTRADAS._configKeys = configKeys;
+      // Sincronizar CONFIG_*.esGratis desde ENTRADAS.gratis para badges y slides
+      if (ENTRADAS.gratis) {
+        const gActiva = ENTRADAS.gratis.activa && ENTRADAS.gratis.disponibles > 0;
+        CONFIG_VIERNES.esGratis = gActiva;
+        CONFIG_SABADO.esGratis  = gActiva;
+        renderBadgesGratis();
+      }
       if (typeof renderizarTiposEntrada === 'function') renderizarTiposEntrada();
     }
   } catch {

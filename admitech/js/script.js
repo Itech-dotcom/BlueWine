@@ -73,11 +73,9 @@ async function guardar() {
   if (!adminKey) { mostrarToast('No autenticado', 'error'); return; }
 
   // Leer toggles del tab evento (viernes activo)
-  const eventoActivo    = document.getElementById('toggle-evento-activo-viernes')?.checked    ?? false;
-  const entradasGratis  = document.getElementById('toggle-entradas-gratis-viernes')?.checked  ?? false;
-  const entradasGratisAgotada = document.getElementById('toggle-gratis-agotada-viernes')?.checked ?? false;
-  const carrito         = document.getElementById('toggle-carrito-viernes')?.checked           ?? false;
-  const anuncio         = document.getElementById('toggle-anuncio-viernes')?.checked           ?? false;
+  const eventoActivo = document.getElementById('toggle-evento-activo-viernes')?.checked ?? false;
+  const carrito      = document.getElementById('toggle-carrito-viernes')?.checked        ?? false;
+  const anuncio      = document.getElementById('toggle-anuncio-viernes')?.checked        ?? false;
 
   // Leer entradas del tab entradas
   const entradas = {};
@@ -102,13 +100,17 @@ async function guardar() {
     };
   });
 
-  const limiteGratisViernes = parseInt(document.getElementById('limite-gratis-viernes')?.value || '100', 10);
-  const limiteGratisSabado  = parseInt(document.getElementById('limite-gratis-sabado')?.value  || '100', 10);
+  // Derivar estado gratis desde la entrada de tipo 'gratis' en la lista
+  const gratisEntry   = entradas['gratis'];
+  const gratisActiva  = gratisEntry ? (gratisEntry.activa === true) : false;
+  const gratisAgotada = gratisEntry ? (!gratisEntry.activa && !gratisEntry.proximamente) : false;
+  const gratisLimite  = gratisEntry ? (gratisEntry.limite || 100) : 100;
 
   const config = {
-    eventoActivo, entradasGratis,entradasGratisAgotada, carrito, anuncio, entradas,
-    limiteEntradasGratisViernes: limiteGratisViernes,
-    limiteEntradasGratisSabado:  limiteGratisSabado,
+    eventoActivo, entradasGratis: gratisActiva, entradasGratisAgotada: gratisAgotada,
+    entradasGratisAgotadaViernes: gratisAgotada, carrito, anuncio, entradas,
+    limiteEntradasGratisViernes: gratisLimite,
+    limiteEntradasGratisSabado:  gratisLimite,
     eventoViernes: {
       nombre: document.getElementById('ev-nombre-viernes')?.value?.trim() || '',
       fecha:  document.getElementById('ev-fecha-viernes')?.value?.trim()  || '',
@@ -116,11 +118,11 @@ async function guardar() {
       lineup: document.getElementById('ev-lineup-viernes')?.value?.trim() || '',
     },
     eventoSabado: {
-      activo:              document.getElementById('toggle-evento-activo-sabado')?.checked       ?? false,
-      entradasGratis:      document.getElementById('toggle-entradas-gratis-sabado')?.checked     ?? false,
-      entradasGratisAgotada: document.getElementById('toggle-gratis-agotada-sabado')?.checked   ?? false,
-      carrito:             document.getElementById('toggle-carrito-sabado')?.checked             ?? false,
-      anuncio:             document.getElementById('toggle-anuncio-sabado')?.checked             ?? false,
+      activo:               document.getElementById('toggle-evento-activo-sabado')?.checked ?? false,
+      entradasGratis:       gratisActiva,
+      entradasGratisAgotada: gratisAgotada,
+      carrito:              document.getElementById('toggle-carrito-sabado')?.checked       ?? false,
+      anuncio:              document.getElementById('toggle-anuncio-sabado')?.checked       ?? false,
       nombre:  document.getElementById('ev-nombre-sabado')?.value?.trim()      || '',
       fecha:   document.getElementById('ev-fecha-sabado')?.value?.trim()       || '',
       imagen:  document.getElementById('ev-imagen-sabado')?.value?.trim()      || '',
@@ -476,7 +478,7 @@ function agregarEntrada() {
       <input type="text" class="entrada-input entrada-nombre-input" value="" placeholder="Nombre del tipo…" oninput="actualizarKeyEntrada(this)" />
       <span class="entrada-key" style="font-size:10px;">${uid}</span>
     </div>
-    <div><select class="entrada-tipo-select"><option value="general" selected>General</option><option value="vip">VIP</option><option value="supervip">Super VIP</option></select></div>
+    <div><select class="entrada-tipo-select"><option value="general" selected>General</option><option value="vip">VIP</option><option value="supervip">Super VIP</option><option value="gratis">Gratis</option></select></div>
     <div><input type="number" value="5000" min="0" class="entrada-input entrada-precio-input" /></div>
     <div><input type="number" value="100"  min="0" class="entrada-input entrada-limite-input" /></div>
     <div class="entrada-stock">0</div>
@@ -523,19 +525,8 @@ async function cargarConfigPanel() {
       }
       actualizarDayDot('viernes', cfg.eventoActivo);
     }
-    if ('entradasGratis' in cfg) setToggle('toggle-entradas-gratis-viernes', cfg.entradasGratis);
-    if ('entradasGratisAgotada' in cfg) setToggle('toggle-gratis-agotada-viernes', cfg.entradasGratisAgotada);
-    if ('carrito'        in cfg) setToggle('toggle-carrito-viernes',          cfg.carrito);
-    if ('anuncio'        in cfg) setToggle('toggle-anuncio-viernes',           cfg.anuncio);
-
-    if ('limiteEntradasGratisViernes' in cfg) {
-      const el = document.getElementById('limite-gratis-viernes');
-      if (el) el.value = cfg.limiteEntradasGratisViernes;
-    }
-    if ('limiteEntradasGratisSabado' in cfg) {
-      const el = document.getElementById('limite-gratis-sabado');
-      if (el) el.value = cfg.limiteEntradasGratisSabado;
-    }
+    if ('carrito' in cfg) setToggle('toggle-carrito-viernes', cfg.carrito);
+    if ('anuncio' in cfg) setToggle('toggle-anuncio-viernes', cfg.anuncio);
 
     if (cfg.entradas && typeof cfg.entradas === 'object') {
       const list = document.getElementById('entradas-list');
@@ -554,6 +545,7 @@ async function cargarConfigPanel() {
               <option value="general"${val.tipo === 'general' ? ' selected' : ''}>General</option>
               <option value="vip"${val.tipo === 'vip' ? ' selected' : ''}>VIP</option>
               <option value="supervip"${val.tipo === 'supervip' ? ' selected' : ''}>Super VIP</option>
+              <option value="gratis"${val.tipo === 'gratis' ? ' selected' : ''}>Gratis</option>
             </select></div>
             <div><input type="number" value="${val.precio || 0}" min="0" class="entrada-input entrada-precio-input" /></div>
             <div><input type="number" value="${val.limite || 0}" min="0" class="entrada-input entrada-limite-input" /></div>
@@ -594,9 +586,7 @@ async function cargarConfigPanel() {
       const ev = cfg.eventoSabado;
       const setVal = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.value = v; };
       setToggle('toggle-evento-activo-sabado',      ev.activo);
-      setToggle('toggle-entradas-gratis-sabado',    ev.entradasGratis);
-      if ('entradasGratisAgotada' in ev) setToggle('toggle-gratis-agotada-sabado', ev.entradasGratisAgotada);
-      setToggle('toggle-carrito-sabado',            ev.carrito);
+      setToggle('toggle-carrito-sabado', ev.carrito);
       setToggle('toggle-anuncio-sabado',            ev.anuncio);
       setVal('ev-nombre-sabado', ev.nombre);
       setVal('ev-lineup-sabado', ev.lineup);
