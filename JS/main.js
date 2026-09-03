@@ -268,7 +268,7 @@ function renderizarTiposEntrada() {
   for (const id of keys) {
     const e = ENTRADAS[id];
     if (!e) continue;
-    if (e.tipo === 'gratis') continue; // ya capturado arriba
+    if (id === gratisKey || e.tipo === 'gratis') continue; // ya capturado arriba
     const tipo = e.tipo || 'general';
     if (grupos[tipo]) grupos[tipo].push(id);
   }
