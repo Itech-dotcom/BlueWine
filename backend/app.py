@@ -1301,6 +1301,33 @@ def reserva():
             subject = f"📋 Nueva reserva de {nombre} — Blue Wine",
             html    = html_body,
         )
+
+        if email:
+            html_cliente = f"""
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <h1 style="color:#c9a84c;font-size:28px;margin:0;">Blue Wine</h1>
+            <p style="color:#7a7060;font-size:13px;margin:4px 0;">MultiEspacio · Quillón, Ñuble</p>
+          </div>
+          <h2 style="font-size:18px;margin-bottom:8px;">¡Gracias por tu solicitud, {nombre}!</h2>
+          <p style="color:#a09880;font-size:14px;margin-bottom:20px;">Recibimos tu solicitud de reserva. Nos pondremos en contacto contigo a la brevedad para confirmar los detalles.</p>
+          <div style="background:#13131a;border:1px solid #2a2820;border-radius:8px;padding:20px;margin:16px 0;">
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Tipo de reserva:</strong> {tipo}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Fecha solicitada:</strong> {fecha}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Número de personas:</strong> {personas}</p>
+            <p style="margin:0;"><strong style="color:#c9a84c;">Teléfono de contacto:</strong> {telefono}</p>
+          </div>
+          <p style="color:#7a7060;font-size:13px;margin-top:20px;">Si tienes alguna consulta puedes escribirnos directamente a través de nuestras redes sociales.</p>
+          <hr style="border:none;border-top:1px solid #2a2820;margin:20px 0;" />
+          <p style="color:#7a7060;font-size:11px;text-align:center;">© 2026 Blue Wine · @bluewine.quillon</p>
+        </div>
+            """
+            _smtp_send(
+                to_list = [email],
+                subject = f"Solicitud de reserva recibida — Blue Wine",
+                html    = html_cliente,
+            )
+
         print(f"Email reserva enviado via Brevo — {nombre}")
         return jsonify({"ok": True})
 
