@@ -97,6 +97,7 @@ async function guardar() {
       activa:       estado === 'activa',
       proximamente: estado === 'proximamente',
       tipo:         tipoEl?.value || 'general',
+      personas:     tipoEl?.value === 'promo' ? 2 : 1,
     };
   });
 
@@ -478,7 +479,7 @@ function agregarEntrada() {
       <input type="text" class="entrada-input entrada-nombre-input" value="" placeholder="Nombre del tipo…" oninput="actualizarKeyEntrada(this)" />
       <span class="entrada-key" style="font-size:10px;">${uid}</span>
     </div>
-    <div><select class="entrada-tipo-select"><option value="general" selected>General</option><option value="vip">VIP</option><option value="supervip">Super VIP</option><option value="gratis">Gratis</option></select></div>
+    <div><select class="entrada-tipo-select"><option value="general" selected>General</option><option value="vip">VIP</option><option value="supervip">Super VIP</option><option value="gratis">Gratis</option><option value="promo">Promo 2x1</option></select></div>
     <div><input type="number" value="5000" min="0" class="entrada-input entrada-precio-input" /></div>
     <div><input type="number" value="100"  min="0" class="entrada-input entrada-limite-input" /></div>
     <div class="entrada-stock">0</div>
@@ -555,6 +556,7 @@ async function cargarConfigPanel() {
               <option value="vip"${val.tipo === 'vip' ? ' selected' : ''}>VIP</option>
               <option value="supervip"${val.tipo === 'supervip' ? ' selected' : ''}>Super VIP</option>
               <option value="gratis"${val.tipo === 'gratis' ? ' selected' : ''}>Gratis</option>
+              <option value="promo"${val.tipo === 'promo' ? ' selected' : ''}>Promo 2x1</option>
             </select></div>
             <div><input type="number" value="${val.precio || 0}" min="0" class="entrada-input entrada-precio-input" /></div>
             <div><input type="number" value="${val.limite || 0}" min="0" class="entrada-input entrada-limite-input" /></div>

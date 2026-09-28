@@ -254,7 +254,7 @@ function abrirModal() {
 // Dibuja las cards de tipos de entrada en el modal, agrupadas por categoría.
 // Las entradas y su categoría se configuran desde el panel de administración.
 function renderizarTiposEntrada() {
-  const TITULOS = { general: '🎟️ General', vip: '⭐ VIP', supervip: '👑 Super VIP' };
+  const TITULOS = { general: '🎟️ General', vip: '⭐ VIP', supervip: '👑 Super VIP', promo: '🏷️ Promo 2x1' };
 
   // Si el config del servidor ya cargó, mostrar solo las entradas configuradas.
   // Si aún no cargó (acceso muy rápido), usar las tres por defecto como fallback.
@@ -262,7 +262,7 @@ function renderizarTiposEntrada() {
     ? [...ENTRADAS._configKeys]
     : ['gratis', 'generalHombres', 'generalMujeres', 'vip'];
 
-  const grupos = { general: [], vip: [], supervip: [] };
+  const grupos = { general: [], vip: [], supervip: [], promo: [] };
   // Buscar gratis en las keys cargadas de PG; si no está, usar ENTRADAS.gratis directamente
   let gratisKey = keys.find(k => ENTRADAS[k]?.tipo === 'gratis') || (ENTRADAS.gratis ? 'gratis' : null);
   for (const id of keys) {
@@ -310,7 +310,7 @@ function renderizarTiposEntrada() {
     container.appendChild(gratisGrupo);
   }
 
-  for (const tipo of ['general', 'vip', 'supervip']) {
+  for (const tipo of ['general', 'vip', 'supervip', 'promo']) {
     const ids = grupos[tipo];
     if (!ids.length) continue;
 
@@ -1278,6 +1278,7 @@ async function cargarConfigRemota() {
             activa:       val.activa === true,
             proximamente: val.proximamente === true,
             tipo:         val.tipo || 'general',
+            personas:     val.personas || (val.tipo === 'promo' ? 2 : 1),
           };
         } else {
           if ('nombre'       in val) ENTRADAS[key].nombre       = val.nombre;
@@ -1285,6 +1286,8 @@ async function cargarConfigRemota() {
           if ('proximamente' in val) ENTRADAS[key].proximamente = val.proximamente;
           if ('precio'       in val) ENTRADAS[key].precio       = val.precio;
           if ('tipo'         in val) ENTRADAS[key].tipo         = val.tipo;
+          if ('personas'     in val) ENTRADAS[key].personas     = val.personas;
+          else if (val.tipo === 'promo') ENTRADAS[key].personas = 2;
           if ('limite'       in val) { ENTRADAS[key].limite = val.limite; ENTRADAS[key].disponibles = val.limite; }
         }
       });
