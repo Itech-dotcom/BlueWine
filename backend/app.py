@@ -1122,11 +1122,19 @@ def obtener_entrada_gratis():
             return jsonify({"ok": False, "error": "Las entradas gratuitas están agotadas"}), 403
         if not _get_config_bool('entradasGratis', ENTRADA_GRATIS_ACTIVA):
             return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
-    limite    = _get_limite_entradas_gratis(dia)
+    limite           = _get_limite_entradas_gratis(dia)
+    nombre_evento_g  = f"{_get_nombre_evento()} — Entrada Gratuita"
+    codigo           = str(uuid.uuid4())[:12].upper()
+    url_verificacion = f"https://bluewine-production.up.railway.app/verificar/{codigo}"
+    fecha            = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # Conteo + INSERT en la misma transacción con advisory lock para evitar
+    # race condition: dos requests simultáneos leyendo total=99 y ambos insertando.
     try:
         with get_db() as conn:
             with conn.cursor() as cur:
+                cur.execute("SELECT pg_advisory_xact_lock(1)")
+
                 cur.execute("SELECT COUNT(*) FROM tickets WHERE id_pago = 'ENTRADA_LIBERADA' AND estado = 'ACTIVO'")
                 total_gratis = cur.fetchone()[0]
 
@@ -1139,41 +1147,81 @@ def obtener_entrada_gratis():
                     if cur.fetchone():
                         return jsonify({"ok": False, "error": "Ya tienes una entrada registrada para este evento. No es posible obtener una segunda entrada."}), 400
 
-        if total_gratis >= limite:
-            return jsonify({"ok": False, "error": "Las entradas gratuitas se han agotado."}), 400
+                if total_gratis >= limite:
+                    return jsonify({"ok": False, "error": "Las entradas gratuitas se han agotado."}), 400
 
-    except Exception as e:
-        print(f"Error verificando límite/duplicado: {e}")
-        return jsonify({"ok": False, "error": "Error al verificar disponibilidad. Intenta nuevamente."}), 500
-
-    try:
-        nombre_evento_g = f"{_get_nombre_evento()} — Entrada Gratuita"
-        codigo, qr_img = _emitir_ticket(
-            comprador   = comprador,
-            evento      = nombre_evento_g,
-            cantidad    = 1,
-            precio_unit = 0,
-            total       = 0,
-            id_pago     = "ENTRADA_LIBERADA"
-        )
+                cur.execute("""
+                    INSERT INTO tickets (codigo, nombre, apellido, rut, evento, acompanante_de,
+                        email, telefono, cantidad, precio_unit, total, fecha_compra, id_pago, estado, url_verificacion)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'ACTIVO',%s)
+                    ON CONFLICT (codigo) DO NOTHING
+                """, (
+                    codigo,
+                    comprador.get("nombre", ""),
+                    comprador.get("apellido", ""),
+                    comprador.get("rut", ""),
+                    nombre_evento_g,
+                    "",
+                    comprador.get("email", ""),
+                    comprador.get("telefono", ""),
+                    1, 0, 0, fecha, "ENTRADA_LIBERADA", url_verificacion,
+                ))
+            conn.commit()
         nuevo_total = total_gratis + 1
         print(f"Entrada gratuita emitida — total: {nuevo_total}/{limite}")
-        try:
-            nombre_c = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
-            _enviar_resumen_compra(
-                comprador     = comprador,
-                todos         = [comprador],
-                tickets_lista = [{"nombre": nombre_evento_g}],
-                id_pago       = "ENTRADA_LIBERADA",
-                qrs           = [(None, None, codigo, qr_img)],
-                subject       = f"🎟️ Entrada gratis — {nombre_c} ({nuevo_total}/{limite})",
-            )
-        except Exception as ex:
-            print(f"Error enviando copia gratis a BW: {ex}")
-        return jsonify({"ok": True})
     except Exception as e:
-        print(f"Error generando entrada gratis: {e}")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        print(f"Error verificando/insertando entrada gratis: {e}")
+        return jsonify({"ok": False, "error": "Error al verificar disponibilidad. Intenta nuevamente."}), 500
+
+    # Fuera del lock: QR, Sheets y emails (no afectan el conteo)
+    try:
+        ws = get_sheet()
+        ws.append_row([
+            codigo, comprador.get("nombre",""), comprador.get("apellido",""),
+            comprador.get("rut",""), nombre_evento_g, "",
+            comprador.get("email",""), comprador.get("telefono",""),
+            1, 0, 0, fecha, "ENTRADA_LIBERADA", "ACTIVO", url_verificacion
+        ])
+    except Exception as e:
+        print(f"Error guardando gratis en Sheets (no crítico): {e}")
+
+    qr_img = None
+    try:
+        qr_img = _generar_qr(url_verificacion)
+    except Exception as e:
+        print(f"Error generando QR gratis: {e}")
+
+    try:
+        _enviar_email_ticket(
+            destinatario   = comprador.get("email", ""),
+            nombre         = f"{comprador.get('nombre', '')} {comprador.get('apellido', '')}".strip(),
+            evento         = nombre_evento_g,
+            codigo         = codigo,
+            qr_img         = qr_img,
+            acompanante_de = "",
+            mesa           = None,
+            companions     = None,
+            es_gratis      = True,
+        )
+    except Exception as e:
+        import traceback
+        print(f"Error enviando email gratis: {e}")
+        print(traceback.format_exc())
+
+    try:
+        nombre_c = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
+        _enviar_resumen_compra(
+            comprador     = comprador,
+            todos         = [comprador],
+            tickets_lista = [{"nombre": nombre_evento_g}],
+            id_pago       = "ENTRADA_LIBERADA",
+            qrs           = [(None, None, codigo, qr_img)] if qr_img else None,
+            subject       = f"🎟️ Entrada gratis — {nombre_c} ({nuevo_total}/{limite})",
+        )
+    except Exception as ex:
+        print(f"Error enviando copia gratis a BW: {ex}")
+
+    return jsonify({"ok": True})
 
 
 
