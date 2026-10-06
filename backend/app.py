@@ -1126,7 +1126,7 @@ def obtener_entrada_gratis():
     try:
         with get_db() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM tickets WHERE id_pago = 'ENTRADA_LIBERADA'")
+                cur.execute("SELECT COUNT(*) FROM tickets WHERE id_pago = 'ENTRADA_LIBERADA' AND estado = 'ACTIVO'")
                 total_gratis = cur.fetchone()[0]
 
                 if rut:
