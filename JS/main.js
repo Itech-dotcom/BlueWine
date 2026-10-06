@@ -1264,7 +1264,11 @@ async function cargarConfigRemota() {
     }
 
     if (cfg.eventoViernes) {
-      if (cfg.eventoViernes.nombre) NOMBRE_EVENTO_PRINCIPAL = cfg.eventoViernes.nombre;
+      if (cfg.eventoViernes.nombre) {
+        NOMBRE_EVENTO_PRINCIPAL = cfg.eventoViernes.nombre;
+        const modalLabel = document.getElementById('modal-label-fecha');
+        if (modalLabel) modalLabel.textContent = cfg.eventoViernes.nombre;
+      }
       _aplicarFechaSlide(slides[0], 'viernes', cfg.eventoViernes.fecha);
       if (cfg.eventoActivo) {
         _aplicarEvento(slides[0], cfg.eventoViernes, cfg.entradasGratis, 'viernes');
