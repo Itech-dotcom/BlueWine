@@ -1510,6 +1510,27 @@ def admin_anular_ticket():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.route("/admin/eliminar-ticket", methods=["POST"])
+def admin_eliminar_ticket():
+    if request.headers.get("X-Admin-Key") != ADMIN_KEY:
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+    try:
+        data   = request.get_json(force=True) or {}
+        codigo = str(data.get("codigo", "")).strip().upper()
+        if not codigo:
+            return jsonify({"ok": False, "error": "Falta codigo"}), 400
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM tickets WHERE codigo = %s AND estado = 'ANULADO'", (codigo,))
+                deleted = cur.rowcount
+            conn.commit()
+        if deleted == 0:
+            return jsonify({"ok": False, "error": "Ticket no encontrado o no está anulado"}), 404
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # ══════════════════════════════════════════════════════
 # VERIFICAR TICKET — Página que escanea el guardia
 # ══════════════════════════════════════════════════════
