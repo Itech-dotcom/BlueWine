@@ -661,6 +661,11 @@ async function cargarConfigPanel() {
         if (!('entradasGratis' in ev) && 'entradasGratis' in cfg) ev.entradasGratis = cfg.entradasGratis;
         if (!('entradasGratisAgotada' in ev) && 'entradasGratisAgotada' in cfg) ev.entradasGratisAgotada = cfg.entradasGratisAgotada;
         if (!('limiteEntradasGratis' in ev) && cfg.limiteEntradasGratisViernes) ev.limiteEntradasGratis = cfg.limiteEntradasGratisViernes;
+      } else {
+        // Slots secundarios: no heredar activo:true del legado — el usuario activa explícitamente
+        ev.activo   = false;
+        ev.carrito  = false;
+        ev.destacado = false;
       }
       return ev;
     }
