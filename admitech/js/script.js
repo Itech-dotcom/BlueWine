@@ -101,8 +101,8 @@ async function guardar() {
     };
   });
 
-  // Derivar estado gratis desde la entrada de tipo 'gratis' en la lista
-  const gratisEntry   = entradas['gratis'];
+  // Derivar estado gratis desde cualquier entrada con tipo === 'gratis'
+  const gratisEntry   = entradas['gratis'] || Object.values(entradas).find(e => e.tipo === 'gratis') || null;
   const gratisActiva  = gratisEntry ? (gratisEntry.activa === true) : false;
   const gratisAgotada = gratisEntry ? (!gratisEntry.activa && !gratisEntry.proximamente) : false;
   const gratisLimite  = gratisEntry ? (gratisEntry.limite || 100) : 100;
