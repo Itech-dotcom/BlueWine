@@ -5,15 +5,31 @@ function switchTab(name, el) {
   document.getElementById('panel-' + name).classList.add('active');
   (el || document.querySelector(`.tab[onclick*="'${name}'"]`))?.classList.add('active');
   document.getElementById('day-bar').style.display = (name === 'tickets') ? 'none' : 'flex';
+  if (name === 'entradas') _actualizarTituloEntradas();
 }
 
-// ── DÍAS ──
-let diaActual = 'viernes';
+// ── EVENTOS (reemplaza "días") ──
+const EVENTO_IDS = ['evento1','evento2','evento3','evento4','evento5'];
+let diaActual = 'evento1';
+
+// Almacena entradas por evento en memoria para no perder cambios al cambiar de tab
+let entradasPorEvento = { evento1: null, evento2: null, evento3: null, evento4: null, evento5: null };
 
 function switchDay(dia) {
+  _guardarEntradasActuales();
   diaActual = dia;
   document.querySelectorAll('.day-pill').forEach(p => p.classList.toggle('active', p.dataset.day === dia));
   document.querySelectorAll('.day-content').forEach(c => c.classList.toggle('active', c.dataset.day === dia));
+  _cargarEntradasEnPanel(entradasPorEvento[dia] || {});
+  _actualizarTituloEntradas();
+}
+
+function _actualizarTituloEntradas() {
+  const n = diaActual.replace('evento', '');
+  const titulo = document.querySelector('#panel-entradas .section-title');
+  if (titulo) titulo.textContent = `Tipos de entrada — Evento ${n}`;
+  const sub = document.querySelector('#panel-entradas .section-sub');
+  if (sub) sub.textContent = `Agrega, elimina o edita tipos de entrada del Evento ${n}. Los cambios se aplican al guardar.`;
 }
 
 function actualizarDayDot(dia, activo) {
@@ -50,17 +66,14 @@ async function guardarEvento() {
     // Auto-activar carrito
     const carritoToggle = document.getElementById('toggle-carrito-' + diaActual);
     if (carritoToggle) carritoToggle.checked = true;
-    // Verificar entradas desactivadas
-    const inactivas = [];
-    document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
-      const estadoEl  = row.querySelector('.entrada-estado-select');
-      const nombreEl  = row.querySelector('.entrada-nombre-input');
-      const keyEl     = row.querySelector('.entrada-key');
-      if (estadoEl && estadoEl.value === 'agotada') inactivas.push(nombreEl?.value?.trim() || keyEl?.textContent?.trim() || '—');
-    });
+    // Verificar entradas desactivadas del evento actual
+    const entradasActuales = _leerEntradasDelPanel();
+    const inactivas = Object.values(entradasActuales)
+      .filter(e => !e.activa && !e.proximamente)
+      .map(e => e.nombre || '—');
     if (inactivas.length) {
       const ok = confirm(
-        `Las siguientes entradas están desactivadas y no se mostrarán:\n\n• ${inactivas.join('\n• ')}\n\n¿Publicar igual? (puedes ir al tab Entradas para activarlas primero)`
+        `Las siguientes entradas del Evento ${diaActual.replace('evento','')} están desactivadas:\n\n• ${inactivas.join('\n• ')}\n\n¿Publicar igual? (puedes ir al tab Entradas para activarlas primero)`
       );
       if (!ok) { switchTab('entradas'); return; }
     }
@@ -72,63 +85,61 @@ async function guardar() {
   const adminKey = getKey();
   if (!adminKey) { mostrarToast('No autenticado', 'error'); return; }
 
-  // Leer toggles del tab evento (viernes activo)
-  const eventoActivo = document.getElementById('toggle-evento-activo-viernes')?.checked ?? false;
-  const carrito      = document.getElementById('toggle-carrito-viernes')?.checked        ?? false;
-  const anuncio      = document.getElementById('toggle-anuncio-viernes')?.checked        ?? false;
+  // Guardar entradas del evento actualmente visible antes de leer todo
+  _guardarEntradasActuales();
 
-  // Leer entradas del tab entradas
-  const entradas = {};
-  document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
-    const keyEl     = row.querySelector('.entrada-key');
-    const precioEl  = row.querySelector('.entrada-precio-input');
-    const limiteEl  = row.querySelector('.entrada-limite-input');
-    const nombreEl  = row.querySelector('.entrada-nombre-input');
-    const tipoEl    = row.querySelector('.entrada-tipo-select');
-    const estadoEl  = row.querySelector('.entrada-estado-select');
-    if (!keyEl) return;
-    const key = keyEl.textContent.trim();
-    if (!key) return;
-    const estado = estadoEl?.value || 'activa';
-    entradas[key] = {
-      nombre:       nombreEl?.value?.trim() || key,
-      precio:       parseInt(precioEl?.value || '0', 10),
-      limite:       parseInt(limiteEl?.value || '0', 10),
-      activa:       estado === 'activa',
-      proximamente: estado === 'proximamente',
-      tipo:         tipoEl?.value || 'general',
-      personas:     tipoEl?.value === 'promo' ? 2 : 1,
+  // Construir objeto por cada slot de evento
+  const eventoObjs = {};
+  EVENTO_IDS.forEach(id => {
+    const activo               = document.getElementById(`toggle-evento-activo-${id}`)?.checked   ?? false;
+    const destacado            = document.getElementById(`toggle-destacado-${id}`)?.checked       ?? false;
+    const carrito              = document.getElementById(`toggle-carrito-${id}`)?.checked         ?? false;
+    const anuncio              = document.getElementById(`toggle-anuncio-${id}`)?.checked         ?? false;
+    const entradasGratis       = document.getElementById(`toggle-gratis-${id}`)?.checked          ?? false;
+    const entradasGratisAgotada= document.getElementById(`toggle-gratis-agotada-${id}`)?.checked  ?? false;
+    const limRaw               = parseInt(document.getElementById(`ev-limiteGratis-${id}`)?.value || '100', 10);
+    const limiteEntradasGratis = isNaN(limRaw) || limRaw <= 0 ? 100 : limRaw;
+
+    eventoObjs[id] = {
+      activo, destacado, carrito, anuncio,
+      entradasGratis, entradasGratisAgotada, limiteEntradasGratis,
+      nombre:   document.getElementById(`ev-nombre-${id}`)?.value?.trim()    || '',
+      fecha:    document.getElementById(`ev-fecha-${id}`)?.value?.trim()     || '',
+      imagen:   document.getElementById(`ev-imagen-${id}`)?.value?.trim()    || '',
+      lineup:   document.getElementById(`ev-lineup-${id}`)?.value?.trim()    || '',
+      diaLabel: document.getElementById(`ev-diaLabel-${id}`)?.value?.trim()  || '',
+      entradas: entradasPorEvento[id] || {},
     };
   });
 
-  // Derivar estado gratis desde cualquier entrada con tipo === 'gratis'
-  const gratisEntry   = entradas['gratis'] || Object.values(entradas).find(e => e.tipo === 'gratis') || null;
-  const gratisActiva  = gratisEntry ? (gratisEntry.activa === true) : false;
-  const gratisAgotada = gratisEntry ? (!gratisEntry.activa && !gratisEntry.proximamente) : false;
-  const gratisLimite  = gratisEntry ? (gratisEntry.limite || 100) : 100;
-
+  // Backward compat: keys planos que el frontend antiguo espera (mapeados al evento1)
+  const ev1 = eventoObjs.evento1;
   const config = {
-    eventoActivo, entradasGratis: gratisActiva, entradasGratisAgotada: gratisAgotada,
-    entradasGratisAgotadaViernes: gratisAgotada, carrito, anuncio, entradas,
-    limiteEntradasGratisViernes: gratisLimite,
-    limiteEntradasGratisSabado:  gratisLimite,
+    // Claves planas legacy
+    eventoActivo:              ev1.activo,
+    carrito:                   ev1.carrito,
+    anuncio:                   ev1.anuncio,
+    entradasGratis:            ev1.entradasGratis,
+    entradasGratisAgotada:     ev1.entradasGratisAgotada,
+    limiteEntradasGratisViernes: ev1.limiteEntradasGratis,
+    entradas:                  ev1.entradas,
+    // eventoViernes = evento1 para backward compat
     eventoViernes: {
-      nombre: document.getElementById('ev-nombre-viernes')?.value?.trim() || '',
-      fecha:  document.getElementById('ev-fecha-viernes')?.value?.trim()  || '',
-      imagen: document.getElementById('ev-imagen-viernes')?.value?.trim() || '',
-      lineup: document.getElementById('ev-lineup-viernes')?.value?.trim() || '',
+      activo:                ev1.activo,
+      destacado:             ev1.destacado,
+      carrito:               ev1.carrito,
+      anuncio:               ev1.anuncio,
+      entradasGratis:        ev1.entradasGratis,
+      entradasGratisAgotada: ev1.entradasGratisAgotada,
+      limiteEntradasGratis:  ev1.limiteEntradasGratis,
+      nombre:   ev1.nombre,
+      fecha:    ev1.fecha,
+      imagen:   ev1.imagen,
+      lineup:   ev1.lineup,
+      diaLabel: ev1.diaLabel,
     },
-    eventoSabado: {
-      activo:               document.getElementById('toggle-evento-activo-sabado')?.checked ?? false,
-      entradasGratis:       gratisActiva,
-      entradasGratisAgotada: gratisAgotada,
-      carrito:              document.getElementById('toggle-carrito-sabado')?.checked       ?? false,
-      anuncio:              document.getElementById('toggle-anuncio-sabado')?.checked       ?? false,
-      nombre:  document.getElementById('ev-nombre-sabado')?.value?.trim()      || '',
-      fecha:   document.getElementById('ev-fecha-sabado')?.value?.trim()       || '',
-      imagen:  document.getElementById('ev-imagen-sabado')?.value?.trim()      || '',
-      lineup:  document.getElementById('ev-lineup-sabado')?.value?.trim()      || '',
-    },
+    // Nuevos slots evento1..5
+    ...eventoObjs,
   };
 
   try {
@@ -199,7 +210,7 @@ async function enviarReenvio(event) {
 function normalizarNombreArchivoEvento(fileName, dia) {
   const extension = (fileName.match(/\.([a-z0-9]+)$/i)?.[1] || 'jpg').toLowerCase();
   const extValida = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension) ? extension : 'jpg';
-  const diaKey = dia === 'sabado' ? 'sabado' : 'viernes';
+  const diaKey = dia.startsWith('evento') ? dia : (dia === 'sabado' ? 'evento2' : 'evento1');
   return `evento-${diaKey}.${extValida}`;
 }
 
@@ -228,7 +239,6 @@ function onToggleEventoActivo(checkbox, dia) {
     const ok = confirm('¿Seguro que quieres desactivar el evento? Dejará de mostrarse en la página principal.');
     if (!ok) { checkbox.checked = true; return; }
   } else {
-    // Auto-activar carrito al activar el evento
     const carritoToggle = document.getElementById('toggle-carrito-' + dia);
     if (carritoToggle && !carritoToggle.checked) carritoToggle.checked = true;
   }
@@ -239,9 +249,91 @@ function onToggleEventoActivo(checkbox, dia) {
   actualizarDayDot(dia, checkbox.checked);
 }
 
-function onToggleEntradasGratis(checkbox, dia) {
-  const sub = document.getElementById('estado-evento-sub-' + dia);
-  if (sub) sub.textContent = checkbox.checked ? 'Entradas gratis habilitadas' : '';
+function onToggleDestacado(checkbox, dia) {
+  if (checkbox.checked) {
+    // Solo un evento puede ser destacado a la vez
+    EVENTO_IDS.forEach(id => {
+      if (id !== dia) {
+        const el = document.getElementById('toggle-destacado-' + id);
+        if (el) el.checked = false;
+      }
+    });
+  }
+}
+
+// ── ENTRADAS POR EVENTO (helpers) ──
+function _leerEntradasDelPanel() {
+  const entradas = {};
+  document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
+    const keyEl    = row.querySelector('.entrada-key');
+    const precioEl = row.querySelector('.entrada-precio-input');
+    const limiteEl = row.querySelector('.entrada-limite-input');
+    const nombreEl = row.querySelector('.entrada-nombre-input');
+    const tipoEl   = row.querySelector('.entrada-tipo-select');
+    const estadoEl = row.querySelector('.entrada-estado-select');
+    if (!keyEl) return;
+    const key = keyEl.textContent.trim();
+    if (!key) return;
+    const estado = estadoEl?.value || 'activa';
+    entradas[key] = {
+      nombre:       nombreEl?.value?.trim() || key,
+      precio:       parseInt(precioEl?.value || '0', 10),
+      limite:       parseInt(limiteEl?.value || '0', 10),
+      activa:       estado === 'activa',
+      proximamente: estado === 'proximamente',
+      tipo:         tipoEl?.value || 'general',
+      personas:     tipoEl?.value === 'promo' ? 2 : 1,
+    };
+  });
+  return entradas;
+}
+
+function _guardarEntradasActuales() {
+  entradasPorEvento[diaActual] = _leerEntradasDelPanel();
+}
+
+function _cargarEntradasEnPanel(entradas) {
+  const list = document.getElementById('entradas-list');
+  if (!list) return;
+  if (!entradas || !Object.keys(entradas).length) {
+    list.innerHTML = '';
+    return;
+  }
+  // Asegurar que gratis siempre esté primero
+  const gratisKey = 'gratis' in entradas ? 'gratis' : (Object.keys(entradas).find(k => entradas[k].tipo === 'gratis') || null);
+  const sortedEntries = gratisKey ? [
+    [gratisKey, entradas[gratisKey]],
+    ...Object.entries(entradas).filter(([k]) => k !== gratisKey),
+  ] : Object.entries(entradas);
+
+  list.innerHTML = sortedEntries.map(([key, val]) => {
+    const estado = val.proximamente ? 'proximamente' : (val.activa ? 'activa' : 'agotada');
+    return `
+      <div class="entrada-row">
+        <div class="entrada-nombre">
+          <input type="text" class="entrada-input entrada-nombre-input" value="${escapeHtml(val.nombre || key)}" placeholder="Nombre…" />
+          <span class="entrada-key">${escapeHtml(key)}</span>
+        </div>
+        <div><select class="entrada-tipo-select">
+          <option value="general"${val.tipo === 'general' ? ' selected' : ''}>General</option>
+          <option value="vip"${val.tipo === 'vip' ? ' selected' : ''}>VIP</option>
+          <option value="supervip"${val.tipo === 'supervip' ? ' selected' : ''}>Super VIP</option>
+          <option value="gratis"${val.tipo === 'gratis' ? ' selected' : ''}>Gratis</option>
+          <option value="promo"${val.tipo === 'promo' ? ' selected' : ''}>Promo 2x1</option>
+        </select></div>
+        <div><input type="number" value="${val.precio || 0}" min="0" class="entrada-input entrada-precio-input" /></div>
+        <div><input type="number" value="${val.limite || 0}" min="0" class="entrada-input entrada-limite-input" /></div>
+        <div class="entrada-stock">0</div>
+        <div><select class="entrada-estado-select">
+          <option value="activa"${estado === 'activa' ? ' selected' : ''}>Activa</option>
+          <option value="agotada"${estado === 'agotada' ? ' selected' : ''}>Agotada</option>
+          <option value="proximamente"${estado === 'proximamente' ? ' selected' : ''}>Próximamente</option>
+        </select></div>
+        <button type="button" class="entrada-remove" onclick="this.closest('.entrada-row').remove()" title="Eliminar tipo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>`;
+  }).join('');
 }
 
 // ── TICKETS DATA ──
@@ -265,7 +357,7 @@ async function cargarTickets() {
       `${data.total} entrada${data.total !== 1 ? 's' : ''} en total`;
     document.getElementById('tab-ticket-count').textContent = data.total;
 
-    actualizarFiltroTicketsPorTipo();
+    actualizarFiltrosTickets();
     filtrarTickets();
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--red);">Error cargando tickets: ${e.message}</td></tr>`;
@@ -279,9 +371,13 @@ function estadoBadge(estado) {
 }
 
 function tipoLabel(evento) {
-  // "Pre Aniversario Blue Wine — General" → "General"
   const partes = String(evento || '').split(' — ');
   return partes.length > 1 ? partes.slice(1).join(' — ') : (evento || '—');
+}
+
+function eventoLabel(evento) {
+  const partes = String(evento || '').split(' — ');
+  return partes.length > 1 ? partes[0].trim() : '';
 }
 
 function renderTickets(data) {
@@ -372,38 +468,58 @@ function paginaSiguiente() {
 }
 
 function filtrarTickets() {
-  const q    = (document.getElementById('search-input')?.value || '').toLowerCase();
-  const tipo = document.getElementById('tickets-filtro-tipo')?.value || '';
+  const q       = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const tipo    = document.getElementById('tickets-filtro-tipo')?.value || '';
+  const evento  = document.getElementById('tickets-filtro-evento')?.value || '';
   ticketsFiltrados = todosTickets.filter(t => {
-    const nombre = `${t.nombre || ''} ${t.apellido || ''}`.toLowerCase();
-    const tipo_t = tipoLabel(t.evento);
-    return (!tipo || tipo_t === tipo) &&
-      (!q || nombre.includes(q) ||
-        (t.rut || '').toLowerCase().includes(q) ||
-        (t.codigo || '').toLowerCase().includes(q) ||
-        (t.email || '').toLowerCase().includes(q));
+    const nombre  = `${t.nombre || ''} ${t.apellido || ''}`.toLowerCase();
+    const tipo_t  = tipoLabel(t.evento);
+    const evento_t = eventoLabel(t.evento);
+    return (!tipo   || tipo_t   === tipo) &&
+           (!evento || evento_t === evento) &&
+           (!q || nombre.includes(q) ||
+            (t.rut    || '').toLowerCase().includes(q) ||
+            (t.codigo || '').toLowerCase().includes(q) ||
+            (t.email  || '').toLowerCase().includes(q));
   });
   paginaActual = 1;
   renderPagina();
   actualizarResumenTickets();
 }
 
-function actualizarFiltroTicketsPorTipo() {
-  const select = document.getElementById('tickets-filtro-tipo');
-  const valorActual = select.value;
-  const tipos = [...new Set(todosTickets.map(t => tipoLabel(t.evento)).filter(Boolean))];
-  select.innerHTML = '<option value="">Todos los tipos</option>' +
-    tipos.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
-  if (tipos.includes(valorActual)) select.value = valorActual;
+function actualizarFiltrosTickets() {
+  // Filtro por tipo
+  const selectTipo = document.getElementById('tickets-filtro-tipo');
+  if (selectTipo) {
+    const valorTipo = selectTipo.value;
+    const tipos = [...new Set(todosTickets.map(t => tipoLabel(t.evento)).filter(Boolean))];
+    selectTipo.innerHTML = '<option value="">Todos los tipos</option>' +
+      tipos.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+    if (tipos.includes(valorTipo)) selectTipo.value = valorTipo;
+  }
+  // Filtro por evento
+  const selectEvento = document.getElementById('tickets-filtro-evento');
+  if (selectEvento) {
+    const valorEvento = selectEvento.value;
+    const eventos = [...new Set(todosTickets.map(t => eventoLabel(t.evento)).filter(Boolean))];
+    selectEvento.innerHTML = '<option value="">Todos los eventos</option>' +
+      eventos.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+    if (eventos.includes(valorEvento)) selectEvento.value = valorEvento;
+  }
 }
+
+// Alias para compatibilidad con llamadas antiguas
+function actualizarFiltroTicketsPorTipo() { actualizarFiltrosTickets(); }
 
 function actualizarResumenTickets() {
   const conteos = {};
   ticketsFiltrados.forEach(t => {
-    const tipo = tipoLabel(t.evento) || 'Sin tipo';
-    conteos[tipo] = (conteos[tipo] || 0) + 1;
+    const ev   = eventoLabel(t.evento) || 'Sin evento';
+    const tipo = tipoLabel(t.evento)   || 'Sin tipo';
+    const label = `${ev} / ${tipo}`;
+    conteos[label] = (conteos[label] || 0) + 1;
   });
-  const texto = Object.entries(conteos).map(([tipo, n]) => `${tipo}: ${n}`).join(' · ');
+  const texto = Object.entries(conteos).map(([label, n]) => `${label}: ${n}`).join(' · ');
   const el = document.getElementById('tickets-resumen');
   if (el) el.textContent = texto || (todosTickets.length ? 'Sin resultados para el filtro' : 'Sin tickets registrados');
 }
@@ -435,7 +551,6 @@ async function exportarCSV() {
     return { header: label, key, width: Math.min(maxLen + 4, 48) };
   });
 
-  // Cabecera dorada
   const headerRow = ws.getRow(1);
   headerRow.height = 22;
   headerRow.eachCell(cell => {
@@ -445,7 +560,6 @@ async function exportarCSV() {
     cell.border    = { bottom: { style: 'medium', color: { argb: 'FF8B6B14' } } };
   });
 
-  // Filas de datos con alternancia
   todosTickets.forEach((t, i) => {
     const row = ws.addRow(COLS.map(([key]) => t[key] ?? ''));
     row.height = 18;
@@ -468,7 +582,7 @@ async function exportarCSV() {
   mostrarToast('Excel exportado');
 }
 
-// ── ENTRADAS: AGREGAR / ELIMINAR ──
+// ── ENTRADAS: AGREGAR ──
 function agregarEntrada() {
   const list = document.getElementById('entradas-list');
   const uid = 'entrada' + Date.now();
@@ -516,107 +630,87 @@ async function cargarConfigPanel() {
 
     const setToggle = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
 
-    if ('eventoActivo' in cfg) {
-      setToggle('toggle-evento-activo-viernes', cfg.eventoActivo);
-      const badge = document.getElementById('estado-evento-badge-viernes');
+    // Fallback legacy: si no existe eventoN en cfg, intentar con claves antiguas
+    const _fallback = { evento1: 'eventoViernes', evento2: 'eventoSabado' };
+    function _resolverCfgEvento(id) {
+      if (cfg[id] && typeof cfg[id] === 'object') return cfg[id];
+      const leg = _fallback[id];
+      if (leg && cfg[leg] && typeof cfg[leg] === 'object') {
+        const ev = { ...cfg[leg] };
+        if (id === 'evento1') {
+          if (!('activo'    in ev)) ev.activo   = !!cfg.eventoActivo;
+          if (!('carrito'   in ev)) ev.carrito  = !!cfg.carrito;
+          if (!('anuncio'   in ev)) ev.anuncio  = !!cfg.anuncio;
+          if (!('destacado' in ev)) ev.destacado = true;
+          if (!('entradasGratis' in ev) && 'entradasGratis' in cfg) ev.entradasGratis = cfg.entradasGratis;
+          if (!('entradasGratisAgotada' in ev) && 'entradasGratisAgotada' in cfg) ev.entradasGratisAgotada = cfg.entradasGratisAgotada;
+          if (!('limiteEntradasGratis' in ev) && cfg.limiteEntradasGratisViernes) ev.limiteEntradasGratis = cfg.limiteEntradasGratisViernes;
+        }
+        return ev;
+      }
+      return null;
+    }
+
+    EVENTO_IDS.forEach(id => {
+      const ev = _resolverCfgEvento(id);
+      if (!ev) return;
+
+      setToggle(`toggle-evento-activo-${id}`, ev.activo);
+      setToggle(`toggle-destacado-${id}`,     ev.destacado);
+      setToggle(`toggle-carrito-${id}`,        ev.carrito);
+      setToggle(`toggle-gratis-${id}`,         ev.entradasGratis);
+      setToggle(`toggle-gratis-agotada-${id}`, ev.entradasGratisAgotada);
+      setToggle(`toggle-anuncio-${id}`,         ev.anuncio);
+
+      const badge = document.getElementById(`estado-evento-badge-${id}`);
       if (badge) {
-        badge.textContent = cfg.eventoActivo ? 'Activo' : 'Inactivo';
-        badge.className = 'badge ' + (cfg.eventoActivo ? 'badge-green' : 'badge-muted');
+        badge.textContent = ev.activo ? 'Activo' : 'Inactivo';
+        badge.className = 'badge ' + (ev.activo ? 'badge-green' : 'badge-muted');
         badge.style.cssText = 'font-size:13px;padding:4px 12px;';
       }
-      actualizarDayDot('viernes', cfg.eventoActivo);
-    }
-    if ('carrito' in cfg) setToggle('toggle-carrito-viernes', cfg.carrito);
-    if ('anuncio' in cfg) setToggle('toggle-anuncio-viernes', cfg.anuncio);
+      actualizarDayDot(id, ev.activo);
 
-    if (cfg.entradas && typeof cfg.entradas === 'object') {
-      const list = document.getElementById('entradas-list');
-      if (list) {
-        list.innerHTML = '';
-        // Asegurar que gratis siempre esté primero aunque PG no lo tenga
-        const entradas = { ...cfg.entradas };
-        const hasGratisTipo = Object.values(entradas).some(e => e.tipo === 'gratis');
-        if (!hasGratisTipo) {
-          entradas.gratis = { nombre: 'Exclusivo solo para ellas', precio: 0, limite: 100, activa: false, proximamente: false, tipo: 'gratis' };
+      const setVal = (fieldId, v) => { const el = document.getElementById(fieldId); if (el && v) el.value = v; };
+      setVal(`ev-nombre-${id}`,    ev.nombre);
+      setVal(`ev-lineup-${id}`,    ev.lineup);
+      setVal(`ev-diaLabel-${id}`,  ev.diaLabel);
+      if (ev.limiteEntradasGratis) setVal(`ev-limiteGratis-${id}`, ev.limiteEntradasGratis);
+      if (ev.fecha) { setVal(`ev-fecha-${id}`, ev.fecha); actualizarPreviewSlide(id); }
+      if (ev.imagen) {
+        setVal(`ev-imagen-${id}`, ev.imagen);
+        const preview = document.getElementById(`ev-imagen-preview-img-${id}`);
+        if (preview) {
+          preview.src = `../Imagenes/${ev.imagen}`;
+          document.getElementById(`ev-imagen-wrap-${id}`)?.classList.add('has-image');
+          const removeBtn = document.getElementById(`ev-imagen-remove-${id}`);
+          if (removeBtn) removeBtn.hidden = false;
         }
-        const gratisKey = 'gratis' in entradas ? 'gratis' : (Object.keys(entradas).find(k => entradas[k].tipo === 'gratis') || null);
-        const sortedEntries = gratisKey ? [
-          [gratisKey, entradas[gratisKey]],
-          ...Object.entries(entradas).filter(([k]) => k !== gratisKey),
-        ] : Object.entries(entradas);
-        sortedEntries.forEach(([key, val]) => {
-          const estado = val.proximamente ? 'proximamente' : (val.activa ? 'activa' : 'agotada');
-          const row = document.createElement('div');
-          row.className = 'entrada-row';
-          row.innerHTML = `
-            <div class="entrada-nombre">
-              <input type="text" class="entrada-input entrada-nombre-input" value="${escapeHtml(val.nombre || key)}" placeholder="Nombre…" />
-              <span class="entrada-key">${key}</span>
-            </div>
-            <div><select class="entrada-tipo-select">
-              <option value="general"${val.tipo === 'general' ? ' selected' : ''}>General</option>
-              <option value="vip"${val.tipo === 'vip' ? ' selected' : ''}>VIP</option>
-              <option value="supervip"${val.tipo === 'supervip' ? ' selected' : ''}>Super VIP</option>
-              <option value="gratis"${val.tipo === 'gratis' ? ' selected' : ''}>Gratis</option>
-              <option value="promo"${val.tipo === 'promo' ? ' selected' : ''}>Promo 2x1</option>
-            </select></div>
-            <div><input type="number" value="${val.precio || 0}" min="0" class="entrada-input entrada-precio-input" /></div>
-            <div><input type="number" value="${val.limite || 0}" min="0" class="entrada-input entrada-limite-input" /></div>
-            <div class="entrada-stock">0</div>
-            <div><select class="entrada-estado-select">
-              <option value="activa"${estado === 'activa' ? ' selected' : ''}>Activa</option>
-              <option value="agotada"${estado === 'agotada' ? ' selected' : ''}>Agotada</option>
-              <option value="proximamente"${estado === 'proximamente' ? ' selected' : ''}>Próximamente</option>
-            </select></div>
-            <button type="button" class="entrada-remove" onclick="this.closest('.entrada-row').remove()" title="Eliminar tipo">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>`;
-          list.appendChild(row);
-        });
       }
-    }
+      const statFecha  = document.getElementById(`stat-fecha-${id}`);
+      const statNombre = document.getElementById(`stat-nombre-${id}`);
+      if (statFecha && ev.fecha) statFecha.textContent = ev.fecha;
+      if (statNombre && ev.nombre) statNombre.textContent = ev.nombre;
 
-    // Datos del evento Viernes
-    if (cfg.eventoViernes) {
-      const ev = cfg.eventoViernes;
-      const setVal = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
-      setVal('ev-nombre-viernes', ev.nombre);
-      setVal('ev-lineup-viernes', ev.lineup);
-      if (ev.fecha) { setVal('ev-fecha-viernes', ev.fecha); actualizarPreviewSlide('viernes'); }
-      if (ev.imagen) {
-        setVal('ev-imagen-viernes', ev.imagen);
-        const preview = document.getElementById('ev-imagen-preview-img-viernes');
-        if (preview) { preview.src = `../Imagenes/${ev.imagen}`; document.getElementById('ev-imagen-wrap-viernes')?.classList.add('has-image'); document.getElementById('ev-imagen-remove-viernes') && (document.getElementById('ev-imagen-remove-viernes').hidden = false); }
+      // Guardar entradas del evento en memoria
+      // Usar ev.entradas si existe, sino para evento1 usar cfg.entradas como fallback
+      let entradasEv = ev.entradas || null;
+      if (!entradasEv && id === 'evento1' && cfg.entradas) entradasEv = cfg.entradas;
+      if (entradasEv) {
+        // Asegurar que gratis esté presente
+        if (!Object.values(entradasEv).some(e => e.tipo === 'gratis')) {
+          entradasEv = {
+            gratis: { nombre: 'Exclusivo solo para ellas', precio: 0, limite: 100, activa: false, proximamente: false, tipo: 'gratis' },
+            ...entradasEv,
+          };
+        }
+        entradasPorEvento[id] = entradasEv;
       }
-      const sub = document.getElementById('stat-fecha-viernes');
-      if (sub && ev.fecha) sub.textContent = ev.fecha;
-      const nombre = document.getElementById('stat-nombre-viernes');
-      if (nombre && ev.nombre) nombre.textContent = ev.nombre;
-    }
+    });
 
-    // Datos del evento Sábado
-    if (cfg.eventoSabado) {
-      const ev = cfg.eventoSabado;
-      const setVal = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.value = v; };
-      setToggle('toggle-evento-activo-sabado',      ev.activo);
-      setToggle('toggle-carrito-sabado', ev.carrito);
-      setToggle('toggle-anuncio-sabado',            ev.anuncio);
-      setVal('ev-nombre-sabado', ev.nombre);
-      setVal('ev-lineup-sabado', ev.lineup);
-      if (ev.fecha) { setVal('ev-fecha-sabado', ev.fecha); actualizarPreviewSlide('sabado'); }
-      if (ev.imagen) {
-        setVal('ev-imagen-sabado', ev.imagen);
-        const preview = document.getElementById('ev-imagen-preview-img-sabado');
-        if (preview) { preview.src = `../Imagenes/${ev.imagen}`; document.getElementById('ev-imagen-wrap-sabado')?.classList.add('has-image'); document.getElementById('ev-imagen-remove-sabado') && (document.getElementById('ev-imagen-remove-sabado').hidden = false); }
-      }
-      const badge = document.getElementById('estado-evento-badge-sabado');
-      if (badge) { badge.textContent = ev.activo ? 'Activo' : 'Inactivo'; badge.className = 'badge ' + (ev.activo ? 'badge-green' : 'badge-muted'); badge.style.cssText = 'font-size:13px;padding:4px 12px;'; }
-      actualizarDayDot('sabado', ev.activo);
-      const sub = document.getElementById('stat-fecha-sabado');
-      if (sub && ev.fecha) sub.textContent = ev.fecha;
-      const nombre = document.getElementById('stat-nombre-sabado');
-      if (nombre && ev.nombre) nombre.textContent = ev.nombre;
-    }
+    // Mostrar entradas del evento actualmente seleccionado
+    _cargarEntradasEnPanel(entradasPorEvento[diaActual] || {});
+    _actualizarTituloEntradas();
+
   } catch { /* fail silently */ }
 }
 
@@ -670,23 +764,16 @@ let _entradasManual = {};
 
 function abrirModalEmitirManual() {
   document.getElementById('form-emitir-manual').reset();
-  // Poblar select con entradas actuales del panel
   const sel = document.getElementById('manual-entrada-select');
   sel.innerHTML = '<option value="">— Elige una entrada —</option>';
   _entradasManual = {};
-  document.querySelectorAll('#entradas-list .entrada-row:not(.entrada-row-header)').forEach(row => {
-    const keyEl    = row.querySelector('.entrada-key');
-    const nombreEl = row.querySelector('.entrada-nombre-input');
-    const precioEl = row.querySelector('.entrada-precio-input');
-    if (!keyEl) return;
-    const key    = keyEl.textContent.trim();
-    const nombre = nombreEl?.value?.trim() || key;
-    const precio = parseInt(precioEl?.value || '0', 10);
-    if (!key) return;
-    _entradasManual[key] = { nombre, precio };
+  // Usar entradas del evento actualmente seleccionado
+  const entradas = _leerEntradasDelPanel();
+  Object.entries(entradas).forEach(([key, val]) => {
+    _entradasManual[key] = { nombre: val.nombre, precio: val.precio };
     const opt = document.createElement('option');
     opt.value = key;
-    opt.textContent = nombre;
+    opt.textContent = val.nombre || key;
     sel.appendChild(opt);
   });
   document.getElementById('modal-emitir-manual').classList.add('show');
@@ -711,9 +798,11 @@ async function enviarEmitirManual(event) {
   const key      = document.getElementById('manual-entrada-select').value;
   if (!key) { mostrarToast('Elige un tipo de entrada', 'error'); return false; }
   const info     = _entradasManual[key] || {};
-  // Construir nombre de evento igual que el backend: "NOMBRE_EVENTO — Tipo"
-  const eventoNombre = document.querySelector('#ev-nombre-viernes')?.value?.trim()
-    || document.querySelector('#ev-nombre-sabado')?.value?.trim()
+  // Usar nombre del evento actualmente seleccionado
+  const eventoNombre = document.getElementById(`ev-nombre-${diaActual}`)?.value?.trim()
+    || (['evento1','evento2','evento3','evento4','evento5']
+        .map(id => document.getElementById(`ev-nombre-${id}`)?.value?.trim())
+        .find(Boolean))
     || 'Blue Wine';
   const comprador = {
     nombre:   document.getElementById('manual-nombre').value.trim(),
@@ -757,4 +846,5 @@ function onPanelListo() {
   cargarTickets();
   if (typeof initHuellaBtn === 'function') initHuellaBtn();
   cargarConfigPanel();
+  _actualizarTituloEntradas();
 }

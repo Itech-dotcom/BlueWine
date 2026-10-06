@@ -180,36 +180,37 @@
   </section>
 
   <!-- ═══════════════════════════════════════
-       SECCIÓN 1: EVENTOS SLIDER VIERNES / SÁBADO
+       SECCIÓN EVENTOS — hasta 3 simultáneos (slots evento1, evento2, evento3)
   ════════════════════════════════════════ -->
   <section id="eventos">
     <div class="container">
       <div class="eventos-header reveal">
         <div>
-          <p class="section-label">Cada semana</p>
+          <p class="section-label">Próximamente</p>
           <h2 class="section-title">Agenda <em>Blue Wine</em></h2>
         </div>
         <div class="slider-dots">
           <span class="slider-dot active" onclick="irASlide(0)"></span>
           <span class="slider-dot" onclick="irASlide(1)"></span>
+          <span class="slider-dot" onclick="irASlide(2)"></span>
         </div>
       </div>
 
       <div class="eventos-slider-wrap">
         <div class="eventos-slider" id="eventosSlider">
 
-          <!-- VIERNES -->
-          <div class="evento-slide">
+          <!-- EVENTO 1 -->
+          <div class="evento-slide" data-evento-id="evento1">
             <div class="evento-slide-inner">
               <div class="evento-slide-dia">
-                <span class="evento-slide-label">Viernes</span>
-                <span class="evento-slide-nombre-dia">Viernes</span>
+                <span class="evento-slide-label">Evento</span>
+                <span class="evento-slide-nombre-dia">—</span>
               </div>
               <div class="evento-slide-content">
                 <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
-                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este viernes no hay evento</div>
-                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
-                <div class="evento-footer" style="flex-direction:column; align-items:flex-start; gap:0.5rem;">
+                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">No hay evento programado</div>
+                <div class="evento-desc">¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
+                <div class="evento-footer">
                   <a href="https://www.instagram.com/bluewine.quillon" target="_blank" class="hero-evento-btn" style="margin-top:0.5rem;text-decoration:none;">
                     <span class="hero-evento-dot"></span>
                     Seguir en Instagram
@@ -219,19 +220,34 @@
             </div>
           </div>
 
-          <!-- SÁBADO -->
-          <div class="evento-slide">
+          <!-- EVENTO 2 -->
+          <div class="evento-slide" data-evento-id="evento2">
             <div class="evento-slide-inner">
-              <div class="evento-slide-dia sabado">
-                <span class="evento-slide-label">Sábado</span>
-                <span class="evento-slide-nombre-dia">03 octubre</span>
+              <div class="evento-slide-dia">
+                <span class="evento-slide-label">Evento</span>
+                <span class="evento-slide-nombre-dia">—</span>
               </div>
               <div class="evento-slide-content">
                 <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
-                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">Este sábado no hay evento</div>
-                <div class="evento-desc">Esta semana no tenemos eventos programados. ¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
-                <div class="evento-footer">
-                </div>
+                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">No hay evento programado</div>
+                <div class="evento-desc">¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
+                <div class="evento-footer"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- EVENTO 3 -->
+          <div class="evento-slide" data-evento-id="evento3">
+            <div class="evento-slide-inner">
+              <div class="evento-slide-dia">
+                <span class="evento-slide-label">Evento</span>
+                <span class="evento-slide-nombre-dia">—</span>
+              </div>
+              <div class="evento-slide-content">
+                <div class="evento-tag" style="background:rgba(100,100,100,0.2); color:var(--text-muted); border-color:var(--text-muted);">Sin Evento</div>
+                <div class="evento-title" style="font-size:1.3rem; color:var(--text-muted);">No hay evento programado</div>
+                <div class="evento-desc">¡Síguenos en Instagram para enterarte de la próxima fecha!</div>
+                <div class="evento-footer"></div>
               </div>
             </div>
           </div>
@@ -1249,7 +1265,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=52"></script>
+  <script src="JS/main.js?v=53"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;

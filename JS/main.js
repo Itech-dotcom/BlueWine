@@ -27,21 +27,22 @@ const ENTRADAS = {
 };
 
 // ══════════════════════════════════════════════════════
-// CONFIGURACIÓN EVENTOS RECURRENTES — EDITAR AQUÍ
-// esGratis: true  → muestra badge "Entrada liberada hasta las hh:mm"
-// horaCorte: hora límite de entrada liberada (solo se muestra si esGratis: true)
+// CONFIGURACIÓN EVENTOS — hasta 5 simultáneos
+// Índice 0 = evento1, 1 = evento2, ... 4 = evento5
 // ══════════════════════════════════════════════════════
-const CONFIG_VIERNES = {
-  esGratis:      false,
-  gratisAgotada: false,
-  horaCorte:     '23:59',
-};
+const CONFIG_EVENTOS = [
+  { esGratis: false, gratisAgotada: false, horaCorte: '23:30' }, // evento1
+  { esGratis: false, gratisAgotada: false, horaCorte: '23:30' }, // evento2
+  { esGratis: false, gratisAgotada: false, horaCorte: '23:30' }, // evento3
+  { esGratis: false, gratisAgotada: false, horaCorte: '23:30' }, // evento4
+  { esGratis: false, gratisAgotada: false, horaCorte: '23:30' }, // evento5
+];
+// Aliases backward compat — todo el código antiguo sigue funcionando
+const CONFIG_VIERNES = CONFIG_EVENTOS[0];
+const CONFIG_SABADO  = CONFIG_EVENTOS[1];
 
-const CONFIG_SABADO = {
-  esGratis:      false,
-  gratisAgotada: true,   // ← mostrar como agotada por defecto
-  horaCorte:     '23:00',
-};
+// Evento activo en el modal (se actualiza al abrirlo)
+let _eventoModalActivo = 'evento1';
 
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN ANUNCIO EMERGENTE 
@@ -284,13 +285,13 @@ function actualizarStock() {
     .catch(() => {});
 }
 
-// Abre el modal de entradas. Primero muestra las cards con datos locales (instantáneo)
-// y luego actualiza los cupos reales del backend en segundo plano.
-function abrirModal() {
+// Abre el modal de entradas. eventoId indica qué evento (evento1..5).
+function abrirModal(eventoId) {
+  _eventoModalActivo = eventoId || 'evento1';
   try { renderizarTiposEntrada(); } catch(err) { console.error('renderizarTiposEntrada:', err); }
   actualizarStock();
   document.getElementById('modal-principal').classList.add('active');
-  document.body.style.overflow = 'hidden'; // bloquea el scroll del fondo mientras el modal está abierto
+  document.body.style.overflow = 'hidden';
 }
 
 // Dibuja las cards de tipos de entrada en el modal, agrupadas por categoría.
@@ -324,7 +325,7 @@ function renderizarTiposEntrada() {
     const esProximamente = eg.proximamente === true;
     const esAgotado      = !eg.activa && !esProximamente;
     const esActiva       = eg.activa && eg.disponibles > 0;
-    const diaG           = CONFIG_VIERNES.esGratis ? 'viernes' : 'sabado';
+    const diaG           = _eventoModalActivo || 'evento1';
     const nombreEsc      = NOMBRE_EVENTO_PRINCIPAL.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const gratisGrupo    = document.createElement('div');
     gratisGrupo.className = 'modal-tipo-grupo';
@@ -472,8 +473,8 @@ let _pendienteEntradaGratis = null;
 
 // Abre el formulario de checkout directamente en modo gratis (sin pasar por modal intermedio).
 // Se usa cuando entradasGratis está activo y el usuario presiona el botón del slide o hero.
-function abrirCheckoutGratis(nombre, dia) {
-  _pendienteEntradaGratis = { nombre, cantidad: 1, dia: dia || 'viernes' };
+function abrirCheckoutGratis(nombre, eventoId) {
+  _pendienteEntradaGratis = { nombre, cantidad: 1, dia: eventoId || 'evento1' };
   cerrarTodosModales();
   const btn = document.getElementById('checkout-btn-pagar');
   if (btn) { btn.textContent = 'Obtener entrada gratis →'; btn.dataset.modo = 'gratis'; }
@@ -486,12 +487,12 @@ function abrirCheckoutGratis(nombre, dia) {
 // BADGE ENTRADA LIBERADA — sección eventos
 // ══════════════════════════════════════════════════════
 function renderBadgesGratis() {
-  const badgeV = document.getElementById('badge-gratis-viernes');
-  const badgeS = document.getElementById('badge-gratis-sabado');
-  if (badgeV) badgeV.style.display = CONFIG_VIERNES.esGratis ? 'block' : 'none';
-  if (badgeS) badgeS.style.display = CONFIG_SABADO.esGratis  ? 'block' : 'none';
-  if (badgeV) badgeV.textContent = `🎉 Entrada liberada hasta las ${CONFIG_VIERNES.horaCorte}`;
-  if (badgeS) badgeS.textContent = `🎉 Entrada liberada hasta las ${CONFIG_SABADO.horaCorte}`;
+  CONFIG_EVENTOS.forEach((cfg, i) => {
+    const badge = document.getElementById(`badge-gratis-evento${i+1}`);
+    if (!badge) return;
+    badge.style.display = (cfg.esGratis && !cfg.gratisAgotada) ? 'block' : 'none';
+    badge.textContent = `🎉 Entrada liberada hasta las ${cfg.horaCorte}`;
+  });
 }
 
 // ══════════════════════════════════════════════════════
@@ -862,7 +863,7 @@ function procederPagoEntradas() {
     fetch('https://bluewine-production.up.railway.app/obtener-entrada-gratis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ comprador, nombreEvento, cantidad, dia: _pendienteEntradaGratis.dia || 'viernes' })
+      body: JSON.stringify({ comprador, nombreEvento, cantidad, eventoId: _pendienteEntradaGratis.dia || 'evento1' })
     })
     .then(res => res.json())
     .then(data => {
@@ -1206,108 +1207,101 @@ async function cargarConfigRemota() {
     const show = sel => document.querySelectorAll(sel).forEach(el => el.style.removeProperty('display'));
     const hide = sel => document.querySelectorAll(sel).forEach(el => { el.style.display = 'none'; });
 
-    // Visibilidad evento y carrito — evaluada de una vez para evitar flash viernes→sábado
-    const sabadoActivo  = cfg.eventoSabado?.activo  && cfg.eventoSabado?.carrito;
-    const heroVisible   = cfg.eventoActivo || sabadoActivo;
-    const carritoVisible = cfg.carrito     || sabadoActivo;
-
-    if ('eventoActivo' in cfg || cfg.eventoSabado) {
-      if (heroVisible) show('.hero-evento-destacado');
-      else hide('.hero-evento-destacado');
+    // ── Resolver config de cada slot (nuevo formato evento1..5 con fallback legacy)
+    const _EVENTO_IDS = ['evento1','evento2','evento3','evento4','evento5'];
+    const _FALLBACK   = { evento1: 'eventoViernes', evento2: 'eventoSabado' };
+    function _resolverEv(evId) {
+      if (cfg[evId]) return cfg[evId];
+      const leg = _FALLBACK[evId];
+      if (!leg || !cfg[leg]) return null;
+      const ev = { ...cfg[leg] };
+      if (evId === 'evento1') {
+        if (!('activo'   in ev)) ev.activo   = !!cfg.eventoActivo;
+        if (!('carrito'  in ev)) ev.carrito  = !!cfg.carrito;
+        if (!('destacado' in ev)) ev.destacado = true;
+        if (!('entradasGratis'       in ev) && 'entradasGratis'       in cfg) ev.entradasGratis       = cfg.entradasGratis;
+        if (!('entradasGratisAgotada' in ev) && 'entradasGratisAgotada' in cfg) ev.entradasGratisAgotada = cfg.entradasGratisAgotada;
+      }
+      return ev;
     }
-    if ('carrito' in cfg || cfg.eventoSabado) {
-      if (carritoVisible) { show('.nav-carrito-btn'); show('#modal-principal'); show('#carrito-entradas'); }
-      else { hide('.nav-carrito-btn'); hide('#modal-principal'); hide('#carrito-entradas'); }
-    }
+    const _evs = _EVENTO_IDS.map(_resolverEv);
 
-    // Entradas gratis
-    if ('entradasGratis' in cfg) {
-      CONFIG_VIERNES.esGratis = cfg.entradasGratis;
-    
-    
-    
-    
-      if ('entradasGratisAgotada' in cfg) CONFIG_VIERNES.gratisAgotada = !!cfg.entradasGratisAgotada;
-      renderBadgesGratis();
-    }
-
-    // Anuncio emergente (viernes tiene su propio toggle; sábado hereda si su toggle está ON)
-    const anuncioActivo = cfg.anuncio || cfg.eventoSabado?.anuncio;
-    if ('anuncio' in cfg || cfg.eventoSabado) {
+    // Visibilidad global
+    const hayActivo   = _evs.some(ev => ev?.activo);
+    const hayCarrito  = _evs.some(ev => ev?.activo && ev?.carrito);
+    const anuncioActivo = _evs.some(ev => ev?.anuncio);
+    if (_evs.some(ev => ev !== null)) {
+      if (hayActivo) show('.hero-evento-destacado'); else hide('.hero-evento-destacado');
+      if (hayCarrito) { show('.nav-carrito-btn'); show('#modal-principal'); show('#carrito-entradas'); }
+      else            { hide('.nav-carrito-btn'); hide('#modal-principal'); hide('#carrito-entradas'); }
       CONFIG_ANUNCIO.activo = !!anuncioActivo;
       if (!anuncioActivo) hide('#modal-anuncio');
     }
 
-    // Datos del evento en slides y hero (I2)
+    // Helper: pinta el contenido del slide con los datos del evento
     const slides = document.querySelectorAll('.evento-slide');
-    function _aplicarEvento(slide, ev, esGratis, dia) {
+    function _aplicarEvento(slide, ev, esGratis, eventoId) {
       if (!slide || !ev?.nombre) return;
-      const tag   = slide.querySelector('.evento-tag');
-      const title = slide.querySelector('.evento-title');
-      const desc  = slide.querySelector('.evento-desc');
+      const tag    = slide.querySelector('.evento-tag');
+      const title  = slide.querySelector('.evento-title');
+      const desc   = slide.querySelector('.evento-desc');
       const footer = slide.querySelector('.evento-footer');
       if (tag)   { tag.removeAttribute('style');   tag.textContent = '🎉 Evento'; }
       if (title) { title.removeAttribute('style'); title.textContent = ev.nombre; }
       if (desc && ev.lineup) desc.textContent = ev.lineup;
       if (footer) {
-        const nombreEsc = ev.nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        const diaEsc    = (dia || 'viernes');
-        const onclick = 'abrirModal()';
+        const evIdEsc = (eventoId || 'evento1').replace(/'/g, "\\'");
         const label   = esGratis ? 'Obtener entrada gratis' : 'Ver entradas disponibles';
+        const onclick = esGratis
+          ? `abrirCheckoutGratis('${ev.nombre.replace(/'/g, "\\'")}','${evIdEsc}')`
+          : `abrirModal('${evIdEsc}')`;
         footer.innerHTML = `<button class="hero-evento-btn" onclick="${onclick}"><span class="hero-evento-dot"></span>${label}</button>`;
       }
     }
-    function _aplicarFechaSlide(slide, dia, fecha) {
-      if (!slide) return;
-      const el = slide.querySelector('.evento-slide-nombre-dia');
-      if (el && fecha) el.textContent = fecha;
-    }
 
-    if (cfg.eventoViernes) {
-      if (cfg.eventoViernes.nombre) {
-        NOMBRE_EVENTO_PRINCIPAL = cfg.eventoViernes.nombre;
+    // Aplicar datos a cada slide + actualizar CONFIG_EVENTOS
+    let _heroEv = null; let _heroEvId = 'evento1'; let _heroSlideIdx = 0;
+    _EVENTO_IDS.forEach((evId, i) => {
+      const ev    = _evs[i];
+      const slide = slides[i];
+      if (!ev) return;
+      if ('entradasGratis'        in ev) CONFIG_EVENTOS[i].esGratis      = !!ev.entradasGratis;
+      if ('entradasGratisAgotada' in ev) CONFIG_EVENTOS[i].gratisAgotada = !!ev.entradasGratisAgotada;
+      if (slide) {
+        const fechaEl = slide.querySelector('.evento-slide-nombre-dia');
+        if (fechaEl && ev.fecha) fechaEl.textContent = ev.fecha;
+        const labelEl = slide.querySelector('.evento-slide-label');
+        if (labelEl && ev.diaLabel) labelEl.textContent = ev.diaLabel;
+        if (ev.activo) _aplicarEvento(slide, ev, ev.entradasGratis, evId);
+      }
+      if (ev.activo && (ev.destacado || !_heroEv)) { _heroEv = ev; _heroEvId = evId; _heroSlideIdx = i; }
+    });
+    renderBadgesGratis();
+
+    // Actualizar hero con el evento destacado
+    if (_heroEv) {
+      if (_heroEv.nombre) {
+        NOMBRE_EVENTO_PRINCIPAL = _heroEv.nombre;
         const modalLabel = document.getElementById('modal-label-fecha');
-        if (modalLabel) modalLabel.textContent = cfg.eventoViernes.nombre;
+        if (modalLabel) modalLabel.textContent = _heroEv.nombre;
       }
-      _aplicarFechaSlide(slides[0], 'viernes', cfg.eventoViernes.fecha);
-      if (cfg.eventoActivo) {
-        _aplicarEvento(slides[0], cfg.eventoViernes, cfg.entradasGratis, 'viernes');
-        const heroImg = document.querySelector('.hero-carrusel-slide');
-        if (heroImg && cfg.eventoViernes.imagen) heroImg.src = 'Imagenes/' + cfg.eventoViernes.imagen;
-        const heroFecha = document.querySelector('.hero-evento-fecha-txt');
-        if (heroFecha && cfg.eventoViernes.fecha) heroFecha.textContent = cfg.eventoViernes.fecha;
-        // Si gratis activo: el botón del hero también va directo al formulario
-      //if (cfg.entradasGratis) {
-      //  const heroBtn = document.querySelector('.hero-evento-btn');
-      //  if (heroBtn) {
-      //    const nombreEsc = cfg.eventoViernes.nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      //    heroBtn.setAttribute('onclick', `abrirCheckoutGratis('${nombreEsc}','viernes')`);
-      //    heroBtn.innerHTML = '<span class="hero-evento-dot"></span>Obtener entrada gratis';
-      //  }
-      //}
-      }
-    }
-
-    if (cfg.eventoSabado) {
-      _aplicarFechaSlide(slides[1], 'sabado', cfg.eventoSabado.fecha);
-      if ('entradasGratis' in cfg.eventoSabado) {
-        CONFIG_SABADO.esGratis = !!cfg.eventoSabado.entradasGratis;
-        renderBadgesGratis();
-      }
-      if ('entradasGratisAgotada' in cfg.eventoSabado) {
-        CONFIG_SABADO.gratisAgotada = !!cfg.eventoSabado.entradasGratisAgotada;
-      }
-      if (cfg.eventoSabado.activo) {
-        _aplicarEvento(slides[1], cfg.eventoSabado, cfg.eventoSabado.entradasGratis, 'sabado');
-        // Si solo sábado está activo: hero muestra imagen/fecha de sábado y avanza el slider
-        if (!cfg.eventoActivo) {
-          const heroImg = document.querySelector('.hero-carrusel-slide');
-          if (heroImg && cfg.eventoSabado.imagen) heroImg.src = 'Imagenes/' + cfg.eventoSabado.imagen;
-          const heroFecha = document.querySelector('.hero-evento-fecha-txt');
-          if (heroFecha && cfg.eventoSabado.fecha) heroFecha.textContent = cfg.eventoSabado.fecha;
-          irASlide(1);
+      const heroImg = document.querySelector('.hero-carrusel-slide');
+      if (heroImg && _heroEv.imagen) heroImg.src = 'Imagenes/' + _heroEv.imagen;
+      const heroFecha = document.querySelector('.hero-evento-fecha-txt');
+      if (heroFecha && _heroEv.fecha) heroFecha.textContent = _heroEv.fecha;
+      // Actualizar botón del hero con el eventoId correcto
+      const heroBtn = document.querySelector('.hero-evento-footer .hero-evento-btn');
+      if (heroBtn) {
+        const evIdSafe = _heroEvId.replace(/'/g, "\\'");
+        if (_heroEv.entradasGratis) {
+          heroBtn.setAttribute('onclick', `abrirCheckoutGratis('${_heroEv.nombre.replace(/'/g,"\\'")}','${evIdSafe}')`);
+          heroBtn.innerHTML = `<span class="hero-evento-dot"></span>Obtener entrada gratis`;
+        } else {
+          heroBtn.setAttribute('onclick', `abrirModal('${evIdSafe}')`);
+          heroBtn.innerHTML = `<span class="hero-evento-dot"></span>Ver entradas disponibles`;
         }
       }
+      if (_heroSlideIdx > 0) irASlide(_heroSlideIdx);
     }
 
     // Precios y disponibilidad de entradas

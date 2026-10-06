@@ -88,15 +88,24 @@
   </nav>
 </header>
 
-<!-- BARRA DE DÍA -->
+<!-- BARRA DE EVENTO -->
 <div class="day-bar" id="day-bar">
   <span class="day-bar-label">Editando</span>
   <div class="day-selector">
-    <button type="button" class="day-pill active" data-day="viernes" onclick="switchDay('viernes')">
-      Viernes <span class="day-dot" id="day-dot-viernes"></span>
+    <button type="button" class="day-pill active" data-day="evento1" onclick="switchDay('evento1')">
+      Evento 1 <span class="day-dot" id="day-dot-evento1"></span>
     </button>
-    <button type="button" class="day-pill" data-day="sabado" onclick="switchDay('sabado')">
-      Sábado <span class="day-dot" id="day-dot-sabado"></span>
+    <button type="button" class="day-pill" data-day="evento2" onclick="switchDay('evento2')">
+      Evento 2 <span class="day-dot" id="day-dot-evento2"></span>
+    </button>
+    <button type="button" class="day-pill" data-day="evento3" onclick="switchDay('evento3')">
+      Evento 3 <span class="day-dot" id="day-dot-evento3"></span>
+    </button>
+    <button type="button" class="day-pill" data-day="evento4" onclick="switchDay('evento4')">
+      Evento 4 <span class="day-dot" id="day-dot-evento4"></span>
+    </button>
+    <button type="button" class="day-pill" data-day="evento5" onclick="switchDay('evento5')">
+      Evento 5 <span class="day-dot" id="day-dot-evento5"></span>
     </button>
   </div>
 </div>
@@ -121,24 +130,24 @@
       </div>
     </div>
 
-    <!-- ── VIERNES ── -->
-    <div class="day-content active" data-day="viernes">
+    <!-- ── EVENTO 1 (Principal) ── -->
+    <div class="day-content active" data-day="evento1">
       <div class="grid-3" style="margin-bottom:20px;">
         <div class="stat-tile">
           <div class="stat-label">Entradas vendidas</div>
-          <div class="stat-value" id="entradas-vendidas-viernes">—</div>
+          <div class="stat-value" id="entradas-vendidas-evento1">—</div>
         </div>
         <div class="stat-tile">
           <div class="stat-label">Estado del evento</div>
           <div class="stat-value" style="font-size:20px;margin-top:4px;">
-            <span class="badge badge-muted" id="estado-evento-badge-viernes" style="font-size:13px;padding:4px 12px;">Inactivo</span>
+            <span class="badge badge-muted" id="estado-evento-badge-evento1" style="font-size:13px;padding:4px 12px;">Inactivo</span>
           </div>
-          <div class="stat-sub" id="estado-evento-sub-viernes"></div>
+          <div class="stat-sub" id="estado-evento-sub-evento1"></div>
         </div>
         <div class="stat-tile">
           <div class="stat-label">Próxima fecha</div>
-          <div class="stat-value" style="font-size:20px;margin-top:4px;" id="stat-fecha-viernes">—</div>
-          <div class="stat-sub" id="stat-nombre-viernes">—</div>
+          <div class="stat-value" style="font-size:20px;margin-top:4px;" id="stat-fecha-evento1">—</div>
+          <div class="stat-sub" id="stat-nombre-evento1">—</div>
         </div>
       </div>
 
@@ -146,42 +155,53 @@
         <div class="card-label">Datos del evento</div>
         <div class="evento-header">
           <div class="evento-img-col">
-            <label class="evento-img-wrap" id="ev-imagen-wrap-viernes" for="ev-imagen-file-viernes" tabindex="0" role="button">
+            <label class="evento-img-wrap" id="ev-imagen-wrap-evento1" for="ev-imagen-file-evento1" tabindex="0" role="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-              <img id="ev-imagen-preview-img-viernes" alt="Imagen del evento" />
+              <img id="ev-imagen-preview-img-evento1" alt="Imagen del evento" />
               <span class="evento-img-caption">Cambiar imagen</span>
             </label>
-            <input type="file" id="ev-imagen-file-viernes" accept="image/*" class="sr-only" onchange="handleImagenSeleccionada(event,'viernes')" />
-            <button type="button" class="evento-img-remove" id="ev-imagen-remove-viernes" onclick="quitarImagen('viernes')" hidden>Quitar imagen</button>
+            <input type="file" id="ev-imagen-file-evento1" accept="image/*" class="sr-only" onchange="handleImagenSeleccionada(event,'evento1')" />
+            <button type="button" class="evento-img-remove" id="ev-imagen-remove-evento1" onclick="quitarImagen('evento1')" hidden>Quitar imagen</button>
           </div>
           <div class="evento-fields">
             <div class="field">
-              <label for="ev-nombre-viernes">Nombre del evento</label>
-              <input id="ev-nombre-viernes" type="text" value="" placeholder="Ej: Pre Aniversario Blue Wine" />
+              <label for="ev-nombre-evento1">Nombre del evento</label>
+              <input id="ev-nombre-evento1" type="text" value="" placeholder="Ej: Halloween Blue Wine" />
             </div>
             <div class="grid-2">
               <div class="field" style="margin-bottom:0;">
-                <label for="ev-fecha-viernes">Fecha del slide</label>
-                <input id="ev-fecha-viernes" type="text" value="" placeholder="Viernes 7 de Agosto" oninput="actualizarPreviewSlide('viernes')" />
+                <label for="ev-fecha-evento1">Fecha del slide</label>
+                <input id="ev-fecha-evento1" type="text" value="" placeholder="Viernes 31 de Octubre" oninput="actualizarPreviewSlide('evento1')" />
               </div>
               <div class="field" style="margin-bottom:0;">
-                <label for="ev-imagen-viernes">Archivo de imagen</label>
-                <input id="ev-imagen-viernes" type="text" value="" placeholder="nombre_imagen.jpg" />
+                <label for="ev-imagen-evento1">Archivo de imagen</label>
+                <input id="ev-imagen-evento1" type="text" value="" placeholder="nombre_imagen.jpg" />
                 <div class="field-hint">Toca la imagen para elegir desde galería.</div>
+              </div>
+            </div>
+            <div class="grid-2" style="margin-top:12px;">
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-diaLabel-evento1">Etiqueta del día</label>
+                <input id="ev-diaLabel-evento1" type="text" value="" placeholder="Ej: Viernes, Sábado…" />
+                <div class="field-hint">Aparece como etiqueta en el slide.</div>
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-limiteGratis-evento1">Límite entradas gratis</label>
+                <input id="ev-limiteGratis-evento1" type="number" value="100" min="0" />
               </div>
             </div>
           </div>
         </div>
         <div class="field">
-          <label for="ev-lineup-viernes">Descripción / Line up</label>
-          <input id="ev-lineup-viernes" type="text" value="" placeholder="DJ1 · DJ2 · …" />
+          <label for="ev-lineup-evento1">Descripción / Line up</label>
+          <input id="ev-lineup-evento1" type="text" value="" placeholder="DJ1 · DJ2 · …" />
         </div>
       </div>
 
       <div class="card">
         <div class="card-label">Vista previa del slide</div>
         <div class="slide-preview-simple">
-          <span class="slide-preview-date" id="slide-preview-date-viernes">—</span>
+          <span class="slide-preview-date" id="slide-preview-date-evento1">—</span>
         </div>
       </div>
 
@@ -194,7 +214,18 @@
             <span>Muestra el evento en la página y los slides</span>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="toggle-evento-activo-viernes" onchange="onToggleEventoActivo(this,'viernes')" />
+            <input type="checkbox" id="toggle-evento-activo-evento1" onchange="onToggleEventoActivo(this,'evento1')" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Evento destacado (héroe)</strong>
+            <span>Muestra este evento en la sección principal del sitio. Solo uno puede estar destacado.</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-destacado-evento1" onchange="onToggleDestacado(this,'evento1')" checked />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -205,7 +236,29 @@
             <span>Muestra el carrito y el flujo de compra con MercadoPago</span>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="toggle-carrito-viernes" />
+            <input type="checkbox" id="toggle-carrito-evento1" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Entradas gratis activas</strong>
+            <span>Habilita el flujo de entrada liberada para este evento</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-gratis-evento1" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Entradas gratis agotadas</strong>
+            <span>Marca el cupo de entradas gratis como agotado para este evento</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-gratis-agotada-evento1" />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -216,31 +269,31 @@
             <span>Popup que aparece al entrar a la página</span>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="toggle-anuncio-viernes" />
+            <input type="checkbox" id="toggle-anuncio-evento1" />
             <span class="toggle-slider"></span>
           </label>
         </div>
       </div>
     </div>
 
-    <!-- ── SÁBADO ── -->
-    <div class="day-content" data-day="sabado">
+    <!-- ── EVENTO 2 ── -->
+    <div class="day-content" data-day="evento2">
       <div class="grid-3" style="margin-bottom:20px;">
         <div class="stat-tile">
           <div class="stat-label">Entradas vendidas</div>
-          <div class="stat-value" id="entradas-vendidas-sabado">—</div>
+          <div class="stat-value" id="entradas-vendidas-evento2">—</div>
         </div>
         <div class="stat-tile">
           <div class="stat-label">Estado del evento</div>
           <div class="stat-value" style="font-size:20px;margin-top:4px;">
-            <span class="badge badge-muted" id="estado-evento-badge-sabado" style="font-size:13px;padding:4px 12px;">Inactivo</span>
+            <span class="badge badge-muted" id="estado-evento-badge-evento2" style="font-size:13px;padding:4px 12px;">Inactivo</span>
           </div>
-          <div class="stat-sub" id="estado-evento-sub-sabado"></div>
+          <div class="stat-sub" id="estado-evento-sub-evento2"></div>
         </div>
         <div class="stat-tile">
           <div class="stat-label">Próxima fecha</div>
-          <div class="stat-value" style="font-size:20px;margin-top:4px;" id="stat-fecha-sabado">—</div>
-          <div class="stat-sub" id="stat-nombre-sabado">—</div>
+          <div class="stat-value" style="font-size:20px;margin-top:4px;" id="stat-fecha-evento2">—</div>
+          <div class="stat-sub" id="stat-nombre-evento2">—</div>
         </div>
       </div>
 
@@ -248,42 +301,53 @@
         <div class="card-label">Datos del evento</div>
         <div class="evento-header">
           <div class="evento-img-col">
-            <label class="evento-img-wrap" id="ev-imagen-wrap-sabado" for="ev-imagen-file-sabado" tabindex="0" role="button">
+            <label class="evento-img-wrap" id="ev-imagen-wrap-evento2" for="ev-imagen-file-evento2" tabindex="0" role="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-              <img id="ev-imagen-preview-img-sabado" alt="Imagen del evento" />
+              <img id="ev-imagen-preview-img-evento2" alt="Imagen del evento" />
               <span class="evento-img-caption">Cambiar imagen</span>
             </label>
-            <input type="file" id="ev-imagen-file-sabado" accept="image/*" class="sr-only" onchange="handleImagenSeleccionada(event,'sabado')" />
-            <button type="button" class="evento-img-remove" id="ev-imagen-remove-sabado" onclick="quitarImagen('sabado')" hidden>Quitar imagen</button>
+            <input type="file" id="ev-imagen-file-evento2" accept="image/*" class="sr-only" onchange="handleImagenSeleccionada(event,'evento2')" />
+            <button type="button" class="evento-img-remove" id="ev-imagen-remove-evento2" onclick="quitarImagen('evento2')" hidden>Quitar imagen</button>
           </div>
           <div class="evento-fields">
             <div class="field">
-              <label for="ev-nombre-sabado">Nombre del evento</label>
-              <input id="ev-nombre-sabado" type="text" value="" placeholder="Ej: Noche Latina Blue Wine" />
+              <label for="ev-nombre-evento2">Nombre del evento</label>
+              <input id="ev-nombre-evento2" type="text" value="" placeholder="Ej: Noche Latina Blue Wine" />
             </div>
             <div class="grid-2">
               <div class="field" style="margin-bottom:0;">
-                <label for="ev-fecha-sabado">Fecha del slide</label>
-                <input id="ev-fecha-sabado" type="text" value="" placeholder="Sábado 8 de Agosto" oninput="actualizarPreviewSlide('sabado')" />
+                <label for="ev-fecha-evento2">Fecha del slide</label>
+                <input id="ev-fecha-evento2" type="text" value="" placeholder="Jueves 9 de Octubre" oninput="actualizarPreviewSlide('evento2')" />
               </div>
               <div class="field" style="margin-bottom:0;">
-                <label for="ev-imagen-sabado">Archivo de imagen</label>
-                <input id="ev-imagen-sabado" type="text" value="" placeholder="nombre_imagen.jpg" />
+                <label for="ev-imagen-evento2">Archivo de imagen</label>
+                <input id="ev-imagen-evento2" type="text" value="" placeholder="nombre_imagen.jpg" />
                 <div class="field-hint">Toca la imagen para elegir desde galería.</div>
+              </div>
+            </div>
+            <div class="grid-2" style="margin-top:12px;">
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-diaLabel-evento2">Etiqueta del día</label>
+                <input id="ev-diaLabel-evento2" type="text" value="" placeholder="Ej: Jueves, Viernes…" />
+                <div class="field-hint">Aparece como etiqueta en el slide.</div>
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-limiteGratis-evento2">Límite entradas gratis</label>
+                <input id="ev-limiteGratis-evento2" type="number" value="100" min="0" />
               </div>
             </div>
           </div>
         </div>
         <div class="field">
-          <label for="ev-lineup-sabado">Descripción / Line up</label>
-          <input id="ev-lineup-sabado" type="text" value="" placeholder="DJ1 · DJ2 · …" />
+          <label for="ev-lineup-evento2">Descripción / Line up</label>
+          <input id="ev-lineup-evento2" type="text" value="" placeholder="DJ1 · DJ2 · …" />
         </div>
       </div>
 
       <div class="card">
         <div class="card-label">Vista previa del slide</div>
         <div class="slide-preview-simple">
-          <span class="slide-preview-date" id="slide-preview-date-sabado">—</span>
+          <span class="slide-preview-date" id="slide-preview-date-evento2">—</span>
         </div>
       </div>
 
@@ -296,7 +360,18 @@
             <span>Muestra el evento en la página y los slides</span>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="toggle-evento-activo-sabado" onchange="onToggleEventoActivo(this,'sabado')" />
+            <input type="checkbox" id="toggle-evento-activo-evento2" onchange="onToggleEventoActivo(this,'evento2')" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Evento destacado (héroe)</strong>
+            <span>Muestra este evento en la sección principal del sitio. Solo uno puede estar destacado.</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-destacado-evento2" onchange="onToggleDestacado(this,'evento2')" />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -307,7 +382,29 @@
             <span>Muestra el carrito y el flujo de compra con MercadoPago</span>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="toggle-carrito-sabado" />
+            <input type="checkbox" id="toggle-carrito-evento2" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Entradas gratis activas</strong>
+            <span>Habilita el flujo de entrada liberada para este evento</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-gratis-evento2" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Entradas gratis agotadas</strong>
+            <span>Marca el cupo de entradas gratis como agotado para este evento</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-gratis-agotada-evento2" />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -318,9 +415,361 @@
             <span>Popup que aparece al entrar a la página</span>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="toggle-anuncio-sabado" />
+            <input type="checkbox" id="toggle-anuncio-evento2" />
             <span class="toggle-slider"></span>
           </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EVENTO 3 ── -->
+    <div class="day-content" data-day="evento3">
+      <div class="grid-3" style="margin-bottom:20px;">
+        <div class="stat-tile">
+          <div class="stat-label">Entradas vendidas</div>
+          <div class="stat-value" id="entradas-vendidas-evento3">—</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Estado del evento</div>
+          <div class="stat-value" style="font-size:20px;margin-top:4px;">
+            <span class="badge badge-muted" id="estado-evento-badge-evento3" style="font-size:13px;padding:4px 12px;">Inactivo</span>
+          </div>
+          <div class="stat-sub" id="estado-evento-sub-evento3"></div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Próxima fecha</div>
+          <div class="stat-value" style="font-size:20px;margin-top:4px;" id="stat-fecha-evento3">—</div>
+          <div class="stat-sub" id="stat-nombre-evento3">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Datos del evento</div>
+        <div class="evento-header">
+          <div class="evento-img-col">
+            <label class="evento-img-wrap" id="ev-imagen-wrap-evento3" for="ev-imagen-file-evento3" tabindex="0" role="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              <img id="ev-imagen-preview-img-evento3" alt="Imagen del evento" />
+              <span class="evento-img-caption">Cambiar imagen</span>
+            </label>
+            <input type="file" id="ev-imagen-file-evento3" accept="image/*" class="sr-only" onchange="handleImagenSeleccionada(event,'evento3')" />
+            <button type="button" class="evento-img-remove" id="ev-imagen-remove-evento3" onclick="quitarImagen('evento3')" hidden>Quitar imagen</button>
+          </div>
+          <div class="evento-fields">
+            <div class="field">
+              <label for="ev-nombre-evento3">Nombre del evento</label>
+              <input id="ev-nombre-evento3" type="text" value="" placeholder="Ej: Blue Wine Viernes" />
+            </div>
+            <div class="grid-2">
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-fecha-evento3">Fecha del slide</label>
+                <input id="ev-fecha-evento3" type="text" value="" placeholder="Viernes 10 de Octubre" oninput="actualizarPreviewSlide('evento3')" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-imagen-evento3">Archivo de imagen</label>
+                <input id="ev-imagen-evento3" type="text" value="" placeholder="nombre_imagen.jpg" />
+                <div class="field-hint">Toca la imagen para elegir desde galería.</div>
+              </div>
+            </div>
+            <div class="grid-2" style="margin-top:12px;">
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-diaLabel-evento3">Etiqueta del día</label>
+                <input id="ev-diaLabel-evento3" type="text" value="" placeholder="Ej: Viernes, Sábado…" />
+                <div class="field-hint">Aparece como etiqueta en el slide.</div>
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-limiteGratis-evento3">Límite entradas gratis</label>
+                <input id="ev-limiteGratis-evento3" type="number" value="100" min="0" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="ev-lineup-evento3">Descripción / Line up</label>
+          <input id="ev-lineup-evento3" type="text" value="" placeholder="DJ1 · DJ2 · …" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Vista previa del slide</div>
+        <div class="slide-preview-simple">
+          <span class="slide-preview-date" id="slide-preview-date-evento3">—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Configuración</div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Evento activo</strong>
+            <span>Muestra el evento en la página y los slides</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-evento-activo-evento3" onchange="onToggleEventoActivo(this,'evento3')" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Evento destacado (héroe)</strong>
+            <span>Muestra este evento en la sección principal del sitio. Solo uno puede estar destacado.</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-destacado-evento3" onchange="onToggleDestacado(this,'evento3')" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Botón carrito (entradas de pago)</strong>
+            <span>Muestra el carrito y el flujo de compra con MercadoPago</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-carrito-evento3" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Entradas gratis activas</strong>
+            <span>Habilita el flujo de entrada liberada para este evento</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-gratis-evento3" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Entradas gratis agotadas</strong>
+            <span>Marca el cupo de entradas gratis como agotado para este evento</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-gratis-agotada-evento3" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <strong>Modal de anuncio</strong>
+            <span>Popup que aparece al entrar a la página</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-anuncio-evento3" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EVENTO 4 ── -->
+    <div class="day-content" data-day="evento4">
+      <div class="grid-3" style="margin-bottom:20px;">
+        <div class="stat-tile">
+          <div class="stat-label">Entradas vendidas</div>
+          <div class="stat-value" id="entradas-vendidas-evento4">—</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Estado del evento</div>
+          <div class="stat-value" style="font-size:20px;margin-top:4px;">
+            <span class="badge badge-muted" id="estado-evento-badge-evento4" style="font-size:13px;padding:4px 12px;">Inactivo</span>
+          </div>
+          <div class="stat-sub" id="estado-evento-sub-evento4"></div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Próxima fecha</div>
+          <div class="stat-value" style="font-size:20px;margin-top:4px;" id="stat-fecha-evento4">—</div>
+          <div class="stat-sub" id="stat-nombre-evento4">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Datos del evento</div>
+        <div class="evento-header">
+          <div class="evento-img-col">
+            <label class="evento-img-wrap" id="ev-imagen-wrap-evento4" for="ev-imagen-file-evento4" tabindex="0" role="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              <img id="ev-imagen-preview-img-evento4" alt="Imagen del evento" />
+              <span class="evento-img-caption">Cambiar imagen</span>
+            </label>
+            <input type="file" id="ev-imagen-file-evento4" accept="image/*" class="sr-only" onchange="handleImagenSeleccionada(event,'evento4')" />
+            <button type="button" class="evento-img-remove" id="ev-imagen-remove-evento4" onclick="quitarImagen('evento4')" hidden>Quitar imagen</button>
+          </div>
+          <div class="evento-fields">
+            <div class="field">
+              <label for="ev-nombre-evento4">Nombre del evento</label>
+              <input id="ev-nombre-evento4" type="text" value="" placeholder="Ej: Blue Wine Especial" />
+            </div>
+            <div class="grid-2">
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-fecha-evento4">Fecha del slide</label>
+                <input id="ev-fecha-evento4" type="text" value="" placeholder="Fecha del evento" oninput="actualizarPreviewSlide('evento4')" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-imagen-evento4">Archivo de imagen</label>
+                <input id="ev-imagen-evento4" type="text" value="" placeholder="nombre_imagen.jpg" />
+                <div class="field-hint">Toca la imagen para elegir desde galería.</div>
+              </div>
+            </div>
+            <div class="grid-2" style="margin-top:12px;">
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-diaLabel-evento4">Etiqueta del día</label>
+                <input id="ev-diaLabel-evento4" type="text" value="" placeholder="Ej: Viernes, Sábado…" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-limiteGratis-evento4">Límite entradas gratis</label>
+                <input id="ev-limiteGratis-evento4" type="number" value="100" min="0" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="ev-lineup-evento4">Descripción / Line up</label>
+          <input id="ev-lineup-evento4" type="text" value="" placeholder="DJ1 · DJ2 · …" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Vista previa del slide</div>
+        <div class="slide-preview-simple">
+          <span class="slide-preview-date" id="slide-preview-date-evento4">—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Configuración</div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Evento activo</strong><span>Muestra el evento en la página y los slides</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-evento-activo-evento4" onchange="onToggleEventoActivo(this,'evento4')" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Evento destacado (héroe)</strong><span>Solo uno puede estar destacado.</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-destacado-evento4" onchange="onToggleDestacado(this,'evento4')" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Botón carrito (entradas de pago)</strong><span>Muestra el carrito y flujo MercadoPago</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-carrito-evento4" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Entradas gratis activas</strong><span>Habilita el flujo de entrada liberada</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-gratis-evento4" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Entradas gratis agotadas</strong><span>Marca el cupo gratis como agotado</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-gratis-agotada-evento4" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Modal de anuncio</strong><span>Popup al entrar a la página</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-anuncio-evento4" /><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EVENTO 5 ── -->
+    <div class="day-content" data-day="evento5">
+      <div class="grid-3" style="margin-bottom:20px;">
+        <div class="stat-tile">
+          <div class="stat-label">Entradas vendidas</div>
+          <div class="stat-value" id="entradas-vendidas-evento5">—</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Estado del evento</div>
+          <div class="stat-value" style="font-size:20px;margin-top:4px;">
+            <span class="badge badge-muted" id="estado-evento-badge-evento5" style="font-size:13px;padding:4px 12px;">Inactivo</span>
+          </div>
+          <div class="stat-sub" id="estado-evento-sub-evento5"></div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Próxima fecha</div>
+          <div class="stat-value" style="font-size:20px;margin-top:4px;" id="stat-fecha-evento5">—</div>
+          <div class="stat-sub" id="stat-nombre-evento5">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Datos del evento</div>
+        <div class="evento-header">
+          <div class="evento-img-col">
+            <label class="evento-img-wrap" id="ev-imagen-wrap-evento5" for="ev-imagen-file-evento5" tabindex="0" role="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              <img id="ev-imagen-preview-img-evento5" alt="Imagen del evento" />
+              <span class="evento-img-caption">Cambiar imagen</span>
+            </label>
+            <input type="file" id="ev-imagen-file-evento5" accept="image/*" class="sr-only" onchange="handleImagenSeleccionada(event,'evento5')" />
+            <button type="button" class="evento-img-remove" id="ev-imagen-remove-evento5" onclick="quitarImagen('evento5')" hidden>Quitar imagen</button>
+          </div>
+          <div class="evento-fields">
+            <div class="field">
+              <label for="ev-nombre-evento5">Nombre del evento</label>
+              <input id="ev-nombre-evento5" type="text" value="" placeholder="Ej: Blue Wine Especial" />
+            </div>
+            <div class="grid-2">
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-fecha-evento5">Fecha del slide</label>
+                <input id="ev-fecha-evento5" type="text" value="" placeholder="Fecha del evento" oninput="actualizarPreviewSlide('evento5')" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-imagen-evento5">Archivo de imagen</label>
+                <input id="ev-imagen-evento5" type="text" value="" placeholder="nombre_imagen.jpg" />
+                <div class="field-hint">Toca la imagen para elegir desde galería.</div>
+              </div>
+            </div>
+            <div class="grid-2" style="margin-top:12px;">
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-diaLabel-evento5">Etiqueta del día</label>
+                <input id="ev-diaLabel-evento5" type="text" value="" placeholder="Ej: Viernes, Sábado…" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="ev-limiteGratis-evento5">Límite entradas gratis</label>
+                <input id="ev-limiteGratis-evento5" type="number" value="100" min="0" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="ev-lineup-evento5">Descripción / Line up</label>
+          <input id="ev-lineup-evento5" type="text" value="" placeholder="DJ1 · DJ2 · …" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Vista previa del slide</div>
+        <div class="slide-preview-simple">
+          <span class="slide-preview-date" id="slide-preview-date-evento5">—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Configuración</div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Evento activo</strong><span>Muestra el evento en la página y los slides</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-evento-activo-evento5" onchange="onToggleEventoActivo(this,'evento5')" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Evento destacado (héroe)</strong><span>Solo uno puede estar destacado.</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-destacado-evento5" onchange="onToggleDestacado(this,'evento5')" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Botón carrito (entradas de pago)</strong><span>Muestra el carrito y flujo MercadoPago</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-carrito-evento5" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Entradas gratis activas</strong><span>Habilita el flujo de entrada liberada</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-gratis-evento5" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Entradas gratis agotadas</strong><span>Marca el cupo gratis como agotado</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-gratis-agotada-evento5" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Modal de anuncio</strong><span>Popup al entrar a la página</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-anuncio-evento5" /><span class="toggle-slider"></span></label>
         </div>
       </div>
     </div>
@@ -437,6 +886,12 @@
       <input type="text" id="search-input" placeholder="Buscar por nombre, RUT, email o código…" oninput="filtrarTickets()" />
     </div>
 
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <select id="tickets-filtro-evento" onchange="filtrarTickets()">
+        <option value="">Todos los eventos</option>
+      </select>
+    </div>
     <div class="search-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M4 5h16M7 12h10M10 19h4"/></svg>
       <select id="tickets-filtro-tipo" onchange="filtrarTickets()">

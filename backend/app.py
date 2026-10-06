@@ -278,39 +278,60 @@ def _get_entradas_config():
         return PRECIOS_ENTRADAS
 
 
-def _get_limite_entradas_gratis(dia='viernes'):
-    """Lee el límite de entradas gratis desde PG config. Fallback a LIMITE_ENTRADAS_GRATIS."""
-    clave = 'limiteEntradasGratisViernes' if dia == 'viernes' else 'limiteEntradasGratisSabado'
+def _get_evento_config(evento_id):
+    """Lee la config de un evento por ID (evento1..evento5).
+    Fallback a eventoViernes para evento1, eventoSabado para evento2 (migración)."""
+    _fallback = {'evento1': 'eventoViernes', 'evento2': 'eventoSabado'}
     try:
         with get_db() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT valor FROM config WHERE clave = %s", (clave,))
+                cur.execute("SELECT valor FROM config WHERE clave = %s", (evento_id,))
                 row = cur.fetchone()
         if row:
-            val = int(json.loads(row[0]))
-            if val > 0:
-                return val
+            return json.loads(row[0])
+        fallback = _fallback.get(evento_id)
+        if fallback:
+            with get_db() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT valor FROM config WHERE clave = %s", (fallback,))
+                    row = cur.fetchone()
+            if row:
+                return json.loads(row[0])
     except Exception:
         pass
+    return {}
+
+
+def _get_nombre_evento(evento_id='evento1'):
+    """Lee el nombre del evento desde PG config. Fallback a la constante hardcodeada."""
+    ev = _get_evento_config(evento_id)
+    nombre = ev.get('nombre', '').strip()
+    return nombre if nombre else NOMBRE_EVENTO_PRINCIPAL
+
+
+def _get_limite_entradas_gratis(evento_id='evento1'):
+    """Lee el límite de entradas gratis desde la config del evento. Fallback a LIMITE_ENTRADAS_GRATIS."""
+    ev = _get_evento_config(evento_id)
+    try:
+        limite = int(ev.get('limiteEntradasGratis', 0))
+        if limite > 0:
+            return limite
+    except (TypeError, ValueError):
+        pass
+    # Backward compat: clave plana para evento1
+    if evento_id == 'evento1':
+        try:
+            with get_db() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT valor FROM config WHERE clave = 'limiteEntradasGratisViernes'")
+                    row = cur.fetchone()
+            if row:
+                val = int(json.loads(row[0]))
+                if val > 0:
+                    return val
+        except Exception:
+            pass
     return LIMITE_ENTRADAS_GRATIS
-
-
-def _get_nombre_evento():
-    """Lee NOMBRE_EVENTO_PRINCIPAL desde el config en PostgreSQL (eventoViernes.nombre).
-    Fallback a la constante hardcodeada si no existe o está vacío."""
-    try:
-        with get_db() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT valor FROM config WHERE clave = 'eventoViernes'")
-                row = cur.fetchone()
-        if row:
-            ev = json.loads(row[0])
-            nombre = ev.get('nombre', '').strip()
-            if nombre:
-                return nombre
-    except Exception:
-        pass
-    return NOMBRE_EVENTO_PRINCIPAL
 
 
 def _get_stock_disponible():
@@ -1093,37 +1114,34 @@ def reenviar_ticket():
 @app.route("/obtener-entrada-gratis", methods=["POST"])
 @limiter.limit("5 per hour")
 def obtener_entrada_gratis():
-    data      = request.get_json()
-    comprador = data.get("comprador", {})
-    rut       = str(comprador.get("rut", "")).strip()
-    dia       = str(data.get("dia", "viernes")).strip()  # "viernes" o "sabado"
+    data       = request.get_json()
+    comprador  = data.get("comprador", {})
+    rut        = str(comprador.get("rut", "")).strip()
+    evento_id  = str(data.get("eventoId", data.get("dia", "evento1"))).strip()
 
-    # Verificar que gratis esté activo para el día solicitado
-    if dia == 'sabado':
-        gratis_activa  = False
-        gratis_agotada = False
-        try:
-            with get_db() as conn:
-                with conn.cursor() as cur:
-                    cur.execute("SELECT valor FROM config WHERE clave = 'eventoSabado'")
-                    row = cur.fetchone()
-                    if row:
-                        cfg_s = json.loads(row[0])
-                        gratis_activa  = bool(cfg_s.get('entradasGratis', False))
-                        gratis_agotada = bool(cfg_s.get('entradasGratisAgotada', False))
-        except Exception:
-            pass
-        if gratis_agotada:
-            return jsonify({"ok": False, "error": "Las entradas gratuitas están agotadas"}), 403
-        if not gratis_activa and not ENTRADA_GRATIS_ACTIVA:
-            return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
-    else:
-        if _get_config_bool('entradasGratisAgotada', False):
-            return jsonify({"ok": False, "error": "Las entradas gratuitas están agotadas"}), 403
-        if not _get_config_bool('entradasGratis', ENTRADA_GRATIS_ACTIVA):
-            return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
-    limite           = _get_limite_entradas_gratis(dia)
-    nombre_evento_g  = f"{_get_nombre_evento()} — Entrada Gratuita"
+    # Normalizar: aceptar "viernes"/"sabado" como aliases de backward compat
+    _alias = {'viernes': 'evento1', 'sabado': 'evento2'}
+    evento_id = _alias.get(evento_id, evento_id)
+    if evento_id not in ('evento1','evento2','evento3','evento4','evento5'):
+        evento_id = 'evento1'
+
+    ev_cfg = _get_evento_config(evento_id)
+
+    # Verificar que las entradas gratis estén activas para este evento
+    gratis_agotada = bool(ev_cfg.get('entradasGratisAgotada', False))
+    if not gratis_agotada and evento_id == 'evento1':
+        gratis_agotada = _get_config_bool('entradasGratisAgotada', False)
+    if gratis_agotada:
+        return jsonify({"ok": False, "error": "Las entradas gratuitas están agotadas"}), 403
+
+    gratis_activa = bool(ev_cfg.get('entradasGratis', False))
+    if not gratis_activa and evento_id == 'evento1':
+        gratis_activa = _get_config_bool('entradasGratis', ENTRADA_GRATIS_ACTIVA)
+    if not gratis_activa and not ENTRADA_GRATIS_ACTIVA:
+        return jsonify({"ok": False, "error": "La entrada liberada no está activa"}), 403
+
+    limite          = _get_limite_entradas_gratis(evento_id)
+    nombre_evento_g = f"{_get_nombre_evento(evento_id)} — Entrada Gratuita"
     codigo           = str(uuid.uuid4())[:12].upper()
     url_verificacion = f"https://bluewine-production.up.railway.app/verificar/{codigo}"
     fecha            = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1135,15 +1153,16 @@ def obtener_entrada_gratis():
             with conn.cursor() as cur:
                 cur.execute("SELECT pg_advisory_xact_lock(1)")
 
-                cur.execute("SELECT COUNT(*) FROM tickets WHERE id_pago = 'ENTRADA_LIBERADA' AND estado = 'ACTIVO'")
+                # Contar solo tickets de ESTE evento (no global)
+                cur.execute("SELECT COUNT(*) FROM tickets WHERE id_pago = 'ENTRADA_LIBERADA' AND evento = %s AND estado = 'ACTIVO'", (nombre_evento_g,))
                 total_gratis = cur.fetchone()[0]
 
                 if rut:
                     cur.execute("""
                         SELECT 1 FROM tickets
-                        WHERE id_pago = 'ENTRADA_LIBERADA' AND rut = %s AND estado = 'ACTIVO'
+                        WHERE id_pago = 'ENTRADA_LIBERADA' AND evento = %s AND rut = %s AND estado = 'ACTIVO'
                         LIMIT 1
-                    """, (rut,))
+                    """, (nombre_evento_g, rut))
                     if cur.fetchone():
                         return jsonify({"ok": False, "error": "Ya tienes una entrada registrada para este evento. No es posible obtener una segunda entrada."}), 400
 
@@ -1168,19 +1187,29 @@ def obtener_entrada_gratis():
                 ))
             conn.commit()
         nuevo_total = total_gratis + 1
-        print(f"Entrada gratuita emitida — total: {nuevo_total}/{limite}")
-        # Si se alcanzó el límite, marcar agotada automáticamente en PG
+        print(f"Entrada gratuita {evento_id} — total: {nuevo_total}/{limite}")
+        # Si se alcanzó el límite, marcar agotada automáticamente en la config del evento
         if nuevo_total >= limite:
             try:
+                ev_upd = _get_evento_config(evento_id)
+                ev_upd['entradasGratisAgotada'] = True
                 with get_db() as conn2:
                     with conn2.cursor() as cur2:
                         cur2.execute("""
-                            INSERT INTO config (clave, valor, updated)
-                            VALUES ('entradasGratisAgotada', 'true', NOW())
-                            ON CONFLICT (clave) DO UPDATE SET valor = 'true', updated = NOW()
-                        """)
+                            INSERT INTO config (clave, valor, updated) VALUES (%s, %s, NOW())
+                            ON CONFLICT (clave) DO UPDATE SET valor = %s, updated = NOW()
+                        """, (evento_id, json.dumps(ev_upd), json.dumps(ev_upd)))
                     conn2.commit()
-                print(f"Entradas gratis agotadas — límite {limite} alcanzado, marcado automáticamente en PG")
+                # Backward compat: también clave plana para evento1
+                if evento_id == 'evento1':
+                    with get_db() as conn3:
+                        with conn3.cursor() as cur3:
+                            cur3.execute("""
+                                INSERT INTO config (clave, valor, updated) VALUES ('entradasGratisAgotada', 'true', NOW())
+                                ON CONFLICT (clave) DO UPDATE SET valor = 'true', updated = NOW()
+                            """)
+                        conn3.commit()
+                print(f"Entradas gratis agotadas — {evento_id} límite {limite} alcanzado, marcado en PG")
             except Exception as e:
                 print(f"Error marcando gratis agotada en PG: {e}")
     except Exception as e:
