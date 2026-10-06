@@ -1,4 +1,4 @@
-<!--Programador: Isaac Fernández
+﻿<!--Programador: Isaac Fernández
     Fecha creación: 24 marzo 2026  -->
 
 <!DOCTYPE html>
@@ -455,234 +455,7 @@
   <!-- ═══════════════════════════════════════
        SECCIÓN 2: DELIVERY
   ════════════════════════════════════════ -->
-  <section id="delivery" style="position:relative;">
-  <!-- ▼ QUITAR ESTE DIV CUANDO LA CARTA ESTÉ LISTA ▼ -->
-  <div style="
-    position:absolute; inset:0; z-index:10;
-    background:rgba(10,22,40,0.92);
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    gap:1rem; text-align:center; padding:2rem;
-    backdrop-filter:blur(4px);
-  ">
-    <div style="font-size:2.5rem; display:flex; gap:0.8rem;">🍷🍴</div>
-    <p style="font-family:'Jost',sans-serif; font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold);">Muy pronto</p>
-    <h2 style="font-family:'Playfair Display',serif; font-size:2rem; color:#fff;">Pub & <em style="color:var(--gold-light);">Restaurant</em></h2>
-    <p style="color:var(--text-muted); font-size:0.95rem; max-width:420px; line-height:1.7;">Estamos preparando nuestra carta. Muy pronto podrás disfrutar de nuestras comidas hechas aquí mismo, al igual que podrás hacer pedidos por Whatsapp.</p>
-    <a href="https://wa.me/56977003199?text=Hola! Quiero hacer un pedido" target="_blank" style="
-      margin-top:0.5rem;
-      border:1px solid var(--gold); color:var(--gold-light);
-      padding:0.7rem 1.8rem; font-family:'Jost',sans-serif;
-      font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase;
-      text-decoration:none; transition:all 0.3s;
-    " onmouseover="this.style.background='var(--gold)';this.style.color='var(--blue-deep)'"
-       onmouseout="this.style.background='transparent';this.style.color='var(--gold-light)'">
-      Pedir por WhatsApp 💬
-    </a>
-  </div>
-  <!-- ▲ FIN OVERLAY PRÓXIMAMENTE ▲ -->
-    <div class="container">
-      <div class="reveal">
-        <p class="section-label">A domicilio</p>
-        <h2 class="section-title">Delivery <em>Blue Wine</em></h2>
-        <p class="section-subtitle">Nuestros platos favoritos, hasta tu puerta. Pedidos por WhatsApp.</p>
-      </div>
 
-      <div class="delivery-tabs reveal">
-        <button class="delivery-tab active" onclick="filtrarMenu('pizza')">🍕 Pizzas</button>
-        <button class="delivery-tab" onclick="filtrarMenu('sushi')">🍣 Sushi</button>
-        <button class="delivery-tab" onclick="filtrarMenu('sandwich')">🥪 Sandwich</button>
-      </div>
-
-      <div class="delivery-grid">
-
-        <div class="menu-card reveal" data-categoria="pizza">
-          <div class="menu-card-img">🍕</div>
-          <div class="menu-card-body">
-            <div class="menu-badge promo">🔥 Promo</div>
-            <div class="menu-nombre">Pizza Quattro Stagioni</div>
-            <div class="menu-desc">Jamón, champiñones, alcachofas y aceitunas. Masa artesanal horneada en piedra.</div>
-            <div class="menu-footer">
-              <div class="menu-precio">$9.900</div>
-              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Pizza Quattro Stagioni', 9900)">+ Agregar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="menu-card reveal" style="transition-delay:0.1s" data-categoria="pizza">
-          <div class="menu-card-img">🍕</div>
-          <div class="menu-card-body">
-            <div class="menu-nombre">Pizza Carnívora</div>
-            <div class="menu-desc">Carne molida, chorizo, tocino ahumado, cebolla caramelizada y queso mozzarella.</div>
-            <div class="menu-footer">
-              <div class="menu-precio">$11.500</div>
-              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Pizza Carnívora', 11500)">+ Agregar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="menu-card reveal" style="transition-delay:0.2s" data-categoria="sushi">
-          <div class="menu-card-img">🍣</div>
-          <div class="menu-card-body">
-            <div class="menu-badge promo">🔥 Promo</div>
-            <div class="menu-nombre">Roll Blue Wine (12 pzs)</div>
-            <div class="menu-desc">Camarón tempura, palta, queso crema y salsa de la casa. Nuestro roll estrella.</div>
-            <div class="menu-footer">
-              <div class="menu-precio">$8.500</div>
-              <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Roll Blue Wine" target="_blank" class="btn-pedir">Pedir →</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="menu-card reveal" style="transition-delay:0.3s" data-categoria="sushi">
-          <div class="menu-card-img">🍣</div>
-          <div class="menu-card-body">
-            <div class="menu-nombre">Combo Sushi 24 pzs</div>
-            <div class="menu-desc">Selección de rolls variados: California, Spicy Tuna, Tempura y Philadelphia.</div>
-            <div class="menu-footer">
-              <div class="menu-precio">$15.900</div>
-              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Combo Sushi 24 pzs', 15900)">+ Agregar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="menu-card reveal" style="transition-delay:0.4s" data-categoria="pizza">
-          <div class="menu-card-img">🍕</div>
-          <div class="menu-card-body">
-            <div class="menu-badge promo">🔥 Promo</div>
-            <div class="menu-nombre">Combo Familiar</div>
-            <div class="menu-desc">2 pizzas familiares a elección + 1 bebida 1.5L. La opción perfecta para compartir.</div>
-            <div class="menu-footer">
-              <div class="menu-precio">$19.900</div>
-              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Combo Familiar', 19900)">+ Agregar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="menu-card reveal" style="transition-delay:0.5s" data-categoria="sushi">
-          <div class="menu-card-img">🍣</div>
-          <div class="menu-card-body">
-            <div class="menu-nombre">Sashimi Premium</div>
-            <div class="menu-desc">Cortes finos de salmón y atún fresco, acompañados de jengibre encurtido y wasabi.</div>
-            <div class="menu-footer">
-              <div class="menu-precio">$12.900</div>
-              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sashimi Premium', 12900)">+ Agregar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="menu-card reveal" style="transition-delay:0.1s" data-categoria="sandwich">
-          <div class="menu-card-img">🥪</div>
-          <div class="menu-card-body">
-            <div class="menu-nombre">Sandwich Lomito</div>
-            <div class="menu-desc">Lomito jugoso, palta, tomate, mayonesa y chucrut en pan amasado artesanal.</div>
-            <div class="menu-footer">
-              <div class="menu-precio">$5.900</div>
-              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sandwich Lomito', 5900)">+ Agregar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="menu-card reveal" style="transition-delay:0.2s" data-categoria="sandwich">
-          <div class="menu-card-img">🥪</div>
-          <div class="menu-card-body">
-            <div class="menu-nombre">Sandwich Mechada</div>
-            <div class="menu-desc">Carne mechada desmenuzada, tomate, palta y alioli de la casa.</div>
-            <div class="menu-footer">
-              <div class="menu-precio">$5.500</div>
-              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sandwich Mechada', 5500)">+ Agregar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="menu-card reveal" style="transition-delay:0.3s" data-categoria="sandwich">
-          <div class="menu-card-img">🥪</div>
-          <div class="menu-card-body">
-            <div class="menu-nombre">Sandwich Pollo Crocante</div>
-            <div class="menu-desc">Pechuga apanada, lechuga, tomate y salsa de mostaza-miel casera.</div>
-            <div class="menu-footer">
-              <div class="menu-precio">$5.900</div>
-              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sandwich Pollo Crocante', 5900)">+ Agregar</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="delivery-cta reveal">
-        <p>¿No encuentras lo que buscas? Escríbenos directamente</p>
-        <a href="https://wa.me/56900000000?text=Hola! Quiero hacer un pedido" target="_blank" class="btn-primary">Pedir por WhatsApp 💬</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════
-       SECCIÓN 3: PUB & RESTOBAR
-  ════════════════════════════════════════ -->
-  <section id="pub">
-    <div class="container">
-      <div class="nosotros-grid">
-        <div class="reveal-left">
-          <div class="nosotros-img-wrap">
-            <img src="Imagenes/galeria/Lugar.jpg" alt="Blue Wine Multiespacio - Quillón" style="width:100%; height:100%; object-fit:cover; border-radius:12px; display:block;"/>
-            <div class="nosotros-img-tag">"Un rincón para el alma"</div>
-          </div>
-        </div>
-        <div class="nosotros-text reveal-right">
-          <p class="section-label">Pub · Restaurant · Discoteca</p>
-          <h2 class="section-title">Un multiespacio nacido del <em>sur</em></h2>
-          <p>En el corazón de Quillón, a orillas del camino al Cerro Negro, nació Blue Wine: un espacio donde el entorno natural del Ñuble se fusiona con una propuesta gastronómica y de entretenimiento auténtica.</p>
-          <p>Somos <strong>pub, restaurant, discoteca y delivery</strong>. Un lugar para compartir, celebrar y dejarse llevar por el sabor y la brisa del sur de Chile. Amplia infraestructura con estacionamiento para tu comodidad.</p>
-
-          <div class="pub-servicios">
-            <div class="pub-servicio">
-              <div class="pub-icon">🍺</div>
-              <div>
-                <div class="pub-nombre">Pub & Bar</div>
-                <div class="pub-desc">Cócteles de autor, vinos y cervezas artesanales. Próximamente.</div>
-              </div>
-            </div>
-            <div class="pub-servicio">
-              <div class="pub-icon">🍖</div>
-              <div>
-                <div class="pub-nombre">Restaurant</div>
-                <div class="pub-desc">Cocina de autor con parrilla y raíces sureñas. Próximamente.</div>
-              </div>
-            </div>
-            <div class="pub-servicio">
-              <div class="pub-icon">🎵</div>
-              <div>
-                <div class="pub-nombre">Discoteca</div>
-                <div class="pub-desc">Música en vivo y DJ los fines de semana.</div>
-              </div>
-            </div>
-            <div class="pub-servicio">
-              <div class="pub-icon">🚗</div>
-              <div>
-                <div class="pub-nombre">Estacionamiento</div>
-                <div class="pub-desc">Amplio estacionamiento para todos nuestros clientes</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="nosotros-stats">
-            <div>
-              <div class="stat-num">18K</div>
-              <div class="stat-label">Seguidores IG</div>
-            </div>
-            <div>
-              <div class="stat-num">4</div>
-              <div class="stat-label">Servicios</div>
-            </div>
-            <div>
-              <div class="stat-num">∞</div>
-              <div class="stat-label">Experiencias</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!--
   GALERÍA — OPCIÓN 1 (INACTIVA): subsecciones con slider
@@ -988,6 +761,76 @@
   -->
 
   <!-- ═══════════════════════════════════════
+       SECCIÓN 5: EVENTOS PRIVADOS
+  ════════════════════════════════════════ -->
+  <section id="eventos-privados">
+    <div class="container">
+      <div class="reveal" style="text-align:center; max-width:680px; margin:0 auto 4rem;">
+        <p class="section-label">Para tu celebración</p>
+        <h2 class="section-title">Eventos <em>Privados</em></h2>
+        <p class="section-subtitle">Nuestro espacio se adapta a tu ocasión. Celebra con nosotros y deja que Blue Wine haga el resto.</p>
+      </div>
+
+      <div class="privados-grid">
+        <div class="privado-card reveal">
+          <div class="privado-icon">🎂</div>
+          <div class="privado-nombre">Cumpleaños</div>
+          <div class="privado-desc">Celebra tu día con decoración personalizada, menú especial y música a tu gusto. Hasta 150 personas.</div>
+          <a href="#reservas" class="btn-outline-sm">Consultar →</a>
+        </div>
+        <div class="privado-card reveal" style="transition-delay:0.15s">
+          <div class="privado-icon">💍</div>
+          <div class="privado-nombre">Matrimonios & Compromisos</div>
+          <div class="privado-desc">Un ambiente elegante y romántico para el día más especial. Coordinamos cada detalle contigo.</div>
+          <a href="#reservas" class="btn-outline-sm">Consultar →</a>
+        </div>
+        <div class="privado-card reveal" style="transition-delay:0.3s">
+          <div class="privado-icon">🏢</div>
+          <div class="privado-nombre">Eventos Corporativos</div>
+          <div class="privado-desc">Reuniones, lanzamientos, cenas de empresa. Salón equipado con proyector y audio profesional.</div>
+          <a href="#reservas" class="btn-outline-sm">Consultar →</a>
+        </div>
+        <div class="privado-card reveal" style="transition-delay:0.45s">
+          <div class="privado-icon">🎓</div>
+          <div class="privado-nombre">Titulaciones & Graduaciones</div>
+          <div class="privado-desc">Festeja tu logro académico en un entorno inigualable. Paquetes especiales para grupos.</div>
+          <a href="#reservas" class="btn-outline-sm">Consultar →</a>
+        </div>
+      </div>
+
+      <div class="privados-info reveal">
+        <div class="privados-info-item">
+          <div class="privados-info-num">150+</div>
+          <div class="privados-info-label">Capacidad de personas</div>
+        </div>
+        <div class="privados-info-sep"></div>
+        <div class="privados-info-item">
+          <div class="privados-info-num">🎵</div>
+          <div class="privados-info-label">Audio y DJ disponible</div>
+        </div>
+        <div class="privados-info-sep"></div>
+        <div class="privados-info-item">
+          <div class="privados-info-num">🍽️</div>
+          <div class="privados-info-label">Menú personalizado</div>
+        </div>
+        <div class="privados-info-sep"></div>
+        <div class="privados-info-item">
+          <div class="privados-info-num">🚗</div>
+          <div class="privados-info-label">Amplio estacionamiento</div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:3rem;" class="reveal">
+        <p style="color:var(--text-muted); margin-bottom:1.5rem;">¿Tienes algo en mente? Conversemos y armamos el evento perfecto para ti.</p>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+          <a href="#reservas" class="btn-primary">Solicitar Cotización</a>
+          <a href="https://wa.me/56900000000?text=Hola! Me interesa hacer un evento privado en Blue Wine" target="_blank" class="btn-outline">WhatsApp Directo 💬</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
        SECCIÓN 4: RESERVAS
   ════════════════════════════════════════ -->
   <section id="reservas">
@@ -1074,71 +917,230 @@
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       SECCIÓN 5: EVENTOS PRIVADOS
-  ════════════════════════════════════════ -->
-  <section id="eventos-privados">
+  <section id="delivery" style="position:relative;">
+  <!-- ▼ QUITAR ESTE DIV CUANDO LA CARTA ESTÉ LISTA ▼ -->
+  <div style="
+    position:absolute; inset:0; z-index:10;
+    background:rgba(10,22,40,0.92);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:1rem; text-align:center; padding:2rem;
+    backdrop-filter:blur(4px);
+  ">
+    <div style="font-size:2.5rem; display:flex; gap:0.8rem;">🍷🍴</div>
+    <p style="font-family:'Jost',sans-serif; font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold);">Muy pronto</p>
+    <h2 style="font-family:'Playfair Display',serif; font-size:2rem; color:#fff;">Pub & <em style="color:var(--gold-light);">Restaurant</em></h2>
+    <p style="color:var(--text-muted); font-size:0.95rem; max-width:420px; line-height:1.7;">Estamos preparando nuestra carta. Muy pronto podrás disfrutar de nuestras comidas hechas aquí mismo, al igual que podrás hacer pedidos por Whatsapp.</p>
+    <a href="https://wa.me/56977003199?text=Hola! Quiero hacer un pedido" target="_blank" style="
+      margin-top:0.5rem;
+      border:1px solid var(--gold); color:var(--gold-light);
+      padding:0.7rem 1.8rem; font-family:'Jost',sans-serif;
+      font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase;
+      text-decoration:none; transition:all 0.3s;
+    " onmouseover="this.style.background='var(--gold)';this.style.color='var(--blue-deep)'"
+       onmouseout="this.style.background='transparent';this.style.color='var(--gold-light)'">
+      Pedir por WhatsApp 💬
+    </a>
+  </div>
+  <!-- ▲ FIN OVERLAY PRÓXIMAMENTE ▲ -->
     <div class="container">
-      <div class="reveal" style="text-align:center; max-width:680px; margin:0 auto 4rem;">
-        <p class="section-label">Para tu celebración</p>
-        <h2 class="section-title">Eventos <em>Privados</em></h2>
-        <p class="section-subtitle">Nuestro espacio se adapta a tu ocasión. Celebra con nosotros y deja que Blue Wine haga el resto.</p>
+      <div class="reveal">
+        <p class="section-label">A domicilio</p>
+        <h2 class="section-title">Delivery <em>Blue Wine</em></h2>
+        <p class="section-subtitle">Nuestros platos favoritos, hasta tu puerta. Pedidos por WhatsApp.</p>
       </div>
 
-      <div class="privados-grid">
-        <div class="privado-card reveal">
-          <div class="privado-icon">🎂</div>
-          <div class="privado-nombre">Cumpleaños</div>
-          <div class="privado-desc">Celebra tu día con decoración personalizada, menú especial y música a tu gusto. Hasta 150 personas.</div>
-          <a href="#reservas" class="btn-outline-sm">Consultar →</a>
-        </div>
-        <div class="privado-card reveal" style="transition-delay:0.15s">
-          <div class="privado-icon">💍</div>
-          <div class="privado-nombre">Matrimonios & Compromisos</div>
-          <div class="privado-desc">Un ambiente elegante y romántico para el día más especial. Coordinamos cada detalle contigo.</div>
-          <a href="#reservas" class="btn-outline-sm">Consultar →</a>
-        </div>
-        <div class="privado-card reveal" style="transition-delay:0.3s">
-          <div class="privado-icon">🏢</div>
-          <div class="privado-nombre">Eventos Corporativos</div>
-          <div class="privado-desc">Reuniones, lanzamientos, cenas de empresa. Salón equipado con proyector y audio profesional.</div>
-          <a href="#reservas" class="btn-outline-sm">Consultar →</a>
-        </div>
-        <div class="privado-card reveal" style="transition-delay:0.45s">
-          <div class="privado-icon">🎓</div>
-          <div class="privado-nombre">Titulaciones & Graduaciones</div>
-          <div class="privado-desc">Festeja tu logro académico en un entorno inigualable. Paquetes especiales para grupos.</div>
-          <a href="#reservas" class="btn-outline-sm">Consultar →</a>
-        </div>
+      <div class="delivery-tabs reveal">
+        <button class="delivery-tab active" onclick="filtrarMenu('pizza')">🍕 Pizzas</button>
+        <button class="delivery-tab" onclick="filtrarMenu('sushi')">🍣 Sushi</button>
+        <button class="delivery-tab" onclick="filtrarMenu('sandwich')">🥪 Sandwich</button>
       </div>
 
-      <div class="privados-info reveal">
-        <div class="privados-info-item">
-          <div class="privados-info-num">150+</div>
-          <div class="privados-info-label">Capacidad de personas</div>
+      <div class="delivery-grid">
+
+        <div class="menu-card reveal" data-categoria="pizza">
+          <div class="menu-card-img">🍕</div>
+          <div class="menu-card-body">
+            <div class="menu-badge promo">🔥 Promo</div>
+            <div class="menu-nombre">Pizza Quattro Stagioni</div>
+            <div class="menu-desc">Jamón, champiñones, alcachofas y aceitunas. Masa artesanal horneada en piedra.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$9.900</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Pizza Quattro Stagioni', 9900)">+ Agregar</button>
+            </div>
+          </div>
         </div>
-        <div class="privados-info-sep"></div>
-        <div class="privados-info-item">
-          <div class="privados-info-num">🎵</div>
-          <div class="privados-info-label">Audio y DJ disponible</div>
+
+        <div class="menu-card reveal" style="transition-delay:0.1s" data-categoria="pizza">
+          <div class="menu-card-img">🍕</div>
+          <div class="menu-card-body">
+            <div class="menu-nombre">Pizza Carnívora</div>
+            <div class="menu-desc">Carne molida, chorizo, tocino ahumado, cebolla caramelizada y queso mozzarella.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$11.500</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Pizza Carnívora', 11500)">+ Agregar</button>
+            </div>
+          </div>
         </div>
-        <div class="privados-info-sep"></div>
-        <div class="privados-info-item">
-          <div class="privados-info-num">🍽️</div>
-          <div class="privados-info-label">Menú personalizado</div>
+
+        <div class="menu-card reveal" style="transition-delay:0.2s" data-categoria="sushi">
+          <div class="menu-card-img">🍣</div>
+          <div class="menu-card-body">
+            <div class="menu-badge promo">🔥 Promo</div>
+            <div class="menu-nombre">Roll Blue Wine (12 pzs)</div>
+            <div class="menu-desc">Camarón tempura, palta, queso crema y salsa de la casa. Nuestro roll estrella.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$8.500</div>
+              <a href="https://wa.me/56900000000?text=Hola! Quiero pedir el Roll Blue Wine" target="_blank" class="btn-pedir">Pedir →</a>
+            </div>
+          </div>
         </div>
-        <div class="privados-info-sep"></div>
-        <div class="privados-info-item">
-          <div class="privados-info-num">🚗</div>
-          <div class="privados-info-label">Amplio estacionamiento</div>
+
+        <div class="menu-card reveal" style="transition-delay:0.3s" data-categoria="sushi">
+          <div class="menu-card-img">🍣</div>
+          <div class="menu-card-body">
+            <div class="menu-nombre">Combo Sushi 24 pzs</div>
+            <div class="menu-desc">Selección de rolls variados: California, Spicy Tuna, Tempura y Philadelphia.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$15.900</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Combo Sushi 24 pzs', 15900)">+ Agregar</button>
+            </div>
+          </div>
         </div>
+
+        <div class="menu-card reveal" style="transition-delay:0.4s" data-categoria="pizza">
+          <div class="menu-card-img">🍕</div>
+          <div class="menu-card-body">
+            <div class="menu-badge promo">🔥 Promo</div>
+            <div class="menu-nombre">Combo Familiar</div>
+            <div class="menu-desc">2 pizzas familiares a elección + 1 bebida 1.5L. La opción perfecta para compartir.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$19.900</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Combo Familiar', 19900)">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card reveal" style="transition-delay:0.5s" data-categoria="sushi">
+          <div class="menu-card-img">🍣</div>
+          <div class="menu-card-body">
+            <div class="menu-nombre">Sashimi Premium</div>
+            <div class="menu-desc">Cortes finos de salmón y atún fresco, acompañados de jengibre encurtido y wasabi.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$12.900</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sashimi Premium', 12900)">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card reveal" style="transition-delay:0.1s" data-categoria="sandwich">
+          <div class="menu-card-img">🥪</div>
+          <div class="menu-card-body">
+            <div class="menu-nombre">Sandwich Lomito</div>
+            <div class="menu-desc">Lomito jugoso, palta, tomate, mayonesa y chucrut en pan amasado artesanal.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$5.900</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sandwich Lomito', 5900)">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card reveal" style="transition-delay:0.2s" data-categoria="sandwich">
+          <div class="menu-card-img">🥪</div>
+          <div class="menu-card-body">
+            <div class="menu-nombre">Sandwich Mechada</div>
+            <div class="menu-desc">Carne mechada desmenuzada, tomate, palta y alioli de la casa.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$5.500</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sandwich Mechada', 5500)">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card reveal" style="transition-delay:0.3s" data-categoria="sandwich">
+          <div class="menu-card-img">🥪</div>
+          <div class="menu-card-body">
+            <div class="menu-nombre">Sandwich Pollo Crocante</div>
+            <div class="menu-desc">Pechuga apanada, lechuga, tomate y salsa de mostaza-miel casera.</div>
+            <div class="menu-footer">
+              <div class="menu-precio">$5.900</div>
+              <button class="btn-pedir btn-agregar" onclick="agregarAlCarritoComida('Sandwich Pollo Crocante', 5900)">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <div style="text-align:center; margin-top:3rem;" class="reveal">
-        <p style="color:var(--text-muted); margin-bottom:1.5rem;">¿Tienes algo en mente? Conversemos y armamos el evento perfecto para ti.</p>
-        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-          <a href="#reservas" class="btn-primary">Solicitar Cotización</a>
-          <a href="https://wa.me/56900000000?text=Hola! Me interesa hacer un evento privado en Blue Wine" target="_blank" class="btn-outline">WhatsApp Directo 💬</a>
+      <div class="delivery-cta reveal">
+        <p>¿No encuentras lo que buscas? Escríbenos directamente</p>
+        <a href="https://wa.me/56900000000?text=Hola! Quiero hacer un pedido" target="_blank" class="btn-primary">Pedir por WhatsApp 💬</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECCIÓN 3: PUB & RESTOBAR
+  ════════════════════════════════════════ -->
+  <section id="pub">
+    <div class="container">
+      <div class="nosotros-grid">
+        <div class="reveal-left">
+          <div class="nosotros-img-wrap">
+            <img src="Imagenes/galeria/Lugar.jpg" alt="Blue Wine Multiespacio - Quillón" style="width:100%; height:100%; object-fit:cover; border-radius:12px; display:block;"/>
+            <div class="nosotros-img-tag">"Un rincón para el alma"</div>
+          </div>
+        </div>
+        <div class="nosotros-text reveal-right">
+          <p class="section-label">Pub · Restaurant · Discoteca</p>
+          <h2 class="section-title">Un multiespacio nacido del <em>sur</em></h2>
+          <p>En el corazón de Quillón, a orillas del camino al Cerro Negro, nació Blue Wine: un espacio donde el entorno natural del Ñuble se fusiona con una propuesta gastronómica y de entretenimiento auténtica.</p>
+          <p>Somos <strong>pub, restaurant, discoteca y delivery</strong>. Un lugar para compartir, celebrar y dejarse llevar por el sabor y la brisa del sur de Chile. Amplia infraestructura con estacionamiento para tu comodidad.</p>
+
+          <div class="pub-servicios">
+            <div class="pub-servicio">
+              <div class="pub-icon">🍺</div>
+              <div>
+                <div class="pub-nombre">Pub & Bar</div>
+                <div class="pub-desc">Cócteles de autor, vinos y cervezas artesanales. Próximamente.</div>
+              </div>
+            </div>
+            <div class="pub-servicio">
+              <div class="pub-icon">🍖</div>
+              <div>
+                <div class="pub-nombre">Restaurant</div>
+                <div class="pub-desc">Cocina de autor con parrilla y raíces sureñas. Próximamente.</div>
+              </div>
+            </div>
+            <div class="pub-servicio">
+              <div class="pub-icon">🎵</div>
+              <div>
+                <div class="pub-nombre">Discoteca</div>
+                <div class="pub-desc">Música en vivo y DJ los fines de semana.</div>
+              </div>
+            </div>
+            <div class="pub-servicio">
+              <div class="pub-icon">🚗</div>
+              <div>
+                <div class="pub-nombre">Estacionamiento</div>
+                <div class="pub-desc">Amplio estacionamiento para todos nuestros clientes</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="nosotros-stats">
+            <div>
+              <div class="stat-num">18K</div>
+              <div class="stat-label">Seguidores IG</div>
+            </div>
+            <div>
+              <div class="stat-num">4</div>
+              <div class="stat-label">Servicios</div>
+            </div>
+            <div>
+              <div class="stat-num">∞</div>
+              <div class="stat-label">Experiencias</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1245,7 +1247,7 @@
   <!-- TOAST -->
   <div id="toast" class="toast"></div>
 
-  <script src="JS/main.js?v=49"></script>
+  <script src="JS/main.js?v=50"></script>
   <script>
     // ── Carrusel Hero
     let _carruselIdx = 0;
