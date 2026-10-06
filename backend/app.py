@@ -1169,6 +1169,20 @@ def obtener_entrada_gratis():
             conn.commit()
         nuevo_total = total_gratis + 1
         print(f"Entrada gratuita emitida — total: {nuevo_total}/{limite}")
+        # Si se alcanzó el límite, marcar agotada automáticamente en PG
+        if nuevo_total >= limite:
+            try:
+                with get_db() as conn2:
+                    with conn2.cursor() as cur2:
+                        cur2.execute("""
+                            INSERT INTO config (clave, valor, updated)
+                            VALUES ('entradasGratisAgotada', 'true', NOW())
+                            ON CONFLICT (clave) DO UPDATE SET valor = 'true', updated = NOW()
+                        """)
+                    conn2.commit()
+                print(f"Entradas gratis agotadas — límite {limite} alcanzado, marcado automáticamente en PG")
+            except Exception as e:
+                print(f"Error marcando gratis agotada en PG: {e}")
     except Exception as e:
         print(f"Error verificando/insertando entrada gratis: {e}")
         return jsonify({"ok": False, "error": "Error al verificar disponibilidad. Intenta nuevamente."}), 500
