@@ -9,6 +9,7 @@ import os                            # para leer variables de entorno (.env)
 import json                          # para convertir datos a texto y viceversa
 import uuid                          # para generar códigos únicos de ticket
 import datetime                      # para registrar fecha y hora de compra
+import re                            # para validar correos electrónicos
 import qrcode                        # para generar la imagen del código QR
 import io                            # para manejar la imagen QR en memoria
 import base64                        # para adjuntar imágenes inline en emails Brevo
@@ -1334,6 +1335,66 @@ def reserva():
     except Exception as e:
         print(f"Error enviando email reserva: {e}")
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/reserva-cumpleanos", methods=["POST"])
+@limiter.limit("5 per hour")
+def reserva_cumpleanos():
+    try:
+        data = request.get_json(force=True) or {}
+        nombre = str(data.get("nombre", "")).strip()
+        telefono = str(data.get("telefono", "")).strip()
+        email = str(data.get("email", "")).strip()
+        fecha = str(data.get("fecha", "")).strip()
+        mensaje = str(data.get("mensaje", "")).strip()
+
+        if not nombre or not telefono or not fecha:
+            return jsonify({"ok": False, "error": "Completa nombre, teléfono y fecha."}), 400
+        if not email or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
+            return jsonify({"ok": False, "error": "Ingresa un correo válido."}), 400
+        try:
+            datetime.date.fromisoformat(fecha)
+        except ValueError:
+            return jsonify({"ok": False, "error": "Ingresa una fecha válida."}), 400
+        try:
+            personas = int(data.get("personas", 0))
+        except (TypeError, ValueError):
+            personas = 0
+        if personas < 1:
+            return jsonify({"ok": False, "error": "Ingresa un número de personas válido."}), 400
+
+        nombre_html = _html.escape(nombre)
+        telefono_html = _html.escape(telefono)
+        email_html = _html.escape(email)
+        fecha_html = _html.escape(fecha)
+        mensaje_html = _html.escape(mensaje) or "—"
+        asunto_nombre = " ".join(nombre.split())[:100]
+        html_body = f"""
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#0a0a0f;color:#e8e0d0;padding:32px;border-radius:12px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <h1 style="color:#c9a84c;font-size:28px;margin:0;">Blue Wine</h1>
+            <p style="color:#7a7060;font-size:13px;margin:4px 0;">MultiEspacio · Quillón, Ñuble</p>
+          </div>
+          <h2 style="font-size:18px;margin-bottom:16px;">🎂 Nueva solicitud de cumpleaños</h2>
+          <div style="background:#13131a;border:1px solid #2a2820;border-radius:8px;padding:20px;margin:16px 0;">
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Nombre:</strong> {nombre_html}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Teléfono:</strong> {telefono_html}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Email:</strong> {email_html}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Fecha:</strong> {fecha_html}</p>
+            <p style="margin:0 0 8px;"><strong style="color:#c9a84c;">Personas:</strong> {personas}</p>
+            <p style="margin:0;"><strong style="color:#c9a84c;">Mensaje:</strong> {mensaje_html}</p>
+          </div>
+        </div>
+        """
+        _smtp_send(
+            to_list=["bluewine.contacto@gmail.com"],
+            subject=f"🎂 Nueva solicitud de cumpleaños de {asunto_nombre} — Blue Wine",
+            html=html_body,
+        )
+        return jsonify({"ok": True})
+    except Exception as e:
+        print(f"Error enviando solicitud de cumpleaños: {e}")
+        return jsonify({"ok": False, "error": "No se pudo enviar la solicitud. Intenta nuevamente."}), 500
 
 
 # ══════════════════════════════════════════════════════

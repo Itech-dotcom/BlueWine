@@ -140,7 +140,7 @@ document.querySelectorAll('.espacio-card').forEach(card => {
 });
 
 // ── Formulario reservas
-const btnSubmit = document.querySelector('.btn-submit');
+const btnSubmit = document.querySelector('#reservas .btn-submit');
 if (btnSubmit) btnSubmit.addEventListener('click', enviarReserva);
 
 function enviarReserva() {
@@ -199,6 +199,48 @@ function enviarReserva() {
   document.getElementById('res-mensaje').value  = '';
 
   mostrarToast('✓ Solicitud enviada. Te contactaremos pronto 🍷');
+}
+
+// ── Formulario de cumpleaños
+const formularioCumpleanos = document.getElementById('form-cumpleanos');
+if (formularioCumpleanos) formularioCumpleanos.addEventListener('submit', enviarSolicitudCumpleanos);
+
+async function enviarSolicitudCumpleanos(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const errorEl = document.getElementById('cumple-error');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const solicitud = {
+    nombre: document.getElementById('cumple-nombre').value.trim(),
+    telefono: document.getElementById('cumple-telefono').value.trim(),
+    email: document.getElementById('cumple-email').value.trim(),
+    fecha: document.getElementById('cumple-fecha').value,
+    personas: document.getElementById('cumple-personas').value,
+    mensaje: document.getElementById('cumple-mensaje').value.trim(),
+  };
+
+  errorEl.hidden = true;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Enviando…';
+
+  try {
+    const res = await fetch('https://bluewine-production.up.railway.app/reserva-cumpleanos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(solicitud),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || 'No se pudo enviar la solicitud.');
+
+    form.reset();
+    mostrarToast('✓ Solicitud de cumpleaños enviada. Te contactaremos pronto 🍷');
+  } catch (error) {
+    errorEl.textContent = error.message || 'No se pudo enviar la solicitud. Intenta nuevamente.';
+    errorEl.hidden = false;
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Enviar solicitud →';
+  }
 }
 
 // ══════════════════════════════════════════════════════
