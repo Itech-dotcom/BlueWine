@@ -64,7 +64,7 @@ ADMIN_KEY = os.getenv("ADMIN_KEY", "bw-admin-2026")
 # Debe reflejar el objeto ENTRADAS de JS/main.js. Cuando cambie el evento
 # (ver CLAUDE.md → "nuevo evento"), actualizar también esta tabla.
 # ══════════════════════════════════════════════════════
-NOMBRE_EVENTO_PRINCIPAL = "Dj Nemj Viernes 04 Septiembre"
+NOMBRE_EVENTO_PRINCIPAL = "HALLOWEEN BLUE WINE 2026"
 COMISION_MP = 0.15  # 15% MercadoPago, igual que en main.js
 
 PRECIOS_ENTRADAS = {
@@ -681,6 +681,7 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
             acompanante_de = acompanante_de,
             mesa           = mesa,
             companions     = companions,
+            es_gratis      = (id_pago == "ENTRADA_LIBERADA"),
         )
     except Exception as e:
         import traceback
@@ -808,7 +809,7 @@ def _generar_qr(contenido):
     return buf.getvalue()    # retorna los bytes de la imagen PNG
 
 
-def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None):
+def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None, es_gratis=False):
     e = _html.escape  # shorthand para escapar datos de usuario en HTML
 
     # Bloque acompañante (si es acompañante de alguien)
@@ -848,10 +849,11 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
         <p style="margin:0 0 8px;"><strong>Evento:</strong> {e(evento)}</p>
 
         <p style="margin:0 0 8px;"><strong>Código:</strong> <span style="color:#c9a84c;font-family:monospace;font-size:16px;">{e(codigo)}</span></p>
+        {"<p style=\"margin:0 0 8px;\">⏰ Acceso hasta las 23:30 hrs</p>" if es_gratis else ""}
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
       </div>
       <div style="text-align:center;margin:24px 0;">
-        <img src="data:image/png;base64,{base64.b64encode(qr_img).decode()}" alt="QR Ticket" width="200" height="200" style="border:4px solid #c9a84c;border-radius:8px;display:block;margin:0 auto;" />
+        {"<img src='data:image/png;base64," + base64.b64encode(qr_img).decode() + "' alt='QR Ticket' width='200' height='200' style='border:4px solid #c9a84c;border-radius:8px;display:block;margin:0 auto;' />" if qr_img else "<p style='color:#c9a84c;font-size:13px;'>QR disponible al presentar el código en puerta.</p>"}
       </div>
       <div style="background:rgba(224,82,82,0.1);border:1px solid rgba(224,82,82,0.35);border-radius:8px;padding:14px 16px;margin-bottom:16px;">
         <p style="margin:0;font-size:0.82rem;color:#e88;line-height:1.5;">
