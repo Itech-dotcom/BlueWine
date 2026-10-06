@@ -853,7 +853,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
       </div>
       <div style="text-align:center;margin:24px 0;">
-        {"<img src='data:image/png;base64," + base64.b64encode(qr_img).decode() + "' alt='QR Ticket' width='200' height='200' style='border:4px solid #c9a84c;border-radius:8px;display:block;margin:0 auto;' />" if qr_img else "<p style='color:#c9a84c;font-size:13px;'>QR disponible al presentar el código en puerta.</p>"}
+        {"<img src='cid:qr-ticket' alt='QR Ticket' width='200' height='200' style='border:4px solid #c9a84c;border-radius:8px;display:block;margin:0 auto;' />" if qr_img else "<p style='color:#c9a84c;font-size:13px;'>QR disponible al presentar el código en puerta.</p>"}
       </div>
       <div style="background:rgba(224,82,82,0.1);border:1px solid rgba(224,82,82,0.35);border-radius:8px;padding:14px 16px;margin-bottom:16px;">
         <p style="margin:0;font-size:0.82rem;color:#e88;line-height:1.5;">
@@ -867,9 +867,10 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
     """
 
     _smtp_send(
-        to_list = [destinatario],
-        subject = f"🎟️ Tu entrada para {evento} — Blue Wine",
-        html    = html_body,
+        to_list     = [destinatario],
+        subject     = f"🎟️ Tu entrada para {evento} — Blue Wine",
+        html        = html_body,
+        inline_imgs = [{"cid": "qr-ticket", "data": qr_img}] if qr_img else None,
     )
     print(f"Email ticket enviado a {destinatario} via Brevo")
 
