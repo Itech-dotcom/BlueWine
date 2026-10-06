@@ -1249,6 +1249,19 @@ async function cargarConfigRemota() {
       if (tag)   { tag.removeAttribute('style');   tag.textContent = '🎉 Evento'; }
       if (title) { title.removeAttribute('style'); title.textContent = ev.nombre; }
       if (desc && ev.lineup) desc.textContent = ev.lineup;
+      // Imagen de fondo del slide
+      const bgImg = slide.querySelector('.evento-slide-bg-img');
+      const inner = slide.querySelector('.evento-slide-inner');
+      if (bgImg && inner) {
+        if (ev.imagen) {
+          bgImg.src = 'Imagenes/' + ev.imagen;
+          bgImg.hidden = false;
+          inner.classList.add('has-image');
+        } else {
+          bgImg.hidden = true;
+          inner.classList.remove('has-image');
+        }
+      }
       if (footer) {
         const evIdEsc = (eventoId || 'evento1').replace(/'/g, "\\'");
         const label   = esGratis ? 'Obtener entrada gratis' : 'Ver entradas disponibles';
