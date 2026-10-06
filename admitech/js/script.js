@@ -630,23 +630,32 @@ async function cargarConfigPanel() {
 
     const setToggle = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
 
-    // Fallback legacy: si no existe eventoN en cfg, intentar con claves antiguas
-    const _fallback = { evento1: 'eventoViernes', evento2: 'eventoSabado' };
+    // Fallback legacy: si no existe eventoN en cfg, intentar con claves antiguas.
+    // evento1 prueba viernes primero, luego sabado (para cuando Halloween está en eventoSabado).
+    // _usedLegacyKeys evita que dos slots consuman el mismo objeto legacy.
+    const _fallback = {
+      evento1: ['eventoViernes', 'eventoSabado'],
+      evento2: ['eventoSabado', 'eventoViernes'],
+    };
+    const _usedLegacyKeys = new Set();
     function _resolverCfgEvento(id) {
       if (cfg[id] && typeof cfg[id] === 'object') return cfg[id];
-      const leg = _fallback[id];
-      if (leg && cfg[leg] && typeof cfg[leg] === 'object') {
-        const ev = { ...cfg[leg] };
-        if (id === 'evento1') {
-          if (!('activo'    in ev)) ev.activo   = !!cfg.eventoActivo;
-          if (!('carrito'   in ev)) ev.carrito  = !!cfg.carrito;
-          if (!('anuncio'   in ev)) ev.anuncio  = !!cfg.anuncio;
-          if (!('destacado' in ev)) ev.destacado = true;
-          if (!('entradasGratis' in ev) && 'entradasGratis' in cfg) ev.entradasGratis = cfg.entradasGratis;
-          if (!('entradasGratisAgotada' in ev) && 'entradasGratisAgotada' in cfg) ev.entradasGratisAgotada = cfg.entradasGratisAgotada;
-          if (!('limiteEntradasGratis' in ev) && cfg.limiteEntradasGratisViernes) ev.limiteEntradasGratis = cfg.limiteEntradasGratisViernes;
+      const legs = _fallback[id] || [];
+      for (const leg of legs) {
+        if (!_usedLegacyKeys.has(leg) && cfg[leg] && typeof cfg[leg] === 'object') {
+          _usedLegacyKeys.add(leg);
+          const ev = { ...cfg[leg] };
+          if (id === 'evento1') {
+            if (!('activo'    in ev)) ev.activo   = !!cfg.eventoActivo;
+            if (!('carrito'   in ev)) ev.carrito  = !!cfg.carrito;
+            if (!('anuncio'   in ev)) ev.anuncio  = !!cfg.anuncio;
+            if (!('destacado' in ev)) ev.destacado = true;
+            if (!('entradasGratis' in ev) && 'entradasGratis' in cfg) ev.entradasGratis = cfg.entradasGratis;
+            if (!('entradasGratisAgotada' in ev) && 'entradasGratisAgotada' in cfg) ev.entradasGratisAgotada = cfg.entradasGratisAgotada;
+            if (!('limiteEntradasGratis' in ev) && cfg.limiteEntradasGratisViernes) ev.limiteEntradasGratis = cfg.limiteEntradasGratisViernes;
+          }
+          return ev;
         }
-        return ev;
       }
       return null;
     }
