@@ -93,10 +93,13 @@ async function guardar() {
   EVENTO_IDS.forEach(id => {
     const activo               = document.getElementById(`toggle-evento-activo-${id}`)?.checked   ?? false;
     const destacado            = document.getElementById(`toggle-destacado-${id}`)?.checked       ?? false;
-    const carrito              = document.getElementById(`toggle-carrito-${id}`)?.checked         ?? false;
-    const anuncio              = document.getElementById(`toggle-anuncio-${id}`)?.checked         ?? false;
-    const entradasGratis       = document.getElementById(`toggle-gratis-${id}`)?.checked          ?? false;
-    const entradasGratisAgotada= document.getElementById(`toggle-gratis-agotada-${id}`)?.checked  ?? false;
+    const carrito              = document.getElementById(`toggle-carrito-${id}`)?.checked ?? false;
+    const anuncio              = document.getElementById(`toggle-anuncio-${id}`)?.checked ?? false;
+    // entradasGratis/Agotada se derivan de la fila gratis en la pestaña Entradas
+    const _entradas = entradasPorEvento[id] || {};
+    const _gratisEntry = Object.values(_entradas).find(e => e.tipo === 'gratis');
+    const entradasGratis        = !!(_gratisEntry?.activa);
+    const entradasGratisAgotada = !!(_gratisEntry && !_gratisEntry.activa && !_gratisEntry.proximamente);
     const limRaw               = parseInt(document.getElementById(`ev-limiteGratis-${id}`)?.value || '100', 10);
     const limiteEntradasGratis = isNaN(limRaw) || limRaw <= 0 ? 100 : limRaw;
 
@@ -669,8 +672,6 @@ async function cargarConfigPanel() {
       setToggle(`toggle-evento-activo-${id}`, ev.activo);
       setToggle(`toggle-destacado-${id}`,     ev.destacado);
       setToggle(`toggle-carrito-${id}`,        ev.carrito);
-      setToggle(`toggle-gratis-${id}`,         ev.entradasGratis);
-      setToggle(`toggle-gratis-agotada-${id}`, ev.entradasGratisAgotada);
       setToggle(`toggle-anuncio-${id}`,         ev.anuncio);
 
       const badge = document.getElementById(`estado-evento-badge-${id}`);
