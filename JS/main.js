@@ -71,7 +71,7 @@ let NOMBRE_EVENTO_PRINCIPAL = 'Aniversario Blue Wine';
 
 // ══════════════════════════════════════════════════════
 const IVA = 0;             // sin IVA
-const COMISION_MP = 0.15; // 15% MercadoPago
+const COMISION_MP = 0.10; // 10% MercadoPago
 
 function calcularDesglose(precioNeto, cantidad) {
   const subtotal   = precioNeto * cantidad;
@@ -249,7 +249,8 @@ async function enviarSolicitudCumpleanos(event) {
 // ══════════════════════════════════════════════════════
 let slideActual = 0;
 function moverSlider(dir) {
-  slideActual = (slideActual + dir + 2) % 2;
+  const numSlides = document.querySelectorAll('.evento-slide').length || 2;
+  slideActual = (slideActual + dir + numSlides) % numSlides;
   actualizarSlider();
 }
 function irASlide(i) { slideActual = i; actualizarSlider(); }
