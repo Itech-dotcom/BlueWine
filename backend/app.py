@@ -386,10 +386,13 @@ def crear_pago():
 
     # Validar cada item contra la config del evento — nunca confiar en precio/personas/nombre
     # que vengan del frontend, para evitar manipulación de montos o tipos de entrada.
+    ev_cfg_fecha = _get_evento_config(evento_id)
+    fecha_evento = ev_cfg_fecha.get('fecha', '') if ev_cfg_fecha else ''
+
     if evento_id == 'evento1':
         entradas_config = _get_entradas_config()
     else:
-        ev_cfg = _get_evento_config(evento_id)
+        ev_cfg = ev_cfg_fecha
         entradas_raw = ev_cfg.get('entradas', {})
         entradas_config = {}
         for k, v in (entradas_raw.items() if isinstance(entradas_raw, dict) else {}.items()):
@@ -427,6 +430,7 @@ def crear_pago():
             "precioFinal": precio_final,
             "personas": personas,
             "horaAcceso": info.get("horaAcceso", ""),
+            "fechaEvento": fecha_evento,
         })
         total_personas += cantidad * personas
 
@@ -600,6 +604,7 @@ def webhook_mp():
                                     "nombre": item["nombre"],
                                     "precio": item["precioFinal"],
                                     "horaAcceso": item.get("horaAcceso", ""),
+                                    "fechaEvento": item.get("fechaEvento", ""),
                                 })
 
                     # Unir comprador + acompañantes en una sola lista
@@ -650,6 +655,7 @@ def webhook_mp():
                             mesa           = mesa_num,
                             companions     = nombres_acomp if not es_acomp else None,
                             hora_acceso    = ticket.get("horaAcceso", ""),
+                            fecha_evento   = ticket.get("fechaEvento", ""),
                         )
                         qrs_emitidos.append((asistente, ticket, codigo, qr_img))
 
@@ -687,7 +693,7 @@ def webhook_mp():
 # ══════════════════════════════════════════════════════
 # EMITIR TICKET: Sheets + QR + Email
 # ══════════════════════════════════════════════════════
-def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, acompanante_de="", mesa=None, companions=None, hora_acceso=""):
+def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, acompanante_de="", mesa=None, companions=None, hora_acceso="", fecha_evento=""):
     # Genera un ticket completo para una persona: lo guarda en Sheets, crea el QR y envía el email.
     # acompanante_de: si no está vacío, indica el nombre del comprador principal (para acompañantes).
     codigo           = str(uuid.uuid4())[:12].upper()  # código único del ticket, ej: "A1B2C3D4E5F6"
@@ -732,6 +738,7 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
             companions     = companions,
             es_gratis      = (id_pago == "ENTRADA_LIBERADA"),
             hora_acceso    = hora_acceso,
+            fecha_evento   = fecha_evento,
         )
     except Exception as e:
         import traceback
@@ -859,7 +866,7 @@ def _generar_qr(contenido):
     return buf.getvalue()    # retorna los bytes de la imagen PNG
 
 
-def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None, es_gratis=False, hora_acceso=""):
+def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None, es_gratis=False, hora_acceso="", fecha_evento=""):
     e = _html.escape  # shorthand para escapar datos de usuario en HTML
 
     # Bloque acompañante (si es acompañante de alguien)
@@ -897,7 +904,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
       {bloque_mesa}
       <div style="background:#13131a;border:1px solid #2a2820;border-radius:8px;padding:20px;margin:20px 0;">
         <p style="margin:0 0 8px;"><strong>Evento:</strong> {e(evento)}</p>
-
+        {"<p style=\"margin:0 0 8px;\"><strong>Fecha:</strong> " + e(fecha_evento) + "</p>" if fecha_evento else ""}
         <p style="margin:0 0 8px;"><strong>Código:</strong> <span style="color:#c9a84c;font-family:monospace;font-size:16px;">{e(codigo)}</span></p>
         {"<p style=\"margin:0 0 8px;\">⏰ Acceso hasta las " + e(hora_acceso) + "</p>" if hora_acceso else ""}
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
@@ -1000,7 +1007,7 @@ def recuperar_pendiente():
             personas = item.get("personas", 1)
             for _ in range(item["cantidad"]):
                 for _ in range(personas):
-                    tickets_lista.append({"nombre": item["nombre"], "precio": item["precioFinal"], "horaAcceso": item.get("horaAcceso", "")})
+                    tickets_lista.append({"nombre": item["nombre"], "precio": item["precioFinal"], "horaAcceso": item.get("horaAcceso", ""), "fechaEvento": item.get("fechaEvento", "")})
 
         todos = [comprador] + acompanantes
         nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
@@ -1019,6 +1026,7 @@ def recuperar_pendiente():
                 id_pago        = "RECUPERADO_MANUAL",
                 acompanante_de = nombre_comprador if idx > 0 else "",
                 hora_acceso    = ticket.get("horaAcceso", ""),
+                fecha_evento   = ticket.get("fechaEvento", ""),
             )
             emitidos.append(ticket["nombre"])
 
@@ -1172,6 +1180,7 @@ def obtener_entrada_gratis():
 
     limite          = _get_limite_entradas_gratis(evento_id)
     nombre_evento_g = f"{_get_nombre_evento(evento_id)} — Entrada Gratuita"
+    _fecha_gratis   = ev_cfg.get('fecha', '')
     _ent_cfg        = ev_cfg.get('entradas', {})
     if not _ent_cfg and evento_id == 'evento1':
         _ent_cfg = _get_entradas_config()
@@ -1283,6 +1292,7 @@ def obtener_entrada_gratis():
             companions     = None,
             es_gratis      = True,
             hora_acceso    = _hora_gratis,
+            fecha_evento   = _fecha_gratis,
         )
     except Exception as e:
         import traceback
