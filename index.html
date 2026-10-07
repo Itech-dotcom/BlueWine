@@ -130,55 +130,6 @@
 
   </section>
 
-  <!-- CUMPLEAÑOS -->
-  <section id="cumpleanos" class="cumpleanos-section">
-    <div class="container cumpleanos-container">
-      <div class="cumpleanos-header reveal">
-        <p class="section-label">Una celebración inolvidable</p>
-        <h2 class="section-title">Celebra tu cumpleaños <em>con nosotros</em></h2>
-        <p class="cumpleanos-intro">Cuéntanos cómo quieres celebrar y nuestro equipo se pondrá en contacto contigo.</p>
-      </div>
-      <img
-        class="cumpleanos-image"
-        src="Imagenes/Cumpleanos.png"
-        alt="Celebra tu cumpleaños con nosotros en Blue Wine"
-        loading="lazy"
-      />
-      <form id="form-cumpleanos" class="contact-form cumpleanos-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="cumple-nombre">Nombre</label>
-            <input type="text" id="cumple-nombre" name="nombre" placeholder="Tu nombre" autocomplete="name" required />
-          </div>
-          <div class="form-group">
-            <label for="cumple-telefono">Teléfono / WhatsApp</label>
-            <input type="tel" id="cumple-telefono" name="telefono" placeholder="+56 9 xxxx xxxx" autocomplete="tel" required />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="cumple-email">Email</label>
-          <input type="email" id="cumple-email" name="email" placeholder="tu@correo.cl" autocomplete="email" required />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="cumple-fecha">Fecha que deseas celebrar tu cumpleaños</label>
-            <input type="date" id="cumple-fecha" name="fecha" required />
-          </div>
-          <div class="form-group">
-            <label for="cumple-personas">Número de personas</label>
-            <input type="number" id="cumple-personas" name="personas" min="1" placeholder="Ej: 10" required />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="cumple-mensaje">¿Cómo quieres celebrar?</label>
-          <textarea id="cumple-mensaje" name="mensaje" placeholder="Cuéntanos cómo te gustaría que fuera tu celebración: si quieres algo íntimo o grande, decoración, música, algún detalle especial..."></textarea>
-        </div>
-        <div id="cumple-error" class="cumpleanos-error" role="alert" hidden></div>
-        <button class="btn-submit" type="submit">Enviar solicitud →</button>
-      </form>
-    </div>
-  </section>
-
   <!-- ═══════════════════════════════════════
        SECCIÓN EVENTOS — hasta 3 simultáneos (slots evento1, evento2, evento3)
   ════════════════════════════════════════ -->
@@ -260,6 +211,55 @@
         <button class="slider-arrow slider-prev" onclick="moverSlider(-1)">‹</button>
         <button class="slider-arrow slider-next" onclick="moverSlider(1)">›</button>
       </div>
+    </div>
+  </section>
+
+  <!-- CUMPLEAÑOS -->
+  <section id="cumpleanos" class="cumpleanos-section">
+    <div class="container cumpleanos-container">
+      <div class="cumpleanos-header reveal">
+        <p class="section-label">Una celebración inolvidable</p>
+        <h2 class="section-title">Celebra tu cumpleaños <em>con nosotros</em></h2>
+        <p class="cumpleanos-intro">Cuéntanos cómo quieres celebrar y nuestro equipo se pondrá en contacto contigo.</p>
+      </div>
+      <img
+        class="cumpleanos-image"
+        src="Imagenes/Cumpleanos.png"
+        alt="Celebra tu cumpleaños con nosotros en Blue Wine"
+        loading="lazy"
+      />
+      <form id="form-cumpleanos" class="contact-form cumpleanos-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cumple-nombre">Nombre</label>
+            <input type="text" id="cumple-nombre" name="nombre" placeholder="Tu nombre" autocomplete="name" required />
+          </div>
+          <div class="form-group">
+            <label for="cumple-telefono">Teléfono / WhatsApp</label>
+            <input type="tel" id="cumple-telefono" name="telefono" placeholder="+56 9 xxxx xxxx" autocomplete="tel" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cumple-email">Email</label>
+          <input type="email" id="cumple-email" name="email" placeholder="tu@correo.cl" autocomplete="email" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cumple-fecha">Fecha que deseas celebrar tu cumpleaños</label>
+            <input type="date" id="cumple-fecha" name="fecha" required />
+          </div>
+          <div class="form-group">
+            <label for="cumple-personas">Número de personas</label>
+            <input type="number" id="cumple-personas" name="personas" min="1" placeholder="Ej: 10" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cumple-mensaje">¿Cómo quieres celebrar?</label>
+          <textarea id="cumple-mensaje" name="mensaje" placeholder="Cuéntanos cómo te gustaría que fuera tu celebración: si quieres algo íntimo o grande, decoración, música, algún detalle especial..."></textarea>
+        </div>
+        <div id="cumple-error" class="cumpleanos-error" role="alert" hidden></div>
+        <button class="btn-submit" type="submit">Enviar solicitud →</button>
+      </form>
     </div>
   </section>
 
