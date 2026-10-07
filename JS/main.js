@@ -1283,7 +1283,7 @@ async function cargarConfigRemota() {
       const footer = slide.querySelector('.evento-footer');
       if (tag)   { tag.removeAttribute('style');   tag.textContent = '🎉 Evento'; }
       if (title) { title.removeAttribute('style'); title.textContent = ev.nombre; }
-      if (desc && ev.lineup) desc.textContent = ev.lineup;
+      if (desc)  { desc.removeAttribute('style'); desc.textContent = ev.lineup || ''; }
       // Imagen de fondo del slide
       const bgImg = slide.querySelector('.evento-slide-bg-img');
       const inner = slide.querySelector('.evento-slide-inner');
