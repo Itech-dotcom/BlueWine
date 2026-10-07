@@ -1298,15 +1298,8 @@ async function cargarConfigRemota() {
         }
       }
       if (footer) {
-        const evIdEsc  = (eventoId || 'evento1').replace(/'/g, "\\'");
-        const entradasEv = ev.entradas || ENTRADAS_POR_EVENTO[eventoId] || {};
-        const tienePago  = Object.values(entradasEv).some(e => e.tipo !== 'gratis');
-        const soloGratis = esGratis && !tienePago;
-        const label   = soloGratis ? 'Obtener entrada gratis' : 'Ver entradas disponibles';
-        const onclick = soloGratis
-          ? `abrirCheckoutGratis('${ev.nombre.replace(/'/g, "\\'")}','${evIdEsc}')`
-          : `abrirModal('${evIdEsc}')`;
-        footer.innerHTML = `<button class="hero-evento-btn" onclick="${onclick}"><span class="hero-evento-dot"></span>${label}</button>`;
+        const evIdEsc = (eventoId || 'evento1').replace(/'/g, "\\'");
+        footer.innerHTML = `<button class="hero-evento-btn" onclick="abrirModal('${evIdEsc}')"><span class="hero-evento-dot"></span>Ver entradas disponibles</button>`;
       }
     }
 
@@ -1350,16 +1343,8 @@ async function cargarConfigRemota() {
       const heroBtn = document.querySelector('.hero-evento-footer .hero-evento-btn');
       if (heroBtn) {
         const evIdSafe   = _heroEvId.replace(/'/g, "\\'");
-        const entradasH  = _heroEv.entradas || ENTRADAS_POR_EVENTO[_heroEvId] || {};
-        const tienePagoH = Object.values(entradasH).some(e => e.tipo !== 'gratis');
-        const soloGratisH = _heroEv.entradasGratis && !tienePagoH;
-        if (soloGratisH) {
-          heroBtn.setAttribute('onclick', `abrirCheckoutGratis('${_heroEv.nombre.replace(/'/g,"\\'")}','${evIdSafe}')`);
-          heroBtn.innerHTML = `<span class="hero-evento-dot"></span>Obtener entrada gratis`;
-        } else {
-          heroBtn.setAttribute('onclick', `abrirModal('${evIdSafe}')`);
-          heroBtn.innerHTML = `<span class="hero-evento-dot"></span>Ver entradas disponibles`;
-        }
+        heroBtn.setAttribute('onclick', `abrirModal('${evIdSafe}')`);
+        heroBtn.innerHTML = `<span class="hero-evento-dot"></span>Ver entradas disponibles`;
       }
     }
 
