@@ -26,6 +26,10 @@ const ENTRADAS = {
   puertaDiamond:  { nombre: 'Puerta Diamond',       precio: 30000,  limite: 50,  disponibles: 50,  activa: false,                    tipo: 'vip' },
 };
 
+// Entradas y nombres cargados por slot desde PG (se llena en cargarConfigRemota)
+const ENTRADAS_POR_EVENTO = {};
+const NOMBRES_EVENTOS     = {};
+
 // ══════════════════════════════════════════════════════
 // CONFIGURACIÓN EVENTOS — hasta 5 simultáneos
 // Índice 0 = evento1, 1 = evento2, ... 4 = evento5
@@ -286,11 +290,40 @@ function actualizarStock() {
     .catch(() => {});
 }
 
+// Carga las entradas del evento indicado en ENTRADAS (para que el modal las muestre).
+function _cargarEntradasEvento(eventoId) {
+  const entradasEv = ENTRADAS_POR_EVENTO[eventoId];
+  if (!entradasEv || !Object.keys(entradasEv).length) return;
+  Object.keys(ENTRADAS).forEach(k => { if (k !== '_configKeys') delete ENTRADAS[k]; });
+  const configKeys = new Set();
+  Object.entries(entradasEv).forEach(([k, v]) => {
+    ENTRADAS[k] = {
+      nombre:       v.nombre || k,
+      precio:       v.precio || 0,
+      limite:       v.limite || 0,
+      disponibles:  v.disponibles !== undefined ? v.disponibles : (v.limite || 0),
+      activa:       v.activa === true,
+      proximamente: v.proximamente === true,
+      tipo:         v.tipo || 'general',
+      personas:     v.personas || (v.tipo === 'promo' ? 2 : 1),
+      desc:         v.desc || '',
+    };
+    configKeys.add(k);
+  });
+  ENTRADAS._configKeys = configKeys;
+}
+
 // Abre el modal de entradas. eventoId indica qué evento (evento1..5).
 function abrirModal(eventoId) {
   _eventoModalActivo = eventoId || 'evento1';
+  _cargarEntradasEvento(_eventoModalActivo);
+  if (NOMBRES_EVENTOS[_eventoModalActivo]) {
+    NOMBRE_EVENTO_PRINCIPAL = NOMBRES_EVENTOS[_eventoModalActivo];
+    const modalLabel = document.getElementById('modal-label-fecha');
+    if (modalLabel) modalLabel.textContent = NOMBRES_EVENTOS[_eventoModalActivo];
+  }
   try { renderizarTiposEntrada(); } catch(err) { console.error('renderizarTiposEntrada:', err); }
-  actualizarStock();
+  if (_eventoModalActivo === 'evento1') actualizarStock();
   document.getElementById('modal-principal').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -562,7 +595,7 @@ function agregarAlCarritoEntradas(id) {
   if (enCarrito) {
     enCarrito.cantidad++;
   } else {
-    carritoEntradas.push({ id, nombre: e.nombre, nombreMP: e.nombreMP || e.nombre, precio: e.precio, cantidad: 1 });
+    carritoEntradas.push({ id, nombre: e.nombre, nombreMP: e.nombreMP || e.nombre, precio: e.precio, cantidad: 1, personas: e.personas || 1 });
   }
 
   actualizarBadgeCarrito();
@@ -829,7 +862,7 @@ function procederPagoEntradas() {
   const comprador = { nombre, apellido, rut, email, telefono };
 
   // ── Recoger y validar acompañantes ──
-  const totalTickets = carritoEntradas.reduce((s, i) => s + i.cantidad * (ENTRADAS[i.id]?.personas || 1), 0);
+  const totalTickets = carritoEntradas.reduce((s, i) => s + i.cantidad * (i.personas || ENTRADAS[i.id]?.personas || 1), 0);
   const formulariosPresentes = document.querySelectorAll('#acompanantes-container .acomp-seccion').length;
   if (totalTickets > 1 && formulariosPresentes < totalTickets - 1) {
     errorEl.textContent = '⚠️ Tu sesión está desactualizada. Por favor recarga la página e intenta nuevamente.';
@@ -896,13 +929,13 @@ function procederPagoEntradas() {
 
   const items = carritoEntradas.map(i => {
     const d = calcularDesglose(i.precio, i.cantidad);
-    return { id: i.id, nombre: `${NOMBRE_EVENTO_PRINCIPAL} — ${i.nombreMP}`, cantidad: i.cantidad, precioFinal: d.totalUnit, personas: ENTRADAS[i.id]?.personas || 1 };
+    return { id: i.id, nombre: `${NOMBRE_EVENTO_PRINCIPAL} — ${i.nombreMP}`, cantidad: i.cantidad, precioFinal: d.totalUnit, personas: i.personas || ENTRADAS[i.id]?.personas || 1 };
   });
 
   fetch('https://bluewine-production.up.railway.app/crear-pago', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items, comprador, acompanantes })
+    body: JSON.stringify({ items, comprador, acompanantes, eventoId: _eventoModalActivo })
   })
   .then(res => res.json())
   .then(data => {
@@ -1346,6 +1379,19 @@ async function cargarConfigRemota() {
         }
       });
       ENTRADAS._configKeys = configKeys;
+      ENTRADAS_POR_EVENTO['evento1'] = cfg.entradas;
+    }
+
+    // Nombres y entradas por evento (para modal de eventos secundarios)
+    _EVENTO_IDS.forEach((evId, i) => {
+      const ev = _evs[i];
+      if (ev?.nombre) NOMBRES_EVENTOS[evId] = ev.nombre;
+      if (ev?.entradas && typeof ev.entradas === 'object' && Object.keys(ev.entradas).length > 0) {
+        ENTRADAS_POR_EVENTO[evId] = ev.entradas;
+      }
+    });
+
+    if (cfg.entradas && typeof cfg.entradas === 'object') {
       // Sincronizar CONFIG_*.esGratis desde ENTRADAS.gratis para badges y slides
       if (ENTRADAS.gratis) {
         const gActiva = ENTRADAS.gratis.activa && ENTRADAS.gratis.disponibles > 0;

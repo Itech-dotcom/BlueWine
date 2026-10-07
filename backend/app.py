@@ -372,14 +372,37 @@ def crear_pago():
     # crea una preferencia de pago en MercadoPago y guarda los datos en "pendientes".
     # El frontend redirige al usuario a init_point para que pague.
     data              = request.get_json()
-    items_recibidos   = data.get("items", [])          # lista de entradas del carrito (sin confiar en precios/cantidades)
-    comprador         = data.get("comprador", {})       # datos del comprador principal
-    acompanantes      = data.get("acompanantes", [])    # lista de acompañantes (puede estar vacía)
-    compra_id         = secrets.token_urlsafe(16)         # ID único criptográficamente seguro
+    items_recibidos   = data.get("items", [])
+    comprador         = data.get("comprador", {})
+    acompanantes      = data.get("acompanantes", [])
+    compra_id         = secrets.token_urlsafe(16)
 
-    # Validar cada item contra la config actual — nunca confiar en precio/personas/nombre
+    # Normalizar evento_id
+    evento_id = str(data.get("eventoId", "evento1")).strip()
+    _alias_ev = {'viernes': 'evento1', 'sabado': 'evento2'}
+    evento_id = _alias_ev.get(evento_id, evento_id)
+    if evento_id not in ('evento1','evento2','evento3','evento4','evento5'):
+        evento_id = 'evento1'
+
+    # Validar cada item contra la config del evento — nunca confiar en precio/personas/nombre
     # que vengan del frontend, para evitar manipulación de montos o tipos de entrada.
-    entradas_config = _get_entradas_config()
+    if evento_id == 'evento1':
+        entradas_config = _get_entradas_config()
+    else:
+        ev_cfg = _get_evento_config(evento_id)
+        entradas_raw = ev_cfg.get('entradas', {})
+        entradas_config = {}
+        for k, v in (entradas_raw.items() if isinstance(entradas_raw, dict) else {}.items()):
+            if isinstance(v, dict) and 'precio' in v and 'nombre' in v:
+                entradas_config[k] = {
+                    'nombre':   v['nombre'],
+                    'precio':   int(v.get('precio', 0)),
+                    'personas': int(v.get('personas', 1)),
+                    'limite':   int(v.get('limite', 0)),
+                }
+        if not entradas_config:
+            return jsonify({"error": "Este evento no tiene tipos de entrada configurados"}), 400
+
     items = []
     total_personas = 0
     for item in items_recibidos:
@@ -395,7 +418,7 @@ def crear_pago():
 
         precio_final = info["precio"] + round(info["precio"] * COMISION_MP)
         personas     = info.get("personas", 1)
-        nombre_evento = _get_nombre_evento()
+        nombre_evento = _get_nombre_evento(evento_id)
         items.append({
             "id": item["id"],
             "nombre": f"{nombre_evento} — {info['nombre']}",
@@ -408,13 +431,14 @@ def crear_pago():
     if not items:
         return jsonify({"error": "El carrito está vacío"}), 400
 
-    # M10: validar stock disponible antes de crear el link de pago
-    stock_disponible = _get_stock_disponible()
-    for item in items:
-        disponible = stock_disponible.get(item["id"])
-        if disponible is not None and item["cantidad"] > disponible:
-            nombre_entrada = entradas_config[item["id"]].get("nombre", item["id"])
-            return jsonify({"error": f"Stock insuficiente para '{nombre_entrada}'. Quedan {disponible} entradas disponibles."}), 400
+    # Stock: solo para evento1 (contador en tiempo real contra tickets vendidos)
+    if evento_id == 'evento1':
+        stock_disponible = _get_stock_disponible()
+        for item in items:
+            disponible = stock_disponible.get(item["id"])
+            if disponible is not None and item["cantidad"] > disponible:
+                nombre_entrada = entradas_config[item["id"]].get("nombre", item["id"])
+                return jsonify({"error": f"Stock insuficiente para '{nombre_entrada}'. Quedan {disponible} entradas disponibles."}), 400
 
     # La cantidad de acompañantes debe coincidir exactamente con los cupos comprados
     # (total de personas - 1 por el comprador principal).
