@@ -1306,23 +1306,29 @@ async function cargarConfigRemota() {
       }
     }
 
-    // Aplicar datos a cada slide + actualizar CONFIG_EVENTOS
-    let _heroEv = null; let _heroEvId = 'evento1'; let _heroSlideIdx = 0;
+    // Primera pasada: actualizar CONFIG_EVENTOS y encontrar el evento héroe
+    let _heroEv = null; let _heroEvId = 'evento1';
     _EVENTO_IDS.forEach((evId, i) => {
-      const ev    = _evs[i];
-      const slide = slides[i];
+      const ev = _evs[i];
       if (!ev) return;
       if ('entradasGratis'        in ev) CONFIG_EVENTOS[i].esGratis      = !!ev.entradasGratis;
       if ('entradasGratisAgotada' in ev) CONFIG_EVENTOS[i].gratisAgotada = !!ev.entradasGratisAgotada;
-      if (slide) {
-        const fechaEl = slide.querySelector('.evento-slide-nombre-dia');
-        if (fechaEl && ev.fecha) fechaEl.textContent = ev.fecha;
-        const labelEl = slide.querySelector('.evento-slide-label');
-        if (labelEl && ev.diaLabel) labelEl.textContent = ev.diaLabel;
-        if (ev.activo) _aplicarEvento(slide, ev, ev.entradasGratis, evId);
-      }
-      if (ev.activo && (ev.destacado || !_heroEv)) { _heroEv = ev; _heroEvId = evId; _heroSlideIdx = i; }
+      if (ev.activo && (ev.destacado || !_heroEv)) { _heroEv = ev; _heroEvId = evId; }
     });
+
+    // Segunda pasada: llenar slides solo con eventos secundarios (el héroe va al hero, no al slider)
+    const _sliderEvIds = _EVENTO_IDS.filter(id => id !== _heroEvId);
+    _sliderEvIds.forEach((evId, sliderIdx) => {
+      const ev    = _evs[_EVENTO_IDS.indexOf(evId)];
+      const slide = slides[sliderIdx];
+      if (!ev || !slide) return;
+      const fechaEl = slide.querySelector('.evento-slide-nombre-dia');
+      if (fechaEl && ev.fecha) fechaEl.textContent = ev.fecha;
+      const labelEl = slide.querySelector('.evento-slide-label');
+      if (labelEl && ev.diaLabel) labelEl.textContent = ev.diaLabel;
+      if (ev.activo) _aplicarEvento(slide, ev, ev.entradasGratis, evId);
+    });
+    irASlide(0);
     renderBadgesGratis();
 
     // Actualizar hero con el evento destacado
@@ -1348,7 +1354,6 @@ async function cargarConfigRemota() {
           heroBtn.innerHTML = `<span class="hero-evento-dot"></span>Ver entradas disponibles`;
         }
       }
-      if (_heroSlideIdx > 0) irASlide(_heroSlideIdx);
     }
 
     // Precios y disponibilidad de entradas
