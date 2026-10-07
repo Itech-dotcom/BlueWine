@@ -539,12 +539,12 @@
 
   .entrada-row {
     display: grid;
-    grid-template-columns: 1fr 100px 100px 90px 80px 60px 100px 32px;
+    grid-template-columns: 1fr 100px 100px 90px 80px 120px 100px 32px;
     gap: 12px;
     align-items: center;
     padding: 14px 0;
     border-bottom: 1px solid var(--border);
-    min-width: 720px;
+    min-width: 780px;
     transition: background 0.15s;
   }
 
@@ -560,13 +560,15 @@
     color: var(--text-muted);
     padding: 18px 0 10px;
     border-bottom: 1px solid var(--border);
-    grid-template-columns: 1fr 100px 100px 90px 80px 60px 100px 32px;
+    grid-template-columns: 1fr 100px 100px 90px 80px 120px 100px 32px;
   }
 
   .entrada-row-header:hover { background: none; }
 
-  .entrada-tipo-select {
+  .entrada-tipo-select,
+  .entrada-estado-select {
     width: 100%;
+    box-sizing: border-box;
     padding: 6px 6px;
     background: var(--surface2);
     border: 1px solid var(--border);
