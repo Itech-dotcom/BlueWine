@@ -899,7 +899,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
         <p style="margin:0 0 8px;"><strong>Evento:</strong> {e(evento)}</p>
 
         <p style="margin:0 0 8px;"><strong>Código:</strong> <span style="color:#c9a84c;font-family:monospace;font-size:16px;">{e(codigo)}</span></p>
-        {"<p style=\"margin:0 0 8px;\">⏰ " + e(hora_acceso) + "</p>" if hora_acceso else ""}
+        {"<p style=\"margin:0 0 8px;\">⏰ Acceso hasta las " + e(hora_acceso) + "</p>" if hora_acceso else ""}
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
       </div>
       <div style="text-align:center;margin:24px 0;">
