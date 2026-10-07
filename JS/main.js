@@ -1299,8 +1299,8 @@ async function cargarConfigRemota() {
       }
       if (footer) {
         const evIdEsc  = (eventoId || 'evento1').replace(/'/g, "\\'");
-        const entradasEv = ENTRADAS_POR_EVENTO[eventoId] || {};
-        const tienePago  = Object.values(entradasEv).some(e => e.tipo !== 'gratis' && e.activa);
+        const entradasEv = ev.entradas || ENTRADAS_POR_EVENTO[eventoId] || {};
+        const tienePago  = Object.values(entradasEv).some(e => e.tipo !== 'gratis' && (e.activa === true || e.activa === undefined));
         const soloGratis = esGratis && !tienePago;
         const label   = soloGratis ? 'Obtener entrada gratis' : 'Ver entradas disponibles';
         const onclick = soloGratis
@@ -1350,8 +1350,8 @@ async function cargarConfigRemota() {
       const heroBtn = document.querySelector('.hero-evento-footer .hero-evento-btn');
       if (heroBtn) {
         const evIdSafe   = _heroEvId.replace(/'/g, "\\'");
-        const entradasH  = ENTRADAS_POR_EVENTO[_heroEvId] || {};
-        const tienePagoH = Object.values(entradasH).some(e => e.tipo !== 'gratis' && e.activa);
+        const entradasH  = _heroEv.entradas || ENTRADAS_POR_EVENTO[_heroEvId] || {};
+        const tienePagoH = Object.values(entradasH).some(e => e.tipo !== 'gratis' && (e.activa === true || e.activa === undefined));
         const soloGratisH = _heroEv.entradasGratis && !tienePagoH;
         if (soloGratisH) {
           heroBtn.setAttribute('onclick', `abrirCheckoutGratis('${_heroEv.nombre.replace(/'/g,"\\'")}','${evIdSafe}')`);
