@@ -307,6 +307,7 @@ function _cargarEntradasEvento(eventoId) {
       tipo:         v.tipo || 'general',
       personas:     v.personas || (v.tipo === 'promo' ? 2 : 1),
       desc:         v.desc || '',
+      horaAcceso:   v.horaAcceso || '',
     };
     configKeys.add(k);
   });

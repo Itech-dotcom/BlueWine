@@ -274,6 +274,7 @@ function _leerEntradasDelPanel() {
     const nombreEl = row.querySelector('.entrada-nombre-input');
     const tipoEl   = row.querySelector('.entrada-tipo-select');
     const estadoEl = row.querySelector('.entrada-estado-select');
+    const horaEl   = row.querySelector('.entrada-hora-input');
     if (!keyEl) return;
     const key = keyEl.textContent.trim();
     if (!key) return;
@@ -286,6 +287,7 @@ function _leerEntradasDelPanel() {
       proximamente: estado === 'proximamente',
       tipo:         tipoEl?.value || 'general',
       personas:     tipoEl?.value === 'promo' ? 2 : 1,
+      horaAcceso:   horaEl?.value?.trim() || '',
     };
   });
   return entradas;
@@ -332,6 +334,7 @@ function _cargarEntradasEnPanel(entradas) {
           <option value="agotada"${estado === 'agotada' ? ' selected' : ''}>Agotada</option>
           <option value="proximamente"${estado === 'proximamente' ? ' selected' : ''}>Próximamente</option>
         </select></div>
+        <div><input type="text" value="${escapeHtml(val.horaAcceso || '')}" placeholder="Ej: 22:00" class="entrada-input entrada-hora-input" title="Hora de acceso (se muestra en el correo del ticket)" /></div>
         <button type="button" class="entrada-remove" onclick="this.closest('.entrada-row').remove()" title="Eliminar tipo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>

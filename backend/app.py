@@ -395,10 +395,11 @@ def crear_pago():
         for k, v in (entradas_raw.items() if isinstance(entradas_raw, dict) else {}.items()):
             if isinstance(v, dict) and 'precio' in v and 'nombre' in v:
                 entradas_config[k] = {
-                    'nombre':   v['nombre'],
-                    'precio':   int(v.get('precio', 0)),
-                    'personas': int(v.get('personas', 1)),
-                    'limite':   int(v.get('limite', 0)),
+                    'nombre':     v['nombre'],
+                    'precio':     int(v.get('precio', 0)),
+                    'personas':   int(v.get('personas', 1)),
+                    'limite':     int(v.get('limite', 0)),
+                    'horaAcceso': v.get('horaAcceso', ''),
                 }
         if not entradas_config:
             return jsonify({"error": "Este evento no tiene tipos de entrada configurados"}), 400
@@ -424,7 +425,8 @@ def crear_pago():
             "nombre": f"{nombre_evento} — {info['nombre']}",
             "cantidad": cantidad,
             "precioFinal": precio_final,
-            "personas": personas
+            "personas": personas,
+            "horaAcceso": info.get("horaAcceso", ""),
         })
         total_personas += cantidad * personas
 
@@ -596,7 +598,8 @@ def webhook_mp():
                             for _ in range(personas):
                                 tickets_lista.append({
                                     "nombre": item["nombre"],
-                                    "precio": item["precioFinal"]
+                                    "precio": item["precioFinal"],
+                                    "horaAcceso": item.get("horaAcceso", ""),
                                 })
 
                     # Unir comprador + acompañantes en una sola lista
@@ -645,7 +648,8 @@ def webhook_mp():
                             id_pago        = str(payment_id),
                             acompanante_de = nombre_comprador if es_acomp else "",
                             mesa           = mesa_num,
-                            companions     = nombres_acomp if not es_acomp else None
+                            companions     = nombres_acomp if not es_acomp else None,
+                            hora_acceso    = ticket.get("horaAcceso", ""),
                         )
                         qrs_emitidos.append((asistente, ticket, codigo, qr_img))
 
@@ -683,7 +687,7 @@ def webhook_mp():
 # ══════════════════════════════════════════════════════
 # EMITIR TICKET: Sheets + QR + Email
 # ══════════════════════════════════════════════════════
-def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, acompanante_de="", mesa=None, companions=None):
+def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, acompanante_de="", mesa=None, companions=None, hora_acceso=""):
     # Genera un ticket completo para una persona: lo guarda en Sheets, crea el QR y envía el email.
     # acompanante_de: si no está vacío, indica el nombre del comprador principal (para acompañantes).
     codigo           = str(uuid.uuid4())[:12].upper()  # código único del ticket, ej: "A1B2C3D4E5F6"
@@ -727,6 +731,7 @@ def _emitir_ticket(comprador, evento, cantidad, precio_unit, total, id_pago, aco
             mesa           = mesa,
             companions     = companions,
             es_gratis      = (id_pago == "ENTRADA_LIBERADA"),
+            hora_acceso    = hora_acceso,
         )
     except Exception as e:
         import traceback
@@ -854,7 +859,7 @@ def _generar_qr(contenido):
     return buf.getvalue()    # retorna los bytes de la imagen PNG
 
 
-def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None, es_gratis=False):
+def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanante_de="", mesa=None, companions=None, es_gratis=False, hora_acceso=""):
     e = _html.escape  # shorthand para escapar datos de usuario en HTML
 
     # Bloque acompañante (si es acompañante de alguien)
@@ -894,7 +899,7 @@ def _enviar_email_ticket(destinatario, nombre, evento, codigo, qr_img, acompanan
         <p style="margin:0 0 8px;"><strong>Evento:</strong> {e(evento)}</p>
 
         <p style="margin:0 0 8px;"><strong>Código:</strong> <span style="color:#c9a84c;font-family:monospace;font-size:16px;">{e(codigo)}</span></p>
-        {"<p style=\"margin:0 0 8px;\">⏰ Acceso hasta las 23:30 hrs</p>" if es_gratis else ""}
+        {"<p style=\"margin:0 0 8px;\">⏰ " + e(hora_acceso) + "</p>" if hora_acceso else ""}
         <p style="margin:0;">Presenta este QR en la entrada del recinto.</p>
       </div>
       <div style="text-align:center;margin:24px 0;">
@@ -995,7 +1000,7 @@ def recuperar_pendiente():
             personas = item.get("personas", 1)
             for _ in range(item["cantidad"]):
                 for _ in range(personas):
-                    tickets_lista.append({"nombre": item["nombre"], "precio": item["precioFinal"]})
+                    tickets_lista.append({"nombre": item["nombre"], "precio": item["precioFinal"], "horaAcceso": item.get("horaAcceso", "")})
 
         todos = [comprador] + acompanantes
         nombre_comprador = f"{comprador.get('nombre','')} {comprador.get('apellido','')}".strip()
@@ -1006,13 +1011,14 @@ def recuperar_pendiente():
         emitidos = []
         for idx, (asistente, ticket) in enumerate(zip(todos, tickets_lista)):
             _emitir_ticket(
-                comprador   = asistente,
-                evento      = ticket["nombre"],
-                cantidad    = 1,
-                precio_unit = ticket["precio"],
-                total       = ticket["precio"],
-                id_pago     = "RECUPERADO_MANUAL",
-                acompanante_de = nombre_comprador if idx > 0 else ""
+                comprador      = asistente,
+                evento         = ticket["nombre"],
+                cantidad       = 1,
+                precio_unit    = ticket["precio"],
+                total          = ticket["precio"],
+                id_pago        = "RECUPERADO_MANUAL",
+                acompanante_de = nombre_comprador if idx > 0 else "",
+                hora_acceso    = ticket.get("horaAcceso", ""),
             )
             emitidos.append(ticket["nombre"])
 
@@ -1166,6 +1172,13 @@ def obtener_entrada_gratis():
 
     limite          = _get_limite_entradas_gratis(evento_id)
     nombre_evento_g = f"{_get_nombre_evento(evento_id)} — Entrada Gratuita"
+    _ent_cfg        = ev_cfg.get('entradas', {})
+    if not _ent_cfg and evento_id == 'evento1':
+        _ent_cfg = _get_entradas_config()
+    _hora_gratis = next(
+        (v.get('horaAcceso', '') for v in _ent_cfg.values() if isinstance(v, dict) and v.get('tipo') == 'gratis'),
+        ''
+    )
     codigo           = str(uuid.uuid4())[:12].upper()
     url_verificacion = f"https://bluewine-production.up.railway.app/verificar/{codigo}"
     fecha            = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1269,6 +1282,7 @@ def obtener_entrada_gratis():
             mesa           = None,
             companions     = None,
             es_gratis      = True,
+            hora_acceso    = _hora_gratis,
         )
     except Exception as e:
         import traceback
