@@ -654,7 +654,7 @@ function renderizarCarritoEntradas() {
     </div>
     <div class="carrito-item-desglose">
       <div class="desglose-row"><span>Subtotal neto</span><span>${formatPrecio(d.subtotal)}</span></div>
-      <div class="desglose-row"><span>Comisión ticketera (15%)</span><span>${formatPrecio(d.comTotal)}</span></div>
+      <div class="desglose-row"><span>Comisión ticketera (10%)</span><span>${formatPrecio(d.comTotal)}</span></div>
       <div class="desglose-row desglose-total"><span>Total este ítem</span><span>${formatPrecio(d.totalFinal)}</span></div>
     </div>
   `}).join('');
