@@ -716,13 +716,6 @@ async function cargarConfigPanel() {
       let entradasEv = ev.entradas || null;
       if (!entradasEv && id === 'evento1' && cfg.entradas) entradasEv = cfg.entradas;
       if (entradasEv) {
-        // Asegurar que gratis esté presente
-        if (!Object.values(entradasEv).some(e => e.tipo === 'gratis')) {
-          entradasEv = {
-            gratis: { nombre: 'Exclusivo solo para ellas', precio: 0, limite: 100, activa: false, proximamente: false, tipo: 'gratis' },
-            ...entradasEv,
-          };
-        }
         entradasPorEvento[id] = entradasEv;
       }
     });
