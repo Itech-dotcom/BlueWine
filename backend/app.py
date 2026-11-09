@@ -65,7 +65,7 @@ ADMIN_KEY = os.getenv("ADMIN_KEY", "bw-admin-2026")
 # (ver CLAUDE.md → "nuevo evento"), actualizar también esta tabla.
 # ══════════════════════════════════════════════════════
 NOMBRE_EVENTO_PRINCIPAL = "HALLOWEEN BLUE WINE 2026"
-COMISION_MP = 0.15  # 15% MercadoPago, igual que en main.js
+COMISION_MP = 0.10  # 10% MercadoPago, igual que en main.js
 
 PRECIOS_ENTRADAS = {
     "general":        {"nombre": "General",               "precio": 5000,   "personas": 1},
